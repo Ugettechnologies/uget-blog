@@ -16,8 +16,8 @@ export default function Footer() {
             <Image
               src="/logo-text.png"
               alt="UGET Technologies"
-              width={50}
-              height={50}
+              width={70}
+              height={70}
               className="object-contain mb-5"
               style={{ mixBlendMode: "screen" }}
             />
