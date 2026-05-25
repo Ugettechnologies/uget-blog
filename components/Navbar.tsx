@@ -28,10 +28,17 @@ export default function Navbar() {
         scrolled ? "nav-blur" : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="UGET Technologies" width={140} height={40} className="object-contain" />
+      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        {/* Logo — small, clean, uses the backgroundless logo */}
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo-text.png"
+            alt="UGET Technologies"
+            width={110}
+            height={32}
+            className="object-contain"
+            style={{ filter: "brightness(1.05)" }}
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -58,22 +65,37 @@ export default function Navbar() {
         <button
           className="md:hidden text-white p-2"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
         >
-          <div className="w-6 h-0.5 bg-white mb-1.5 transition-all" style={{ transform: menuOpen ? 'rotate(45deg) translateY(8px)' : '' }} />
-          <div className="w-6 h-0.5 bg-white mb-1.5 transition-all" style={{ opacity: menuOpen ? 0 : 1 }} />
-          <div className="w-6 h-0.5 bg-white transition-all" style={{ transform: menuOpen ? 'rotate(-45deg) translateY(-8px)' : '' }} />
+          <div
+            className="w-5 h-0.5 bg-white mb-1.5 transition-all duration-300 origin-center"
+            style={{ transform: menuOpen ? "rotate(45deg) translateY(6px)" : "" }}
+          />
+          <div
+            className="w-5 h-0.5 bg-white mb-1.5 transition-all duration-300"
+            style={{ opacity: menuOpen ? 0 : 1 }}
+          />
+          <div
+            className="w-5 h-0.5 bg-white transition-all duration-300 origin-center"
+            style={{ transform: menuOpen ? "rotate(-45deg) translateY(-6px)" : "" }}
+          />
         </button>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden nav-blur border-t border-white/10 px-6 py-4 flex flex-col gap-4">
+        <div className="md:hidden nav-blur border-t border-white/10 px-6 py-5 flex flex-col gap-4">
           {navLinks.map((link) => (
-            <Link key={link.label} href={link.href} className="text-sm font-medium text-white/80 hover:text-white">
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
               {link.label}
             </Link>
           ))}
-          <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+          <div className="flex flex-col gap-2 pt-3 border-t border-white/10">
             <button className="btn-outline text-sm w-full">Sign In</button>
             <button className="btn-primary text-sm w-full">Enroll Now</button>
           </div>

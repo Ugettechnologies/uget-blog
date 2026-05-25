@@ -13,7 +13,7 @@ export default function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
           {/* Brand column */}
           <div className="lg:col-span-2">
-            <Image src="/logo.png" alt="UGET Technologies" width={140} height={40} className="object-contain mb-5" />
+            <Image src="/logo-text.png" alt="UGET Technologies" width={120} height={36} className="object-contain mb-5" />
             <p className="text-white/45 text-sm leading-relaxed max-w-xs mb-6">
               UGET Technology Academy empowers the next generation of African tech professionals through world-class education and mentorship.
             </p>
