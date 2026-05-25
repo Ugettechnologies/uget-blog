@@ -14,7 +14,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-2">
             <Image
-              src="/logo-purple.png"
+              src="/logo-text.png"
               alt="UGET Technologies"
               width={50}
               height={50}

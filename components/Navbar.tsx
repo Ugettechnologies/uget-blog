@@ -32,7 +32,7 @@ export default function Navbar() {
         {/* Logo — small, clean, uses the backgroundless logo */}
         <Link href="/" className="flex items-center">
           <Image
-            src="/logo-purple.png"
+            src="/logo-text.png"
             alt="UGET Technologies"
             width={42}
             height={42}
