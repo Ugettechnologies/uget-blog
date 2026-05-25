@@ -34,10 +34,10 @@ export default function Navbar() {
           <Image
             src="/logo-text.png"
             alt="UGET Technologies"
-            width={42}
-            height={42}
+            width={110}
+            height={32}
             className="object-contain"
-            style={{ mixBlendMode: "screen" }}
+            style={{ filter: "brightness(1.05)" }}
           />
         </Link>
 
