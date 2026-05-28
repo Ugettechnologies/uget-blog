@@ -1,0 +1,355 @@
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import type { Post, Profile } from "@/lib/types";
+import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
+
+type AdminTab = "overview" | "posts" | "users";
+
+function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
+  return (
+    <div className="admin-stat-card" style={{ borderLeft: `3px solid ${color}` }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <span style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+        <span style={{ fontSize: 20 }}>{icon}</span>
+      </div>
+      <div className="admin-stat-number">{value}</div>
+    </div>
+  );
+}
+
+export default function AdminPage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [tab, setTab] = useState<AdminTab>("overview");
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  useEffect(() => {
+    checkAdmin();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const checkAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/auth"); return; }
+    const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+    if (prof?.role !== "admin") { router.push("/"); return; }
+    loadData();
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    const [postsRes, usersRes] = await Promise.all([
+      supabase.from("posts").select("*, profiles(full_name, avatar_url, username)").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+    ]);
+    setPosts(postsRes.data as Post[] || []);
+    setUsers(usersRes.data as Profile[] || []);
+    setLoading(false);
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (!confirm("Delete this post permanently?")) return;
+    const { error } = await supabase.from("posts").delete().eq("id", id);
+    if (error) { showMsg(error.message, "err"); return; }
+    setPosts(posts.filter((p) => p.id !== id));
+    showMsg("Post deleted");
+  };
+
+  const handleToggleFeatured = async (post: Post) => {
+    const { data, error } = await supabase.from("posts").update({ featured: !post.featured }).eq("id", post.id).select().single();
+    if (error) { showMsg(error.message, "err"); return; }
+    setPosts(posts.map((p) => p.id === post.id ? data as Post : p));
+    showMsg(data.featured ? "Marked as featured" : "Removed from featured");
+  };
+
+  const handleTogglePublish = async (post: Post) => {
+    const { data, error } = await supabase.from("posts").update({ published: !post.published }).eq("id", post.id).select().single();
+    if (error) { showMsg(error.message, "err"); return; }
+    setPosts(posts.map((p) => p.id === post.id ? data as Post : p));
+    showMsg(data.published ? "Post published" : "Post unpublished");
+  };
+
+  const handleChangeRole = async (userId: string, role: string) => {
+    const { error } = await supabase.from("profiles").update({ role }).eq("id", userId);
+    if (error) { showMsg(error.message, "err"); return; }
+    setUsers(users.map((u) => u.id === userId ? { ...u, role: role as Profile["role"] } : u));
+    showMsg(`Role updated to ${role}`);
+  };
+
+  const totalViews = posts.reduce((s, p) => s + (p.view_count || 0), 0);
+  const totalLikes = posts.reduce((s, p) => s + (p.like_count || 0), 0);
+  const published = posts.filter((p) => p.published);
+
+  const navItems: { id: AdminTab; label: string; icon: string }[] = [
+    { id: "overview", label: "Overview", icon: "📊" },
+    { id: "posts", label: "All Posts", icon: "📝" },
+    { id: "users", label: "Users", icon: "👥" },
+  ];
+
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-2)" }}>
+      {/* Toast */}
+      {toast && (
+        <div className="toast-container">
+          <div className={`toast ${toast.type === "err" ? "toast-error" : "toast-success"}`}>
+            {toast.type === "ok" ? "✓" : "✗"} {toast.msg}
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar */}
+      <aside className="admin-sidebar" style={{ transform: sidebarOpen ? "none" : "translateX(-240px)", transition: "transform 0.3s ease", position: "fixed", top: 0, left: 0, zIndex: 90 }}>
+        <div className="admin-logo">
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Image src="/logo-icon.png" alt="UGET" width={24} height={24} className="object-contain" />
+            <span style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)" }}>UGET Admin</span>
+          </div>
+        </div>
+        <nav style={{ padding: "8px 0" }}>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className={`admin-nav-item ${tab === item.id ? "active" : ""}`}
+            >
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+              {item.id === "posts" && <span style={{ marginLeft: "auto", background: "var(--bg-3)", color: "var(--muted)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{posts.length}</span>}
+            </button>
+          ))}
+          <div style={{ height: 1, background: "var(--border-2)", margin: "12px 0" }} />
+          <Link href="/" className="admin-nav-item" style={{ textDecoration: "none" }}>
+            <span>🌐</span><span>View site</span>
+          </Link>
+        </nav>
+      </aside>
+
+      {/* Main */}
+      <main style={{ flex: 1, marginLeft: sidebarOpen ? 240 : 0, transition: "margin-left 0.3s ease", minWidth: 0 }}>
+        {/* Topbar */}
+        <div className="admin-topbar">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border)", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="admin-page-title">
+            {navItems.find((n) => n.id === tab)?.label}
+          </h1>
+          {tab === "posts" && (
+            <Link href="/write" className="btn btn-primary btn-sm" style={{ textDecoration: "none", marginLeft: "auto" }}>
+              + New post
+            </Link>
+          )}
+        </div>
+
+        <div className="admin-content">
+          {loading ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh", flexDirection: "column", gap: 16 }}>
+              <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)", borderWidth: 3 }} />
+              <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>Loading…</p>
+            </div>
+          ) : (
+            <>
+              {/* ── OVERVIEW ── */}
+              {tab === "overview" && (
+                <div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
+                    <StatCard label="Total posts" value={posts.length} icon="📝" color="#3b82f6" />
+                    <StatCard label="Published" value={published.length} icon="🌐" color="#10b981" />
+                    <StatCard label="Writers" value={users.length} icon="✍️" color="#8b5cf6" />
+                    <StatCard label="Total views" value={totalViews.toLocaleString()} icon="👁" color="#f59e0b" />
+                    <StatCard label="Total likes" value={totalLikes} icon="❤️" color="#ef4444" />
+                  </div>
+
+                  {/* Recent posts */}
+                  <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>Recent posts</span>
+                      <button onClick={() => setTab("posts")} style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--blue)", background: "none", border: "none", cursor: "pointer" }}>View all</button>
+                    </div>
+                    <table className="admin-table">
+                      <thead>
+                        <tr><th>Title</th><th>Author</th><th>Status</th><th>Views</th><th>Date</th></tr>
+                      </thead>
+                      <tbody>
+                        {posts.slice(0, 8).map((p) => {
+                          const author = p.profiles as any;
+                          return (
+                            <tr key={p.id}>
+                              <td>
+                                <Link href={`/post/${p.slug}`} style={{ fontFamily: "var(--display)", fontSize: 14, fontWeight: 600, color: "var(--black)", textDecoration: "none", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" as const, overflow: "hidden", maxWidth: 300 }}>{p.title}</Link>
+                              </td>
+                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{author?.full_name || "—"}</span></td>
+                              <td>
+                                <span className={`status-badge ${p.published ? "status-published" : "status-draft"}`}>
+                                  {p.published ? "Live" : "Draft"}
+                                </span>
+                              </td>
+                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{p.view_count}</span></td>
+                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>{formatDate(p.created_at)}</span></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ── ALL POSTS ── */}
+              {tab === "posts" && (
+                <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                  <table className="admin-table">
+                    <thead>
+                      <tr><th>Title</th><th>Author</th><th>Category</th><th>Status</th><th>Featured</th><th>Views</th><th>Date</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                      {posts.map((p) => {
+                        const author = p.profiles as any;
+                        const cat = CATEGORIES.find((c) => c.id === p.category);
+                        return (
+                          <tr key={p.id}>
+                            <td style={{ maxWidth: 260 }}>
+                              <Link href={`/post/${p.slug}`} style={{ fontFamily: "var(--display)", fontSize: 14, fontWeight: 600, color: "var(--black)", textDecoration: "none", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
+                                {p.title}
+                              </Link>
+                            </td>
+                            <td>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                  {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={24} height={24} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name)}
+                                </div>
+                                <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}>{author?.full_name || "—"}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", background: "var(--bg-3)", padding: "3px 8px", borderRadius: 999 }}>
+                                {cat?.icon} {cat?.label || p.category}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`status-badge ${p.published ? "status-published" : "status-draft"}`}>
+                                {p.published ? "Live" : "Draft"}
+                              </span>
+                            </td>
+                            <td>
+                              <button onClick={() => handleToggleFeatured(p)}
+                                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, opacity: p.featured ? 1 : 0.25 }}
+                                title={p.featured ? "Unfeature" : "Feature"}>
+                                ⭐
+                              </button>
+                            </td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{p.view_count}</span></td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", whiteSpace: "nowrap" }}>{formatDate(p.created_at)}</span></td>
+                            <td>
+                              <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                                <Link href={`/write/${p.id}`}
+                                  style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--blue)", padding: "4px 8px", borderRadius: 6, border: "1px solid rgba(21,101,192,0.2)", textDecoration: "none", whiteSpace: "nowrap" }}>
+                                  Edit
+                                </Link>
+                                <button onClick={() => handleTogglePublish(p)}
+                                  style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", padding: "4px 8px", borderRadius: 6, border: "1px solid var(--border)", background: "none", cursor: "pointer", whiteSpace: "nowrap" }}>
+                                  {p.published ? "Unpublish" : "Publish"}
+                                </button>
+                                <button onClick={() => handleDeletePost(p.id)}
+                                  style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--red)", padding: "4px 8px", borderRadius: 6, border: "1px solid rgba(192,57,43,0.2)", background: "none", cursor: "pointer" }}>
+                                  Del
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {posts.length === 0 && (
+                    <div style={{ padding: "60px 0", textAlign: "center" }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+                      <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No posts yet.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── USERS ── */}
+              {tab === "users" && (
+                <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                  <table className="admin-table">
+                    <thead>
+                      <tr><th>User</th><th>Username</th><th>Role</th><th>Posts</th><th>Joined</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u) => (
+                        <tr key={u.id}>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                {u.avatar_url ? <Image src={u.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} /> : getInitials(u.full_name)}
+                              </div>
+                              <div>
+                                <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{u.full_name || "—"}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>@{u.username || "—"}</span></td>
+                          <td>
+                            <select
+                              value={u.role}
+                              onChange={(e) => handleChangeRole(u.id, e.target.value)}
+                              style={{ fontFamily: "var(--sans)", fontSize: 13, padding: "4px 8px", border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "white", color: "var(--ink)", cursor: "pointer" }}
+                            >
+                              <option value="reader">Reader</option>
+                              <option value="writer">Writer</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </td>
+                          <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{posts.filter((p) => p.author_id === u.id).length}</span></td>
+                          <td><span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>{formatDate(u.created_at)}</span></td>
+                          <td>
+                            <Link href={`/profile/${u.username || u.id}`}
+                              style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--blue)", padding: "4px 8px", borderRadius: 6, border: "1px solid rgba(21,101,192,0.2)", textDecoration: "none" }}>
+                              View
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {users.length === 0 && (
+                    <div style={{ padding: "60px 0", textAlign: "center" }}>
+                      <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No users yet.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </main>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-sidebar { transform: translateX(-240px) !important; }
+          main { margin-left: 0 !important; }
+        }
+      `}</style>
+    </div>
+  );
+}

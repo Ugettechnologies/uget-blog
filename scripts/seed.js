@@ -28,7 +28,7 @@ Every great frontend developer starts with the same foundation: **HTML, CSS, and
 
 ### HTML & CSS (Weeks 1–3)
 
-Start with semantic HTML. Learn the difference between \`<div>\` and \`<section>\`, understand accessibility with ARIA roles, and build forms that actually work.
+Start with semantic HTML. Learn the difference between `<div>` and `<section>`, understand accessibility with ARIA roles, and build forms that actually work.
 
 For CSS, go beyond basics. Master Flexbox, Grid, custom properties (CSS variables), and responsive design. Mobile-first is not a trend; it's the standard.
 
@@ -158,7 +158,7 @@ They ask: "What happens if I send unexpected input here?" or "Is this service ru
 Passive information gathering: WHOIS lookups, Google dorking, LinkedIn profiles. No direct contact with the target.
 
 ### 2. Scanning
-Active probing: port scanning with \`nmap\`, vulnerability scanning with \`nessus\`, identifying open services.
+Active probing: port scanning with `nmap`, vulnerability scanning with `nessus`, identifying open services.
 
 ### 3. Exploitation
 Using the vulnerabilities found to gain unauthorized access. Tools like Metasploit automate many exploits.

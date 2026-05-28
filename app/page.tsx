@@ -1,8 +1,10 @@
-import { getAllPosts, seedAdminIfNeeded } from "@/lib/db";
-import ClientHome from "@/components/ClientHome";
+import { Suspense } from "react";
+import HomePage from "@/components/HomePage";
 
-export default function Home() {
-  seedAdminIfNeeded();
-  const allPosts = getAllPosts(true);
-  return <ClientHome posts={JSON.parse(JSON.stringify(allPosts))} />;
+export default function Page() {
+  return (
+    <Suspense fallback={<div style={{ height: "100vh", background: "white" }} />}>
+      <HomePage />
+    </Suspense>
+  );
 }
