@@ -54,7 +54,7 @@ export default function Navbar() {
     <nav className="nav">
       <div className="nav-inner">
         <Link href="/" className="nav-logo">
-          <Image src="/logo-icon.png" alt="UGET" width={28} height={28} className="object-contain" />
+          <Image src="/favicon.png" alt="UGET" width={28} height={28} className="object-contain" />
           <span className="nav-logo-text">UGET</span>
         </Link>
         <div className="nav-divider" style={{ display: "var(--sm-hide, flex)" }} />
