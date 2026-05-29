@@ -55,13 +55,13 @@ function Logo3D() {
       onTouchMove={(e) => { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); }}
       onTouchEnd={onUp}
     >
-      <div ref={logoRef} style={{ width: 160, height: 160, transformStyle: "preserve-3d" }}>
+      <div ref={logoRef} style={{ width: 140, height: 140, transformStyle: "preserve-3d" }}>
         <Image
-          src="/logo-icon.png" alt="UGET"
-          width={160} height={160}
+          src="/logo-icon-transparent.png" alt="UGET"
+          width={140} height={140}
           style={{
             objectFit: "contain", display: "block",
-            filter: "drop-shadow(0 20px 60px rgba(255,192,23,0.3)) drop-shadow(0 0 100px rgba(255,255,255,0.15))",
+            filter: "drop-shadow(0 15px 45px rgba(124,58,237,0.3)) drop-shadow(0 0 80px rgba(124,58,237,0.15))",
             pointerEvents: "none",
           }}
           priority
@@ -141,7 +141,7 @@ function AuthForm() {
     <div className="auth-form-wrap">
       {/* Mobile logo */}
       <div className="auth-logo-mobile">
-        <Image src="/logo-icon.png" alt="UGET" width={48} height={48} className="object-contain" />
+        <Image src="/logo-icon-transparent.png" alt="UGET" width={48} height={48} className="object-contain" />
       </div>
 
       <h1 className="auth-title">{mode === "login" ? "Welcome back." : "Join UGET."}</h1>
@@ -228,7 +228,7 @@ export default function AuthPage() {
         <div className="auth-left-bg" />
         <div className="auth-left-dots" />
         <div style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <p style={{ fontFamily: "var(--sans)", fontSize: 11, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 28 }}>
+          <p style={{ fontFamily: "var(--sans)", fontSize: 11, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 28 }}>
             Drag to spin
           </p>
           <Logo3D />

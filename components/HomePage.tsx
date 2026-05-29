@@ -123,7 +123,7 @@ export default function HomePage() {
 
       {/* Hero banner */}
       <div className="home-hero">
-        <div className="home-hero-inner">
+        <div className={`home-hero-inner ${featured ? "has-featured" : "no-featured"}`}>
           <div>
             <h1 className="home-hero-title">
               Human stories<br />&amp; ideas
@@ -142,9 +142,11 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-          <div>
-            {featured && <FeaturedCard post={featured} />}
-          </div>
+          {featured && (
+            <div>
+              <FeaturedCard post={featured} />
+            </div>
+          )}
         </div>
       </div>
 
