@@ -883,3 +883,143 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 .delay-1 { animation-delay: 0.1s; opacity: 0; }
 .delay-2 { animation-delay: 0.2s; opacity: 0; }
 .delay-3 { animation-delay: 0.3s; opacity: 0; }
+
+/* ── Navbar ── */
+@media (max-width: 640px) {
+  .nav-inner {
+    padding: 0 16px;
+    gap: 10px;
+  }
+  /* Hide search bar on mobile — already in hamburger/overlay or just remove */
+  .nav-search {
+    display: none;
+  }
+  .nav-divider {
+    display: none;
+  }
+  .nav-link {
+    display: none;
+  }
+  .nav-links {
+    gap: 6px;
+    margin-left: auto;
+  }
+  .nav-btn-write {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .nav-btn-signin {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+ 
+/* ── Hero ── */
+@media (max-width: 768px) {
+  .home-hero {
+    padding: 36px 0 32px;
+  }
+  .home-hero-inner {
+    padding: 0 16px;
+  }
+  /* Always single column on mobile regardless of featured */
+  .home-hero-inner.has-featured {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+  .home-hero-title {
+    font-size: clamp(28px, 9vw, 44px) !important;
+    margin-bottom: 14px;
+  }
+  .home-hero-sub {
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+  .home-hero-cta {
+    font-size: 14px;
+    padding: 12px 22px;
+  }
+  .topic-pills {
+    gap: 6px;
+    margin-top: 20px;
+  }
+  .topic-pill {
+    font-size: 12px;
+    padding: 6px 13px;
+  }
+  /* Featured card shorter on mobile */
+  .featured-card {
+    aspect-ratio: 4/3;
+    max-height: 280px;
+  }
+  .featured-card-title {
+    font-size: clamp(18px, 5vw, 26px) !important;
+  }
+  .featured-card-content {
+    padding: 20px;
+  }
+}
+ 
+/* ── Feed wrapper ── */
+@media (max-width: 768px) {
+  .home-feed-wrap {
+    padding: 0 16px 60px !important;
+  }
+  .home-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  .home-sidebar {
+    display: none !important;
+  }
+  .home-cat-tabs {
+    padding-top: 20px;
+  }
+  .home-cat-tab {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+}
+ 
+/* ── Post cards ── */
+@media (max-width: 640px) {
+  .post-card {
+    flex-direction: column-reverse;
+    gap: 12px;
+    padding: 20px 0;
+  }
+  .post-card-image {
+    width: 100% !important;
+    min-width: unset !important;
+    height: 180px !important;
+    border-radius: var(--radius);
+  }
+  .post-card-title {
+    font-size: 18px !important;
+  }
+  .post-card-excerpt {
+    font-size: 14px;
+  }
+  .post-card-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+  }
+}
+ 
+/* ── Footer ── */
+@media (max-width: 640px) {
+  .site-footer {
+    margin-top: 40px;
+    padding: 28px 0;
+  }
+  .footer-inner {
+    padding: 0 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .footer-links {
+    gap: 16px;
+  }
+}

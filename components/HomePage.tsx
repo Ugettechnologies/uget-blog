@@ -199,7 +199,7 @@ export default function HomePage() {
             )}
           </main>
 
-          {/* Sidebar */}
+          {/* Sidebar — hidden on mobile via CSS */}
           <aside className="home-sidebar">
             <div className="sidebar-section">
               <div className="sidebar-title">Staff picks</div>
@@ -221,7 +221,6 @@ export default function HomePage() {
                 );
               })}
             </div>
-
             <div className="sidebar-section">
               <div className="sidebar-title">Topics to explore</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -254,90 +253,6 @@ export default function HomePage() {
           </span>
         </div>
       </footer>
-
-      <style>{`
-        /* ── Feed wrapper ── */
-        .home-feed-wrap {
-          max-width: 1192px;
-          margin: 0 auto;
-          padding: 0 24px 80px;
-        }
-
-        /* ── Category tabs ── */
-        .home-cat-tabs {
-          display: flex;
-          align-items: center;
-          gap: 0;
-          border-bottom: 1px solid var(--border);
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          margin-bottom: 0;
-          padding-top: 32px;
-        }
-        .home-cat-tabs::-webkit-scrollbar { display: none; }
-
-        .home-cat-tab {
-          font-family: var(--sans);
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--muted);
-          padding: 12px 16px;
-          border-bottom: 2px solid transparent;
-          background: none;
-          cursor: pointer;
-          margin-bottom: -1px;
-          white-space: nowrap;
-          flex-shrink: 0;
-          transition: all 0.2s;
-        }
-        .home-cat-tab:hover { color: var(--ink); }
-        .home-cat-tab.active {
-          color: var(--black);
-          border-bottom-color: var(--black);
-        }
-
-        /* ── Feed grid ── */
-        .home-grid {
-          display: grid;
-          grid-template-columns: 1fr 300px;
-          gap: 64px;
-          padding-top: 8px;
-        }
-
-        .home-feed { min-width: 0; }
-        .home-sidebar { padding-top: 20px; }
-
-        /* ── Tablet: hide sidebar ── */
-        @media (max-width: 960px) {
-          .home-grid {
-            grid-template-columns: 1fr;
-            gap: 0;
-          }
-          .home-sidebar { display: none; }
-        }
-
-        /* ── Mobile tweaks ── */
-        @media (max-width: 640px) {
-          .home-feed-wrap { padding: 0 16px 60px; }
-
-          .home-cat-tab { font-size: 13px; padding: 10px 12px; }
-
-          /* stack post card vertically */
-          .post-card { flex-direction: column-reverse; gap: 12px; padding: 20px 0; }
-          .post-card-image {
-            width: 100% !important;
-            min-width: unset !important;
-            height: 180px !important;
-          }
-          .post-card-meta { flex-wrap: wrap; gap: 6px; }
-        }
-
-        /* ── Small mobile ── */
-        @media (max-width: 400px) {
-          .home-cat-tab { font-size: 12px; padding: 8px 10px; }
-        }
-      `}</style>
     </div>
   );
 }
