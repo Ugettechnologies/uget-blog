@@ -45,16 +45,13 @@ function PostCard({ post }: { post: Post }) {
           </span>
         </div>
       </div>
-      {post.cover_image && (
-        <Link href={`/post/${post.slug}`} className="post-card-image">
+      <Link href={`/post/${post.slug}`} className="post-card-image">
+        {post.cover_image ? (
           <Image src={post.cover_image} alt={post.title} width={200} height={134} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-        </Link>
-      )}
-      {!post.cover_image && (
-        <Link href={`/post/${post.slug}`} className="post-card-image">
+        ) : (
           <div className="post-card-placeholder">{cat?.icon || "📝"}</div>
-        </Link>
-      )}
+        )}
+      </Link>
     </article>
   );
 }
@@ -121,7 +118,7 @@ export default function HomePage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar />
 
-      {/* Hero banner */}
+      {/* ── Hero ── */}
       <div className="home-hero">
         <div className={`home-hero-inner ${featured ? "has-featured" : "no-featured"}`}>
           <div>
@@ -137,8 +134,16 @@ export default function HomePage() {
             </Link>
             <div className="topic-pills">
               {CATEGORIES.slice(0, 6).map((cat) => (
-                <button key={cat.id} onClick={() => { setActiveCategory(cat.id); document.getElementById("feed")?.scrollIntoView({ behavior: "smooth" }); }}
-                  className="topic-pill">{cat.icon} {cat.label}</button>
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setActiveCategory(cat.id);
+                    document.getElementById("feed")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="topic-pill"
+                >
+                  {cat.icon} {cat.label}
+                </button>
               ))}
             </div>
           </div>
@@ -150,81 +155,92 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Main feed + sidebar */}
-      <div style={{ maxWidth: 1192, margin: "0 auto", padding: "48px 24px", display: "grid", gridTemplateColumns: "1fr 340px", gap: 64 }} className="feed-layout" id="feed">
-        {/* Feed */}
-        <div>
-          {/* Category tabs */}
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 24, borderBottom: "1px solid var(--border)", overflowX: "auto", paddingBottom: 0 }}>
-            <button onClick={() => setActiveCategory("all")}
-              style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 500, color: activeCategory === "all" ? "var(--black)" : "var(--muted)", padding: "12px 16px", borderBottom: `2px solid ${activeCategory === "all" ? "var(--black)" : "transparent"}`, background: "none", cursor: "pointer", marginBottom: -1, whiteSpace: "nowrap", transition: "all 0.2s" }}>
-              For you
-            </button>
-            {CATEGORIES.map((cat) => (
-              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 500, color: activeCategory === cat.id ? "var(--black)" : "var(--muted)", padding: "12px 16px", borderBottom: `2px solid ${activeCategory === cat.id ? "var(--black)" : "transparent"}`, background: "none", cursor: "pointer", marginBottom: -1, whiteSpace: "nowrap", transition: "all 0.2s" }}>
-                {cat.icon} {cat.label}
-              </button>
-            ))}
-          </div>
+      {/* ── Feed + Sidebar ── */}
+      <div className="home-feed-wrap" id="feed">
 
-          {loading ? (
-            <div style={{ padding: "60px 0", textAlign: "center" }}>
-              <div className="spinner" style={{ borderTopColor: "var(--ink)", borderColor: "var(--border)", margin: "0 auto" }} />
-              <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
-            </div>
-          ) : rest.length === 0 ? (
-            <div style={{ padding: "80px 0", textAlign: "center" }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
-              <p style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>No stories yet</p>
-              <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>Be the first to write something.</p>
-              <Link href="/write" className="btn btn-primary btn-md" style={{ marginTop: 20, display: "inline-flex", textDecoration: "none" }}>Write a story</Link>
-            </div>
-          ) : (
-            rest.map((post) => <PostCard key={post.id} post={post} />)
-          )}
+        {/* Category tabs */}
+        <div className="home-cat-tabs">
+          <button
+            onClick={() => setActiveCategory("all")}
+            className={`home-cat-tab${activeCategory === "all" ? " active" : ""}`}
+          >
+            For you
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`home-cat-tab${activeCategory === cat.id ? " active" : ""}`}
+            >
+              {cat.icon} {cat.label}
+            </button>
+          ))}
         </div>
 
-        {/* Sidebar */}
-        <aside style={{ display: "var(--lg-hide, block)" }}>
-          <div className="sidebar-section">
-            <div className="sidebar-title">Staff picks</div>
-            {topSidebar.map((post) => {
-              const authorName = (post.profiles as any)?.full_name || "Writer";
-              const authorUsername = (post.profiles as any)?.username || post.author_id;
-              const cat = CATEGORIES.find((c) => c.id === post.category);
-              return (
-                <Link key={post.id} href={`/post/${post.slug}`} className="sidebar-post" style={{ textDecoration: "none" }}>
-                  <div className="sidebar-post-author">
-                    <div className="post-card-author-avatar" style={{ width: 20, height: 20, fontSize: 9 }}>{getInitials(authorName)}</div>
-                    <span>{authorName}</span>
-                  </div>
-                  <div className="sidebar-post-title">{post.title}</div>
-                  <div className="sidebar-post-meta">{cat?.icon} {cat?.label} · {post.read_time} min</div>
+        <div className="home-grid">
+          {/* Feed */}
+          <main className="home-feed">
+            {loading ? (
+              <div style={{ padding: "60px 0", textAlign: "center" }}>
+                <div className="spinner" style={{ borderTopColor: "var(--ink)", borderColor: "var(--border)", margin: "0 auto" }} />
+                <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
+              </div>
+            ) : rest.length === 0 ? (
+              <div style={{ padding: "80px 0", textAlign: "center" }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
+                <p style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>No stories yet</p>
+                <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>Be the first to write something.</p>
+                <Link href="/write" className="btn btn-primary btn-md" style={{ marginTop: 20, display: "inline-flex", textDecoration: "none" }}>
+                  Write a story
                 </Link>
-              );
-            })}
-          </div>
-          <div className="sidebar-section">
-            <div className="sidebar-title">Topics to explore</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {CATEGORIES.map((cat) => (
-                <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                  className={`tag-chip ${activeCategory === cat.id ? "active" : ""}`}>
-                  {cat.icon} {cat.label}
-                </button>
-              ))}
+              </div>
+            ) : (
+              rest.map((post) => <PostCard key={post.id} post={post} />)
+            )}
+          </main>
+
+          {/* Sidebar */}
+          <aside className="home-sidebar">
+            <div className="sidebar-section">
+              <div className="sidebar-title">Staff picks</div>
+              {topSidebar.map((post) => {
+                const authorName = (post.profiles as any)?.full_name || "Writer";
+                const authorUsername = (post.profiles as any)?.username || post.author_id;
+                const cat = CATEGORIES.find((c) => c.id === post.category);
+                return (
+                  <Link key={post.id} href={`/post/${post.slug}`} className="sidebar-post" style={{ textDecoration: "none" }}>
+                    <div className="sidebar-post-author">
+                      <div className="post-card-author-avatar" style={{ width: 20, height: 20, fontSize: 9 }}>
+                        {getInitials(authorName)}
+                      </div>
+                      <span>{authorName}</span>
+                    </div>
+                    <div className="sidebar-post-title">{post.title}</div>
+                    <div className="sidebar-post-meta">{cat?.icon} {cat?.label} · {post.read_time} min</div>
+                  </Link>
+                );
+              })}
             </div>
-          </div>
-        </aside>
+
+            <div className="sidebar-section">
+              <div className="sidebar-title">Topics to explore</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`tag-chip${activeCategory === cat.id ? " active" : ""}`}
+                  >
+                    {cat.icon} {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
 
-      <style>{`
-        @media (max-width: 900px) { .feed-layout { grid-template-columns: 1fr !important; } }
-        @media (max-width: 900px) { aside { display: none !important; } }
-      `}</style>
-
-      {/* Footer */}
+      {/* ── Footer ── */}
       <footer className="site-footer">
         <div className="footer-inner">
           <span className="footer-logo">UGET</span>
@@ -238,6 +254,90 @@ export default function HomePage() {
           </span>
         </div>
       </footer>
+
+      <style>{`
+        /* ── Feed wrapper ── */
+        .home-feed-wrap {
+          max-width: 1192px;
+          margin: 0 auto;
+          padding: 0 24px 80px;
+        }
+
+        /* ── Category tabs ── */
+        .home-cat-tabs {
+          display: flex;
+          align-items: center;
+          gap: 0;
+          border-bottom: 1px solid var(--border);
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          margin-bottom: 0;
+          padding-top: 32px;
+        }
+        .home-cat-tabs::-webkit-scrollbar { display: none; }
+
+        .home-cat-tab {
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--muted);
+          padding: 12px 16px;
+          border-bottom: 2px solid transparent;
+          background: none;
+          cursor: pointer;
+          margin-bottom: -1px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          transition: all 0.2s;
+        }
+        .home-cat-tab:hover { color: var(--ink); }
+        .home-cat-tab.active {
+          color: var(--black);
+          border-bottom-color: var(--black);
+        }
+
+        /* ── Feed grid ── */
+        .home-grid {
+          display: grid;
+          grid-template-columns: 1fr 300px;
+          gap: 64px;
+          padding-top: 8px;
+        }
+
+        .home-feed { min-width: 0; }
+        .home-sidebar { padding-top: 20px; }
+
+        /* ── Tablet: hide sidebar ── */
+        @media (max-width: 960px) {
+          .home-grid {
+            grid-template-columns: 1fr;
+            gap: 0;
+          }
+          .home-sidebar { display: none; }
+        }
+
+        /* ── Mobile tweaks ── */
+        @media (max-width: 640px) {
+          .home-feed-wrap { padding: 0 16px 60px; }
+
+          .home-cat-tab { font-size: 13px; padding: 10px 12px; }
+
+          /* stack post card vertically */
+          .post-card { flex-direction: column-reverse; gap: 12px; padding: 20px 0; }
+          .post-card-image {
+            width: 100% !important;
+            min-width: unset !important;
+            height: 180px !important;
+          }
+          .post-card-meta { flex-wrap: wrap; gap: 6px; }
+        }
+
+        /* ── Small mobile ── */
+        @media (max-width: 400px) {
+          .home-cat-tab { font-size: 12px; padding: 8px 10px; }
+        }
+      `}</style>
     </div>
   );
 }
