@@ -103,13 +103,24 @@ function AuthForm() {
   const router = useRouter();
   const supabase = createClient();
 
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (err) {
+      if (err === "oauth_disabled_use_credentials") {
+        setError("OAuth credentials are not configured yet. Please configure the environment variables or sign in with credentials.");
+      } else {
+        setError(err);
+      }
+    }
+  }, [searchParams]);
+
   const handleOAuth = async (provider: "google" | "github") => {
     setOauthLoading(provider);
     setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+    }) as any;
     if (error) { setError(error.message); setOauthLoading(null); }
   };
 

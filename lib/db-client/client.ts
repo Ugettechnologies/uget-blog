@@ -151,8 +151,8 @@ export function createClient() {
         }
       },
       async signInWithOAuth({ provider, options }: any) {
-        window.location.href = `${window.location.origin}/auth?error=oauth_disabled_use_credentials`;
-        return { data: null, error: { message: "OAuth not supported on local Neon DB" } };
+        window.location.href = `/api/auth/oauth/${provider}`;
+        return { data: null, error: null };
       },
       onAuthStateChange(callback: (event: string, session: any) => void) {
         fetch("/api/auth/me")
