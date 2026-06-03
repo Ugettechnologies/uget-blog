@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db-client/client";
 import { CATEGORIES, slugify, estimateReadTime } from "@/lib/types";
 
 // Dynamic TipTap import to avoid SSR issues

@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db-client/client";
 
 /* ─── 3D Logo ─────────────────────────────────────────── */
 function Logo3D() {

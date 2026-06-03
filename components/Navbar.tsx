@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
 import { getInitials } from "@/lib/types";
 
@@ -24,7 +24,7 @@ export default function Navbar() {
           .then(({ data }) => setProfile(data));
       }
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: string, session: any) => {
       setUser(session?.user ?? null);
       if (!session?.user) setProfile(null);
     });

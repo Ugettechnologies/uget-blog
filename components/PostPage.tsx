@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db-client/client";
 import type { Post, Comment } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 

@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String   @unique
+  password_hash String
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+  profile       Profile?
+
+  @@map("users")
+}
+
+model Profile {
+  id             String     @id @db.Uuid
+  username       String?    @unique
+  full_name      String?
+  avatar_url     String?
+  bio            String?
+  twitter        String?
+  website        String?
+  role           String     @default("writer")
+  follower_count Int        @default(0)
+  post_count     Int        @default(0)
+  created_at     DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime   @default(now()) @db.Timestamptz(6)
+  user           User       @relation(fields: [id], references: [id], onDelete: Cascade)
+  posts          Post[]
+  likes          Like[]
+  bookmarks      Bookmark[]
+  comments       Comment[]
+
+  @@map("profiles")
+}
+
+model Post {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String
+  slug          String     @unique
+  excerpt       String?
+  content       String     @default("")
+  cover_image   String?
+  category      String     @default("general")
+  tags          String[]   @default([])
+  author_id     String     @db.Uuid
+  published     Boolean    @default(false)
+  featured      Boolean    @default(false)
+  read_time     Int        @default(1)
+  view_count    Int        @default(0)
+  like_count    Int        @default(0)
+  comment_count Int        @default(0)
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime   @default(now()) @db.Timestamptz(6)
+  author        Profile    @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  likes         Like[]
+  bookmarks     Bookmark[]
+  comments      Comment[]
+
+  @@map("posts")
+}
+
+model Like {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, user_id])
+  @@map("likes")
+}
+
+model Bookmark {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, user_id])
+  @@map("bookmarks")
+}
+
+model Comment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  content    String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
