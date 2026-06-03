@@ -48,7 +48,7 @@ export default function WritePage() {
       if (!user) { router.push("/auth"); return; }
       setUser(user);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks
   }, []);
 
   // Load existing post for editing
