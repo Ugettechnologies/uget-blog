@@ -38,7 +38,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     checkAdmin();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const checkAdmin = async () => {
