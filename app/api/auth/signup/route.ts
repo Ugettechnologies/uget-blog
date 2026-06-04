@@ -30,9 +30,12 @@ export async function POST(request: Request) {
     // Generate random avatar background for rich styling
     const username = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "") + Math.floor(Math.random() * 9000 + 1000);
     
+    const isAdmin = email.toLowerCase() === "ugettechnologies@gmail.com" || email.toLowerCase() === "admin@uget.com";
+    const role = isAdmin ? "admin" : "writer";
+
     const profileRes = await sql`
       INSERT INTO profiles (id, username, full_name, role)
-      VALUES (${userId}, ${username}, ${full_name}, 'writer')
+      VALUES (${userId}, ${username}, ${full_name}, ${role})
       RETURNING id, username, full_name, avatar_url, role
     `;
 
