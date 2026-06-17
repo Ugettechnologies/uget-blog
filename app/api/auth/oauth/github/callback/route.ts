@@ -22,7 +22,8 @@ export async function GET(request: Request) {
 
     const host = request.headers.get("host") || "localhost:3000";
     const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
-    const redirectUri = `${protocol}://${host}/api/auth/oauth/github/callback`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+    const redirectUri = `${siteUrl}/api/auth/oauth/github/callback`;
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {

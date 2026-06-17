@@ -22,7 +22,8 @@ export async function GET(request: Request) {
 
     const host = request.headers.get("host") || "localhost:3000";
     const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
-    const redirectUri = `${protocol}://${host}/api/auth/oauth/google/callback`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+    const redirectUri = `${siteUrl}/api/auth/oauth/google/callback`;
 
     // Exchange authorization code for tokens
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {

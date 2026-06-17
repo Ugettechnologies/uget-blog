@@ -9,10 +9,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "GOOGLE_CLIENT_ID not configured" }, { status: 500 });
   }
 
-  // Determine site URL/redirect URI dynamically based on request host
+  // Determine site URL/redirect URI dynamically based on request host or NEXT_PUBLIC_SITE_URL env
   const host = request.headers.get("host") || "localhost:3000";
   const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
-  const redirectUri = `${protocol}://${host}/api/auth/oauth/google/callback`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+  const redirectUri = `${siteUrl}/api/auth/oauth/google/callback`;
 
   // Encode redirect path in state parameter
   const state = encodeURIComponent(next);
