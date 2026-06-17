@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getUserFromSession } from "@/lib/auth-server";
-import fs from "fs";
-import path from "path";
+import { put } from "@vercel/blob";
 
 export async function POST(request: Request) {
   try {
@@ -18,26 +17,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // Save to public/uploads/[userId]/[timestamp]-[filename]
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", user.id);
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
     // Clean up filename to prevent directory traversal or bad characters
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `${Date.now()}-${safeName}`;
-    const filePath = path.join(uploadsDir, filename);
+    const filename = `uploads/${user.id}/${Date.now()}-${safeName}`;
 
-    fs.writeFileSync(filePath, buffer);
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: file.type,
+    });
 
-    const publicPath = `/uploads/${user.id}/${filename}`;
-
-    return NextResponse.json({ path: publicPath });
+    return NextResponse.json({ path: blob.url });
   } catch (err: any) {
     console.error("Upload error:", err);
-    return NextResponse.json({ error: err.message || "Failed to upload file" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Failed to upload file" },
+      { status: 500 }
+    );
   }
 }
