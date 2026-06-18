@@ -139,7 +139,7 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   color: var(--muted); padding: 8px 12px; border-radius: 999px;
   transition: all 0.2s; white-space: nowrap;
 }
-.nav-link:hover { color: var(--ink); background: var(--bg-3); }
+.nav-link:hover { color: white !important; background: var(--brand) !important; }
 .nav-btn-write {
   display: flex; align-items: center; gap: 6px;
   background: var(--brand); color: white;
