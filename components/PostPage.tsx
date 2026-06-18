@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Comment } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
@@ -377,14 +378,7 @@ export default function PostPage() {
         </div>
       )}
 
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <Link href="/" className="footer-logo" style={{ textDecoration: "none" }}>UGET</Link>
-          <div className="footer-links">
-            {["About", "Help", "Terms", "Privacy"].map((l) => <Link key={l} href="#" className="footer-link">{l}</Link>)}
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

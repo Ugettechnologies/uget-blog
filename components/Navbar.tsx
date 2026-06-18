@@ -1,22 +1,38 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
 import { getInitials } from "@/lib/types";
+import AuthModal from "./AuthModal";
 
-export default function Navbar() {
+function NavbarInner() {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [search, setSearch] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const menuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+
+  useEffect(() => {
+    const authVal = searchParams.get("auth");
+    if (authVal === "signup") {
+      setAuthMode("signup");
+      setAuthModalOpen(true);
+    } else if (authVal === "signin" || authVal === "login") {
+      setAuthMode("login");
+      setAuthModalOpen(true);
+    }
+  }, [searchParams]);
 
   const [notifications, setNotifications] = useState<any[]>([]);
 
@@ -297,11 +313,66 @@ export default function Navbar() {
                 <span style={{ color: "#ef4444" }}>🔴</span>
                 <span>Live</span>
               </Link>
-              <Link href="/auth?mode=signup" className="nav-btn-write">Get started</Link>
+              <Link href="/about" className="nav-link hide-sm" style={{ marginRight: 8 }}>
+                Our story
+              </Link>
+              <Link href="/membership" className="nav-link hide-sm" style={{ marginRight: 8 }}>
+                Membership
+              </Link>
+              <button 
+                onClick={() => { setAuthMode("signup"); setAuthModalOpen(true); }} 
+                className="nav-link hide-sm" 
+                style={{ marginRight: 8, background: "none", border: "none", cursor: "pointer" }}
+              >
+                Write
+              </button>
+              <button 
+                onClick={() => { setAuthMode("login"); setAuthModalOpen(true); }} 
+                className="nav-link" 
+                style={{ marginRight: 8, background: "none", border: "none", cursor: "pointer" }}
+              >
+                Sign in
+              </button>
+              <button 
+                onClick={() => { setAuthMode("signup"); setAuthModalOpen(true); }} 
+                className="nav-btn-write"
+              >
+                Get started
+              </button>
             </>
           )}
         </div>
       </div>
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => {
+          setAuthModalOpen(false);
+          if (searchParams.get("auth")) {
+            const params = new URLSearchParams(window.location.search);
+            params.delete("auth");
+            const newSearch = params.toString();
+            const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+            router.replace(newPath, { scroll: false });
+          }
+        }} 
+        initialMode={authMode} 
+      />
     </nav>
+  );
+}
+
+export default function Navbar() {
+  return (
+    <Suspense 
+      fallback={
+        <nav className="nav">
+          <div className="nav-inner" style={{ height: "100%", display: "flex", alignItems: "center" }}>
+            <div style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, color: "var(--brand)" }}>UGET</div>
+          </div>
+        </nav>
+      }
+    >
+      <NavbarInner />
+    </Suspense>
   );
 }

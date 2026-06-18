@@ -3,10 +3,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 import { createClient } from "@/lib/db-client/client";
 import type { Post } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -86,9 +87,21 @@ export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("all");
+  const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     loadPosts();
@@ -130,7 +143,11 @@ export default function HomePage() {
               href="#feed"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById("feed")?.scrollIntoView({ behavior: "smooth" });
+                if (!user) {
+                  router.push("/?auth=signin");
+                } else {
+                  document.getElementById("feed")?.scrollIntoView({ behavior: "smooth" });
+                }
               }}
               className="home-hero-cta"
             >
@@ -247,19 +264,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Footer ── */}
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <span className="footer-logo">UGET</span>
-          <div className="footer-links">
-            {["About", "Help", "Terms", "Privacy"].map((l) => (
-              <Link key={l} href="#" className="footer-link">{l}</Link>
-            ))}
-          </div>
-          <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>
-            © {new Date().getFullYear()} UGET Technologies
-          </span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

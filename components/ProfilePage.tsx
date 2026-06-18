@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
@@ -189,11 +190,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <Link href="/" className="footer-logo" style={{ textDecoration: "none" }}>UGET</Link>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
