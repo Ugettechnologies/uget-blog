@@ -105,6 +105,22 @@ export async function POST(request: Request) {
           ${orderString}
           ${limitString}
         `;
+      } else if (table === "live_events" && selectFields.includes("profiles")) {
+        queryText = `
+          SELECT live_events.*, 
+            json_build_object(
+              'id', profiles.id,
+              'full_name', profiles.full_name,
+              'avatar_url', profiles.avatar_url,
+              'username', profiles.username,
+              'bio', profiles.bio
+            ) as profiles
+          FROM live_events
+          LEFT JOIN profiles ON live_events.author_id = profiles.id
+          ${whereString}
+          ${orderString}
+          ${limitString}
+        `;
       } else {
         queryText = `
           SELECT * FROM ${table}
@@ -138,13 +154,18 @@ export async function POST(request: Request) {
 
       const rows = await sql(queryText, params);
       
-      // If table is posts/comments and selectFields includes profiles, we should fetch it with the profile join
+      // If table is posts/comments/live_events and selectFields includes profiles, we should fetch it with the profile join
       let result = rows[0];
-      if (result && (table === "posts" || table === "comments") && selectFields.includes("profiles")) {
+      if (result && (table === "posts" || table === "comments" || table === "live_events") && selectFields.includes("profiles")) {
         const idField = result.id;
-        const joinedQuery = table === "posts" 
-          ? `SELECT posts.*, json_build_object('id', profiles.id, 'full_name', profiles.full_name, 'avatar_url', profiles.avatar_url, 'username', profiles.username) as profiles FROM posts LEFT JOIN profiles ON posts.author_id = profiles.id WHERE posts.id = $1`
-          : `SELECT comments.*, json_build_object('id', profiles.id, 'full_name', profiles.full_name, 'avatar_url', profiles.avatar_url, 'username', profiles.username) as profiles FROM comments LEFT JOIN profiles ON comments.user_id = profiles.id WHERE comments.id = $1`;
+        let joinedQuery = "";
+        if (table === "posts") {
+          joinedQuery = `SELECT posts.*, json_build_object('id', profiles.id, 'full_name', profiles.full_name, 'avatar_url', profiles.avatar_url, 'username', profiles.username) as profiles FROM posts LEFT JOIN profiles ON posts.author_id = profiles.id WHERE posts.id = $1`;
+        } else if (table === "comments") {
+          joinedQuery = `SELECT comments.*, json_build_object('id', profiles.id, 'full_name', profiles.full_name, 'avatar_url', profiles.avatar_url, 'username', profiles.username) as profiles FROM comments LEFT JOIN profiles ON comments.user_id = profiles.id WHERE comments.id = $1`;
+        } else if (table === "live_events") {
+          joinedQuery = `SELECT live_events.*, json_build_object('id', profiles.id, 'full_name', profiles.full_name, 'avatar_url', profiles.avatar_url, 'username', profiles.username) as profiles FROM live_events LEFT JOIN profiles ON live_events.author_id = profiles.id WHERE live_events.id = $1`;
+        }
         const joinedRows = await sql(joinedQuery, [idField]);
         result = joinedRows[0] || result;
       }
@@ -181,20 +202,34 @@ export async function POST(request: Request) {
       const rows = await sql(queryText, params);
       let result = rows[0] || null;
 
-      if (result && table === "posts" && selectFields.includes("profiles")) {
-        const joinedRows = await sql(`
-          SELECT posts.*, 
-            json_build_object(
-              'id', profiles.id, 
-              'full_name', profiles.full_name, 
-              'avatar_url', profiles.avatar_url, 
-              'username', profiles.username,
-              'bio', profiles.bio
-            ) as profiles 
-          FROM posts 
-          LEFT JOIN profiles ON posts.author_id = profiles.id 
-          WHERE posts.id = $1
-        `, [result.id]);
+      if (result && (table === "posts" || table === "live_events") && selectFields.includes("profiles")) {
+        const joinedRows = table === "posts"
+          ? await sql(`
+              SELECT posts.*, 
+                json_build_object(
+                  'id', profiles.id, 
+                  'full_name', profiles.full_name, 
+                  'avatar_url', profiles.avatar_url, 
+                  'username', profiles.username,
+                  'bio', profiles.bio
+                ) as profiles 
+              FROM posts 
+              LEFT JOIN profiles ON posts.author_id = profiles.id 
+              WHERE posts.id = $1
+            `, [result.id])
+          : await sql(`
+              SELECT live_events.*, 
+                json_build_object(
+                  'id', profiles.id, 
+                  'full_name', profiles.full_name, 
+                  'avatar_url', profiles.avatar_url, 
+                  'username', profiles.username,
+                  'bio', profiles.bio
+                ) as profiles 
+              FROM live_events 
+              LEFT JOIN profiles ON live_events.author_id = profiles.id 
+              WHERE live_events.id = $1
+            `, [result.id]);
         result = joinedRows[0] || result;
       }
 

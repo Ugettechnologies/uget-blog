@@ -67,6 +67,10 @@ export default function Navbar() {
         <div className="nav-links">
           {user ? (
             <>
+              <Link href="/live" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8 }}>
+                <span style={{ color: "#ef4444" }}>🔴</span>
+                <span>Live</span>
+              </Link>
               <Link href="/write" className="nav-btn-write">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -83,18 +87,19 @@ export default function Navbar() {
                 </button>
                 {menuOpen && (
                   <div style={{
-                    position: "absolute", right: 0, top: "calc(100% + 8px)", background: "white",
+                    position: "absolute", right: 0, top: "calc(100% + 8px)", background: "var(--bg-2)",
                     border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-lg)",
                     minWidth: 220, zIndex: 200, overflow: "hidden", animation: "fadeIn 0.15s ease",
                   }}>
                     <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border-2)" }}>
-                      <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{profile?.full_name || "Writer"}</div>
+                      <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{profile?.full_name || "Writer"}</div>
                       <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", marginTop: 2 }}>{user.email}</div>
                     </div>
                     {[
                       { href: "/dashboard", label: "Dashboard", icon: "📊" },
                       { href: "/write", label: "New story", icon: "✍️" },
                       { href: `/profile/${profile?.username || user.id}`, label: "Profile", icon: "👤" },
+                      { href: "/settings", label: "Settings", icon: "⚙️" },
                     ].map((item) => (
                       <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
                         style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 16px",
@@ -110,7 +115,7 @@ export default function Navbar() {
                           fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-3)")}
                         onMouseLeave={(e) => (e.currentTarget.style.background = "")}>
-                        <span>⚙️</span>Admin panel
+                        <span>🛠️</span>Admin panel
                       </Link>
                     )}
                     <div style={{ borderTop: "1px solid var(--border-2)" }} />
@@ -128,6 +133,10 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <Link href="/live" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8 }}>
+                <span style={{ color: "#ef4444" }}>🔴</span>
+                <span>Live</span>
+              </Link>
               <Link href="/auth" className="nav-link">Sign in</Link>
               <Link href="/auth?mode=signup" className="nav-btn-write">Get started</Link>
             </>
