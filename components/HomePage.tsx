@@ -83,6 +83,92 @@ function FeaturedCard({ post }: { post: Post }) {
   );
 }
 
+const MediumIllustration = () => (
+  <svg viewBox="0 0 400 400" width="100%" height="100%" style={{ maxWidth: 420 }}>
+    {/* Geometric diagram lines */}
+    <line x1="100" y1="50" x2="100" y2="350" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeDasharray="4 4" />
+    <line x1="50" y1="300" x2="350" y2="300" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeDasharray="4 4" />
+    
+    <circle cx="100" cy="300" r="120" stroke="rgba(21,128,61,0.12)" strokeWidth="1" fill="none" />
+    <circle cx="100" cy="300" r="180" stroke="rgba(21,128,61,0.06)" strokeWidth="1" fill="none" />
+    
+    {/* Math diagram arcs and lines */}
+    <path d="M 100 120 A 180 180 0 0 1 280 300" stroke="rgba(21,128,61,0.25)" strokeWidth="1.5" fill="none" />
+    <line x1="100" y1="300" x2="227" y2="173" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+    <circle cx="227" cy="173" r="4" fill="var(--brand)" />
+    
+    {/* Green flower elements */}
+    <g transform="translate(250, 150)">
+      {/* Central center circle */}
+      <circle cx="0" cy="0" r="28" fill="#15803d" />
+      {/* 5 Petals */}
+      <path d="M 0 -28 C -30 -80, 30 -80, 0 -28" fill="#15803d" opacity="0.95" />
+      <path d="M 26.6 -8.6 C 75 -35, 85 25, 26.6 -8.6" fill="#15803d" opacity="0.95" transform="rotate(72)" />
+      <path d="M 16.5 22.7 C 55 60, -15 85, 16.5 22.7" fill="#15803d" opacity="0.95" transform="rotate(144)" />
+      <path d="M -16.5 22.7 C -55 60, 15 85, -16.5 22.7" fill="#15803d" opacity="0.95" transform="rotate(216)" />
+      <path d="M -26.6 -8.6 C -75 -35, -85 25, -26.6 -8.6" fill="#15803d" opacity="0.95" transform="rotate(288)" />
+    </g>
+  </svg>
+);
+
+interface TrendingSectionProps {
+  posts: Post[];
+  router: any;
+}
+
+function TrendingSection({ posts, router }: TrendingSectionProps) {
+  // Take first 6 posts
+  const trendingPosts = posts.slice(0, 6);
+
+  return (
+    <div style={{ borderBottom: "1px solid var(--border)", padding: "48px 0 40px", background: "white" }}>
+      <div style={{ maxWidth: 1192, margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+          <span style={{ fontSize: 20 }}>📈</span>
+          <h2 style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink)" }}>
+            Trending on UGET
+          </h2>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "32px 24px" }}>
+          {trendingPosts.map((post, idx) => {
+            const authorName = (post.profiles as any)?.full_name || "Writer";
+            const authorAvatar = (post.profiles as any)?.avatar_url;
+            const authorUsername = (post.profiles as any)?.username || post.author_id;
+            return (
+              <div key={post.id} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                <div style={{ fontFamily: "var(--sans)", fontSize: 30, fontWeight: 700, color: "#e6e6e6", lineHeight: 1, marginTop: -4 }}>
+                  {String(idx + 1).padStart(2, "0")}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 9, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" }}>
+                      {authorAvatar ? (
+                        <Image src={authorAvatar} alt="" width={20} height={20} style={{ objectFit: "cover" }} />
+                      ) : (
+                        <span>{getInitials(authorName)}</span>
+                      )}
+                    </div>
+                    <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{authorName}</span>
+                  </div>
+                  <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>
+                    <h3 style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, lineHeight: 1.3, color: "var(--black)", marginBottom: 8 }} className="truncate-2">
+                      {post.title}
+                    </h3>
+                  </Link>
+                  <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>
+                    {formatDate(post.created_at)} · {post.read_time} min read
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,63 +213,163 @@ export default function HomePage() {
   const rest = posts.filter((p) => p.id !== featured?.id);
   const topSidebar = posts.slice(0, 5);
 
-  return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-      <Navbar />
+  const isLoggedOut = !user;
 
-      {/* ── Hero ── */}
-      <div className="home-hero">
-        <div className={`home-hero-inner ${featured ? "has-featured" : "no-featured"}`}>
-          <div>
-            <h1 className="home-hero-title">
-              Human stories<br />&amp; ideas
-            </h1>
-            <p className="home-hero-sub">A place to read, write, and deepen your understanding.</p>
-            <a
-              href="#feed"
-              onClick={(e) => {
-                e.preventDefault();
-                if (!user) {
-                  router.push("/?auth=signin");
-                } else {
-                  document.getElementById("feed")?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-              className="home-hero-cta"
-            >
-              Start reading
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-            <div className="topic-pills">
-              {CATEGORIES.slice(0, 6).map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setActiveCategory(cat.id);
-                    document.getElementById("feed")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="topic-pill"
-                >
-                  {cat.icon} {cat.label}
-                </button>
-              ))}
+  if (isLoggedOut) {
+    return (
+      <div style={{ background: "#f6f4ee", minHeight: "100vh" }}>
+        <Navbar />
+
+        {/* ── Logged-out Hero ── */}
+        <div style={{ borderBottom: "1px solid var(--border)", padding: "20px 0 60px" }}>
+          <div 
+            style={{ 
+              maxWidth: 1192, 
+              margin: "0 auto", 
+              padding: "0 24px",
+              display: "grid",
+              gridTemplateColumns: "1fr 400px",
+              gap: 48,
+              alignItems: "center"
+            }}
+            className="hero-split"
+          >
+            <div>
+              <h1 
+                style={{ 
+                  fontFamily: "var(--serif)", 
+                  fontSize: "clamp(42px, 7.5vw, 92px)", 
+                  fontWeight: 400, 
+                  lineHeight: 0.95, 
+                  color: "#000000",
+                  letterSpacing: "-0.045em",
+                  marginBottom: 24
+                }}
+              >
+                Human stories<br />&amp; ideas
+              </h1>
+              <p 
+                style={{ 
+                  fontFamily: "var(--serif)", 
+                  fontSize: 22, 
+                  color: "#292929", 
+                  marginBottom: 36,
+                  lineHeight: 1.4,
+                  maxWidth: 460
+                }}
+              >
+                A place to read, write, and deepen your understanding.
+              </p>
+              <button
+                onClick={() => router.push("/?auth=signin")}
+                className="btn btn-primary btn-lg"
+                style={{
+                  backgroundColor: "#1a1a1a",
+                  color: "#ffffff",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  padding: "14px 36px",
+                  borderRadius: "999px"
+                }}
+              >
+                Start reading
+              </button>
+            </div>
+            <div className="hide-md" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+              <MediumIllustration />
             </div>
           </div>
-          {featured && (
-            <div>
-              <FeaturedCard post={featured} />
-            </div>
-          )}
         </div>
+
+        {/* ── Trending Section ── */}
+        <TrendingSection posts={posts} router={router} />
+
+        {/* ── Main content grid (stories feed on left, sidebar on right) ── */}
+        <div style={{ background: "white", padding: "48px 0 80px" }}>
+          <div style={{ maxWidth: 1192, margin: "0 auto", padding: "0 24px" }}>
+            <div className="home-grid">
+              <main className="home-feed">
+                {loading ? (
+                  <div style={{ padding: "60px 0", textAlign: "center" }}>
+                    <div className="spinner" style={{ borderTopColor: "var(--ink)", borderColor: "var(--border)", margin: "0 auto" }} />
+                    <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
+                  </div>
+                ) : rest.length === 0 ? (
+                  <div style={{ padding: "80px 0", textAlign: "center" }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
+                    <p style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>No stories yet</p>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>Be the first to write something.</p>
+                  </div>
+                ) : (
+                  rest.map((post) => <PostCard key={post.id} post={post} />)
+                )}
+              </main>
+
+              <aside className="home-sidebar">
+                <div className="sidebar-section">
+                  <div className="sidebar-title">Staff picks</div>
+                  {topSidebar.map((post) => {
+                    const authorName = (post.profiles as any)?.full_name || "Writer";
+                    const cat = CATEGORIES.find((c) => c.id === post.category);
+                    return (
+                      <Link key={post.id} href={`/post/${post.slug}`} className="sidebar-post" style={{ textDecoration: "none" }}>
+                        <div className="sidebar-post-author">
+                          <div className="post-card-author-avatar" style={{ width: 20, height: 20, fontSize: 9 }}>
+                            {getInitials(authorName)}
+                          </div>
+                          <span>{authorName}</span>
+                        </div>
+                        <div className="sidebar-post-title">{post.title}</div>
+                        <div className="sidebar-post-meta">{cat?.icon} {cat?.label} · {post.read_time} min</div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                <div className="sidebar-section">
+                  <div className="sidebar-title">Topics to explore</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.id)}
+                        className={`tag-chip${activeCategory === cat.id ? " active" : ""}`}
+                      >
+                        {cat.icon} {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+
+        <Footer />
+
+        <style jsx global>{`
+          @media (max-width: 900px) {
+            .hero-split {
+              grid-template-columns: 1fr !important;
+              text-align: center;
+              padding: 40px 16px !important;
+            }
+            .hero-split button {
+              margin: 0 auto;
+            }
+          }
+        `}</style>
       </div>
+    );
+  }
 
-      {/* ── Feed + Sidebar ── */}
-      <div className="home-feed-wrap" id="feed">
+  // ── Logged-in feed layout ──
+  return (
+    <div style={{ background: "white", minHeight: "100vh" }}>
+      <Navbar />
 
+      <div className="home-feed-wrap" style={{ paddingTop: 24 }}>
         {/* Category tabs */}
-        <div className="home-cat-tabs">
+        <div className="home-cat-tabs" style={{ paddingTop: 0 }}>
           <button
             onClick={() => setActiveCategory("all")}
             className={`home-cat-tab${activeCategory === "all" ? " active" : ""}`}
@@ -202,14 +388,13 @@ export default function HomePage() {
         </div>
 
         <div className="home-grid">
-          {/* Feed */}
           <main className="home-feed">
             {loading ? (
               <div style={{ padding: "60px 0", textAlign: "center" }}>
                 <div className="spinner" style={{ borderTopColor: "var(--ink)", borderColor: "var(--border)", margin: "0 auto" }} />
                 <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
               </div>
-            ) : rest.length === 0 ? (
+            ) : posts.length === 0 ? (
               <div style={{ padding: "80px 0", textAlign: "center" }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
                 <p style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>No stories yet</p>
@@ -219,17 +404,15 @@ export default function HomePage() {
                 </Link>
               </div>
             ) : (
-              rest.map((post) => <PostCard key={post.id} post={post} />)
+              posts.map((post) => <PostCard key={post.id} post={post} />)
             )}
           </main>
 
-          {/* Sidebar — hidden on mobile via CSS */}
           <aside className="home-sidebar">
             <div className="sidebar-section">
               <div className="sidebar-title">Staff picks</div>
               {topSidebar.map((post) => {
                 const authorName = (post.profiles as any)?.full_name || "Writer";
-                const authorUsername = (post.profiles as any)?.username || post.author_id;
                 const cat = CATEGORIES.find((c) => c.id === post.category);
                 return (
                   <Link key={post.id} href={`/post/${post.slug}`} className="sidebar-post" style={{ textDecoration: "none" }}>
@@ -263,7 +446,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── Footer ── */}
       <Footer />
     </div>
   );

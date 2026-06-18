@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
 import { getInitials } from "@/lib/types";
@@ -16,6 +16,7 @@ function NavbarInner() {
   const [search, setSearch] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -120,12 +121,43 @@ function NavbarInner() {
     router.push("/"); router.refresh(); setMenuOpen(false);
   };
 
+  // Theme styling configurations
+  const isLoggedOut = !user;
+  const isAboutPage = pathname === "/about";
+  const isLoggedOutHome = isLoggedOut && pathname === "/";
+
+  let navBg = "var(--nav-bg, rgba(255,255,255,0.96))";
+  let navBorder = "1px solid var(--border)";
+  let logoColor = "var(--brand)";
+  let linkColor = "var(--muted)";
+  let writeBtnBg = "var(--brand)";
+  let writeBtnColor = "white";
+  let writeBtnBorder = "none";
+
+  if (isAboutPage) {
+    navBg = "#191919";
+    navBorder = "1px solid rgba(255, 255, 255, 0.15)";
+    logoColor = "#ffffff";
+    linkColor = "rgba(255, 255, 255, 0.85)";
+    writeBtnBg = "transparent";
+    writeBtnColor = "#ffffff";
+    writeBtnBorder = "1px solid rgba(255, 255, 255, 0.6)";
+  } else if (isLoggedOutHome) {
+    navBg = "#f6f4ee";
+    navBorder = "1px solid var(--border)";
+    logoColor = "#000000";
+    linkColor = "#000000";
+    writeBtnBg = "#1a1a1a";
+    writeBtnColor = "#ffffff";
+    writeBtnBorder = "none";
+  }
+
   return (
-    <nav className="nav">
+    <nav className="nav" style={{ background: navBg, borderBottom: navBorder }}>
       <div className="nav-inner">
         <Link href="/" className="nav-logo">
           <Image src="/favicon.png" alt="UGET" width={28} height={28} className="object-contain" />
-          <span className="nav-logo-text">UGET</span>
+          <span className="nav-logo-text" style={{ color: logoColor }}>UGET</span>
         </Link>
         <div className="nav-divider" style={{ display: "var(--sm-hide, flex)" }} />
         <form onSubmit={handleSearch} className="nav-search" style={{ maxWidth: 280 }}>
@@ -309,33 +341,40 @@ function NavbarInner() {
             </>
           ) : (
             <>
-              <Link href="/live" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8 }}>
+              <Link href="/live" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8, color: linkColor }}>
                 <span style={{ color: "#ef4444" }}>🔴</span>
                 <span>Live</span>
               </Link>
-              <Link href="/about" className="nav-link hide-sm" style={{ marginRight: 8 }}>
+              <Link href="/about" className="nav-link hide-sm" style={{ marginRight: 8, color: linkColor }}>
                 Our story
               </Link>
-              <Link href="/membership" className="nav-link hide-sm" style={{ marginRight: 8 }}>
+              <Link href="/membership" className="nav-link hide-sm" style={{ marginRight: 8, color: linkColor }}>
                 Membership
               </Link>
               <button 
                 onClick={() => { setAuthMode("signup"); setAuthModalOpen(true); }} 
                 className="nav-link hide-sm" 
-                style={{ marginRight: 8, background: "none", border: "none", cursor: "pointer" }}
+                style={{ marginRight: 8, background: "none", border: "none", cursor: "pointer", color: linkColor }}
               >
                 Write
               </button>
               <button 
                 onClick={() => { setAuthMode("login"); setAuthModalOpen(true); }} 
                 className="nav-link" 
-                style={{ marginRight: 8, background: "none", border: "none", cursor: "pointer" }}
+                style={{ marginRight: 8, background: "none", border: "none", cursor: "pointer", color: linkColor }}
               >
                 Sign in
               </button>
               <button 
                 onClick={() => { setAuthMode("signup"); setAuthModalOpen(true); }} 
                 className="nav-btn-write"
+                style={{
+                  backgroundColor: writeBtnBg,
+                  color: writeBtnColor,
+                  border: writeBtnBorder,
+                  borderRadius: "999px",
+                  padding: "9px 20px"
+                }}
               >
                 Get started
               </button>

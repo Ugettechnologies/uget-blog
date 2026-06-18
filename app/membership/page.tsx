@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -43,6 +44,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
         justifyContent: "center",
         padding: 24
       }}
+      onClick={onClose}
     >
       <div 
         style={{
@@ -57,6 +59,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
           border: "1px solid var(--border)",
           color: "var(--ink-2)"
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <button 
           onClick={onClose}
@@ -95,6 +98,9 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                   placeholder="Jane Doe" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  style={{
+                    width: "100%", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "12px", fontSize: 15, background: "none"
+                  }}
                   required 
                 />
               </div>
@@ -107,7 +113,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                   placeholder="4111 2222 3333 4444" 
                   value={cardNumber}
                   onChange={(e) => {
-                    const v = e.target.value.replace(/\s+/g, "").replace(/[^0-8\d]/g, "");
+                    const v = e.target.value.replace(/\s+/g, "").replace(/[^0-9\d]/g, "");
                     const matches = v.match(/\d{4,16}/g);
                     const match = (matches && matches[0]) || "";
                     const parts = [];
@@ -119,6 +125,9 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                     } else {
                       setCardNumber(v);
                     }
+                  }}
+                  style={{
+                    width: "100%", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "12px", fontSize: 15, background: "none"
                   }}
                   maxLength={19}
                   required 
@@ -141,6 +150,9 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                         setExpiry(v);
                       }
                     }}
+                    style={{
+                      width: "100%", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "12px", fontSize: 15, background: "none"
+                    }}
                     maxLength={5}
                     required 
                   />
@@ -153,6 +165,9 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                     placeholder="123" 
                     value={cvc}
                     onChange={(e) => setCvc(e.target.value.replace(/[^0-9\d]/g, ""))}
+                    style={{
+                      width: "100%", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "12px", fontSize: 15, background: "none"
+                    }}
                     maxLength={4}
                     required 
                   />
@@ -213,26 +228,27 @@ export default function MembershipPage() {
     {
       name: "UGET Member",
       price: "$5/month",
-      desc: "Support human writing and unlock exclusive reader features.",
+      yearlyPrice: "$50/year",
       features: [
         "Read member-only stories",
-        "Support writers directly with your subscription",
-        "Bookmark and organize stories into custom lists",
-        "Listen to audio narrations (Text to Speech)"
-      ],
-      actionLabel: "Get started"
+        "Support writers you read most",
+        "Listen to audio narrations",
+        "Read offline with the UGET app",
+        "Access our Mastodon community",
+        "Connect your custom domain",
+        "Create your own publications"
+      ]
     },
     {
       name: "Friend of UGET",
       price: "$15/month",
-      desc: "For super supporters who want to give more back to the community.",
+      yearlyPrice: "$150/year",
+      isPremium: true,
       features: [
-        "All benefits of the UGET Member plan",
-        "Give 3x more support directly to writers",
-        "Exclusive 'Friend of UGET' badge on your profile",
-        "A free digital member sticker pack"
-      ],
-      actionLabel: "Get started"
+        "Give 4x more to the writers you read",
+        "Share member-only stories with anyone and drive more earnings for writers",
+        "Customize app icon"
+      ]
     }
   ];
 
@@ -240,11 +256,11 @@ export default function MembershipPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Navbar />
 
-      {/* Header Banner */}
+      {/* Header Banner (Screenshot 4) */}
       <div 
         style={{ 
           background: "#ffd1dc", 
-          borderBottom: "1px solid var(--border)", 
+          borderBottom: "1px solid #e2b6c0", 
           padding: "80px 24px" 
         }}
       >
@@ -253,8 +269,8 @@ export default function MembershipPage() {
             maxWidth: 1040, 
             margin: "0 auto", 
             display: "grid", 
-            gridTemplateColumns: "1fr 1fr", 
-            gap: 48,
+            gridTemplateColumns: "1fr 420px", 
+            gap: 60,
             alignItems: "center"
           }}
           className="hide-sm-stack"
@@ -263,12 +279,12 @@ export default function MembershipPage() {
             <h1 
               style={{ 
                 fontFamily: "var(--serif)", 
-                fontSize: "clamp(32px, 6vw, 64px)", 
+                fontSize: "clamp(36px, 6vw, 68px)", 
                 fontWeight: 400, 
-                lineHeight: 1.1, 
+                lineHeight: 1.05, 
                 color: "#1a1a1a", 
-                letterSpacing: "-0.03em",
-                marginBottom: 20
+                letterSpacing: "-0.04em",
+                marginBottom: 24
               }}
             >
               Support human stories.
@@ -276,125 +292,165 @@ export default function MembershipPage() {
             <p 
               style={{ 
                 fontFamily: "var(--serif)", 
-                fontSize: 18, 
+                fontSize: 19, 
                 lineHeight: 1.5, 
                 color: "#292929", 
-                marginBottom: 28,
-                maxWidth: 440
+                marginBottom: 36,
+                maxWidth: 480
               }}
             >
-              UGET is a place where independent voices thrive. By becoming a member, you support the writers you love and enable human perspectives to flourish.
+              Become a member to read without limits or ads, fund great writers, and join a global community of people who care about high-quality storytelling.
             </p>
-            <button 
-              onClick={() => setCheckoutPlan({ name: "UGET Member", price: "$5/mo" })}
-              className="btn btn-primary btn-lg"
-              style={{ backgroundColor: "#1a1a1a", color: "white" }}
-            >
-              Become a member
-            </button>
+            <div style={{ display: "flex", gap: 16 }}>
+              <button 
+                onClick={() => setCheckoutPlan({ name: "UGET Member", price: "$5/mo" })}
+                className="btn btn-primary btn-lg"
+                style={{ backgroundColor: "#1a1a1a", color: "white", padding: "12px 28px", fontSize: 15, borderRadius: "999px" }}
+              >
+                Get started
+              </button>
+              <a 
+                href="#plans"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="btn btn-outline btn-lg"
+                style={{ borderColor: "#1a1a1a", color: "#1a1a1a", padding: "12px 28px", fontSize: 15, borderRadius: "999px", textDecoration: "none" }}
+              >
+                View plans
+              </a>
+            </div>
           </div>
-          <div 
-            style={{ 
-              display: "flex", 
-              justifyContent: "center",
-              position: "relative" 
-            }}
-            className="hide-md"
-          >
-            {/* Visual graphics */}
+
+          {/* Featured Editorial Card (Screenshot 4 right side) */}
+          <div className="hide-md" style={{ display: "flex", justifyContent: "center" }}>
             <div 
               style={{ 
-                width: 320, 
-                height: 240, 
-                border: "2px solid #1a1a1a", 
+                width: "100%",
+                maxWidth: 380,
+                border: "1px solid rgba(0,0,0,0.1)", 
                 borderRadius: 16,
                 background: "white",
-                padding: 24,
-                boxShadow: "8px 8px 0px #1a1a1a"
+                overflow: "hidden",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.06)"
               }}
             >
-              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#7c3aed", marginBottom: 16 }} />
-              <div style={{ width: "80%", height: 16, background: "#1a1a1a", marginBottom: 8 }} />
-              <div style={{ width: "50%", height: 16, background: "#1a1a1a", marginBottom: 20 }} />
-              <div style={{ display: "flex", gap: 8 }}>
-                <div style={{ width: 60, height: 24, borderRadius: 12, background: "#f3f3f3" }} />
-                <div style={{ width: 60, height: 24, borderRadius: 12, background: "#f3f3f3" }} />
+              <div style={{ position: "relative", width: "100%", height: 200 }}>
+                <Image 
+                  src="/sleeping_couple.png" 
+                  alt="How to sleep" 
+                  fill 
+                  style={{ objectFit: "cover" }} 
+                />
+              </div>
+              <div style={{ padding: 24 }}>
+                <span 
+                  style={{ 
+                    display: "inline-flex", 
+                    alignItems: "center", 
+                    gap: 4, 
+                    backgroundColor: "#fef0e0", 
+                    color: "#b37c00", 
+                    fontSize: 11, 
+                    fontWeight: 700, 
+                    fontFamily: "var(--sans)", 
+                    padding: "4px 8px", 
+                    borderRadius: 4,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    marginBottom: 12
+                  }}
+                >
+                  ✦ Member-only story
+                </span>
+                <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.3, marginBottom: 16 }}>
+                  How to Sleep on Hot Summer Nights: Science vs. Myth
+                </h4>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#ffd1dc", fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    RB
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>Robert Roy Britt</div>
+                    <div style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Author of Make Sleep Your Superpower</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Pricing Grid */}
-      <main style={{ flex: 1, maxWidth: 1040, margin: "0 auto", padding: "80px 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <h2 style={{ fontFamily: "var(--display)", fontSize: 32, fontWeight: 700, marginBottom: 12, color: "var(--black)" }}>
-            Choose your membership package
-          </h2>
-          <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>
-            Directly support the writers who make UGET a home for great ideas.
-          </p>
-        </div>
-
-        <div 
-          style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", 
-            gap: 32,
-            maxWidth: 800,
-            margin: "0 auto"
-          }}
-        >
-          {plans.map((plan) => (
-            <div 
-              key={plan.name}
-              style={{
-                border: "1px solid var(--border)",
-                borderRadius: 16,
-                padding: 32,
-                background: "var(--bg-2)",
-                display: "flex",
-                flexDirection: "column",
-                transition: "all 0.2s"
+      {/* Pricing Grid Section (Screenshot 2) */}
+      <main id="plans" style={{ flex: 1, maxWidth: 1040, margin: "0 auto", padding: "100px 24px 120px", width: "100%" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 64 }} className="plans-grid">
+          {/* Headline on left */}
+          <div>
+            <h2 
+              style={{ 
+                fontFamily: "var(--serif)", 
+                fontSize: 48, 
+                fontWeight: 400, 
+                lineHeight: 1.1, 
+                color: "#1a1a1a", 
+                letterSpacing: "-0.025em" 
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
             >
-              <h3 style={{ fontFamily: "var(--sans)", fontSize: 20, fontWeight: 700, color: "var(--black)" }}>
-                {plan.name}
-              </h3>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, margin: "16px 0 8px" }}>
-                <span style={{ fontSize: 36, fontWeight: 700, color: "var(--black)", fontFamily: "var(--display)" }}>
-                  {plan.price.split("/")[0]}
-                </span>
-                <span style={{ fontSize: 14, color: "var(--muted)" }}>
-                  /{plan.price.split("/")[1]}
-                </span>
+              Membership plans
+            </h2>
+          </div>
+
+          {/* Columns on right */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }} className="plans-columns">
+            {plans.map((plan) => (
+              <div key={plan.name} style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ borderBottom: "1px solid var(--border)", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, color: "var(--black)", marginBottom: 8 }}>
+                    {plan.name}
+                  </h3>
+                  <div style={{ fontFamily: "var(--sans)", fontSize: 15, color: "var(--black)", fontWeight: 600 }}>
+                    {plan.price} or {plan.yearlyPrice}
+                  </div>
+                  
+                  <button 
+                    onClick={() => setCheckoutPlan({ name: plan.name, price: plan.price })}
+                    className="btn btn-primary"
+                    style={{ 
+                      width: "100%", 
+                      padding: "10px", 
+                      borderRadius: 999, 
+                      backgroundColor: "#15803d", 
+                      color: "white", 
+                      fontWeight: 600, 
+                      marginTop: 20,
+                      fontSize: 14
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#166534")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
+                  >
+                    Get started
+                  </button>
+                </div>
+
+                {plan.isPremium && (
+                  <div style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+                    All UGET member benefits
+                    <div style={{ fontSize: 10, color: "var(--brand)", marginTop: 2 }}>plus</div>
+                  </div>
+                )}
+
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+                  {plan.features.map((feat) => (
+                    <li key={feat} style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--ink-2)", fontFamily: "var(--serif)", lineHeight: 1.45 }}>
+                      <span style={{ color: "#15803d", fontWeight: "bold" }}>✓</span>
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", marginBottom: 24, lineHeight: 1.5 }}>
-                {plan.desc}
-              </p>
-              
-              <div style={{ borderBottom: "1px solid var(--border)", marginBottom: 24 }} />
-
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
-                {plan.features.map((feat) => (
-                  <li key={feat} style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--ink-2)", fontFamily: "var(--serif)", lineHeight: 1.4 }}>
-                    <span style={{ color: "var(--brand)" }}>✓</span>
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <button 
-                onClick={() => setCheckoutPlan({ name: plan.name, price: plan.price })}
-                className="btn btn-primary"
-                style={{ width: "100%", padding: "12px", borderRadius: 999 }}
-              >
-                {plan.actionLabel}
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </main>
 
@@ -408,13 +464,23 @@ export default function MembershipPage() {
       <Footer />
 
       <style jsx global>{`
+        @media (max-width: 768px) {
+          .plans-grid {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+          .plans-columns {
+            grid-template-columns: 1fr !important;
+            gap: 48px !important;
+          }
+        }
         @media (max-width: 640px) {
           .hide-sm-stack {
             grid-template-columns: 1fr !important;
             text-align: center;
             gap: 24px !important;
           }
-          .hide-sm-stack button {
+          .hide-sm-stack button, .hide-sm-stack a {
             margin: 0 auto;
           }
         }
