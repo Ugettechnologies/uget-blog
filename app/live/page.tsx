@@ -32,6 +32,9 @@ export default function LiveDashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  const [dbError, setDbError] = useState<string | null>(null);
+  const [migratingDb, setMigratingDb] = useState(false);
+
   // Form states
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -47,15 +50,36 @@ export default function LiveDashboardPage() {
 
   const loadEvents = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    setDbError(null);
+    const { data, error: err } = await supabase
       .from("live_events")
       .select("*, profiles(id, full_name, avatar_url, username)")
       .order("created_at", { ascending: false });
     
-    if (data) {
+    if (err) {
+      setDbError(err.message || "Failed to load events");
+    } else if (data) {
       setEvents(data as LiveEvent[]);
     }
     setLoading(false);
+  };
+
+  const runMigration = async () => {
+    setMigratingDb(true);
+    try {
+      const res = await fetch("/api/migrate");
+      const data = await res.json();
+      if (data.success) {
+        setDbError(null);
+        loadEvents();
+      } else {
+        setDbError("Migration failed: " + (data.error || "Unknown error"));
+      }
+    } catch (err: any) {
+      setDbError("Migration failed: " + err.message);
+    } finally {
+      setMigratingDb(false);
+    }
   };
 
   const handleCreateEvent = async (e: React.FormEvent) => {
@@ -117,7 +141,18 @@ export default function LiveDashboardPage() {
           )}
         </div>
 
-        {loading ? (
+        {dbError && dbError.includes("does not exist") ? (
+          <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, padding: 32, textAlign: "center", marginTop: 24 }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🛠️</div>
+            <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 8 }}>Database Tables Missing</h2>
+            <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", maxWidth: 500, margin: "0 auto 24px", lineHeight: 1.6 }}>
+              The required database tables (live_events, follows, notifications) are not created on your database. Run the migration tool to set them up automatically.
+            </p>
+            <button onClick={runMigration} className="btn btn-primary btn-md" disabled={migratingDb} style={{ margin: "0 auto" }}>
+              {migratingDb ? "Running migrations..." : "Run Database Migrations"}
+            </button>
+          </div>
+        ) : loading ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "30vh" }}>
             <div className="spinner" style={{ width: 24, height: 24, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} />
           </div>
