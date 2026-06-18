@@ -44,10 +44,47 @@ export async function GET() {
       console.warn("Could not alter profiles table directly, check if column exists:", colErr.message);
     }
 
+    // 4. Create follows table
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.follows (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        follower_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+        following_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+        created_at timestamptz DEFAULT now(),
+        UNIQUE(follower_id, following_id)
+      )
+    `;
+    console.log("✓ Follows table created/checked");
+
+    // 5. Create notifications table
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.notifications (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+        type text NOT NULL,
+        actor_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+        post_id uuid REFERENCES public.posts(id) ON DELETE CASCADE,
+        content text NOT NULL,
+        read boolean DEFAULT false NOT NULL,
+        created_at timestamptz DEFAULT now()
+      )
+    `;
+    console.log("✓ Notifications table created/checked");
+
+    // Create indexes
+    try {
+      await sql`CREATE INDEX IF NOT EXISTS follows_follower_idx ON public.follows(follower_id)`;
+      await sql`CREATE INDEX IF NOT EXISTS follows_following_idx ON public.follows(following_id)`;
+      await sql`CREATE INDEX IF NOT EXISTS notifications_user_idx ON public.notifications(user_id, created_at desc)`;
+      console.log("✓ Performance indexes created/checked");
+    } catch (idxErr: any) {
+      console.warn("Could not create indexes:", idxErr.message);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Database migrations completed successfully!",
-      tables: ["live_events", "live_updates"],
+      tables: ["live_events", "live_updates", "follows", "notifications"],
       columns: ["profiles.theme"]
     });
   } catch (err: any) {

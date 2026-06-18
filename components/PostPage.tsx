@@ -20,6 +20,7 @@ export default function PostPage() {
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentText, setCommentText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -63,12 +64,14 @@ export default function PostPage() {
     // Check like/bookmark for current user
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const [likeRes, bmRes] = await Promise.all([
+      const [likeRes, bmRes, followRes] = await Promise.all([
         supabase.from("likes").select("id").eq("post_id", data.id).eq("user_id", user.id).single(),
         supabase.from("bookmarks").select("id").eq("post_id", data.id).eq("user_id", user.id).single(),
+        supabase.from("follows").select("id").eq("follower_id", user.id).eq("following_id", data.author_id).single(),
       ]);
       setLiked(!!likeRes.data);
       setBookmarked(!!bmRes.data);
+      setIsFollowingAuthor(!!followRes.data);
     }
     setLoading(false);
   };
@@ -94,6 +97,17 @@ export default function PostPage() {
       await supabase.from("bookmarks").insert({ post_id: post.id, user_id: user.id });
     }
     setBookmarked(!bookmarked);
+  };
+
+  const handleFollowAuthor = async () => {
+    if (!user || !post) { router.push("/auth"); return; }
+    if (isFollowingAuthor) {
+      await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", post.author_id);
+      setIsFollowingAuthor(false);
+    } else {
+      await supabase.from("follows").insert({ follower_id: user.id, following_id: post.author_id });
+      setIsFollowingAuthor(true);
+    }
   };
 
   const handleComment = async (e: React.FormEvent) => {
@@ -161,9 +175,19 @@ export default function PostPage() {
               )}
             </Link>
             <div>
-              <Link href={`/profile/${author?.username || post.author_id}`} className="article-author-name" style={{ textDecoration: "none" }}>
-                {author?.full_name || "Writer"}
-              </Link>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Link href={`/profile/${author?.username || post.author_id}`} className="article-author-name" style={{ textDecoration: "none" }}>
+                  {author?.full_name || "Writer"}
+                </Link>
+                {user && user.id !== post.author_id && (
+                  <button
+                    onClick={handleFollowAuthor}
+                    style={{ background: "none", border: "none", color: isFollowingAuthor ? "var(--muted)" : "var(--primary)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "0 4px" }}
+                  >
+                    · {isFollowingAuthor ? "Following" : "Follow"}
+                  </button>
+                )}
+              </div>
               <span className="article-author-date">
                 {formatDate(post.created_at)} · {post.read_time} min read · {post.view_count} views
               </span>
@@ -238,9 +262,20 @@ export default function PostPage() {
               </div>
             </Link>
             <div style={{ flex: 1 }}>
-              <Link href={`/profile/${author?.username || post.author_id}`} style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>
-                {author?.full_name || "Writer"}
-              </Link>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
+                <Link href={`/profile/${author?.username || post.author_id}`} style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>
+                  {author?.full_name || "Writer"}
+                </Link>
+                {user && user.id !== post.author_id && (
+                  <button
+                    onClick={handleFollowAuthor}
+                    className={`btn btn-sm ${isFollowingAuthor ? "btn-outline" : "btn-primary"}`}
+                    style={{ borderRadius: 999 }}
+                  >
+                    {isFollowingAuthor ? "Following" : "Follow"}
+                  </button>
+                )}
+              </div>
               {author?.bio && <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", marginTop: 6, lineHeight: 1.6 }}>{author.bio}</p>}
             </div>
           </div>

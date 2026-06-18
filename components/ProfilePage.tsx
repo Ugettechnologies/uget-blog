@@ -3,23 +3,30 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 
 export default function ProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const rawUsername = (params?.username as string || "").replace(/^@/, "");
   const supabase = createClient();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     if (!rawUsername) return;
     const load = async () => {
       setLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+
       // Try by username first, then by ID
       let { data: prof } = await supabase.from("profiles").select("*").eq("username", rawUsername).single();
       if (!prof) {
@@ -28,6 +35,15 @@ export default function ProfilePage() {
       }
       if (!prof) { setLoading(false); return; }
       setProfile(prof);
+
+      if (user && user.id !== prof.id) {
+        const { data: followRes } = await supabase.from("follows")
+          .select("id")
+          .eq("follower_id", user.id)
+          .eq("following_id", prof.id)
+          .single();
+        setIsFollowing(!!followRes);
+      }
 
       const { data } = await supabase.from("posts")
         .select("*").eq("author_id", prof.id).eq("published", true)
@@ -38,6 +54,27 @@ export default function ProfilePage() {
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawUsername]);
+
+  const handleFollow = async () => {
+    if (!currentUser) { router.push("/auth"); return; }
+    if (!profile) return;
+    
+    if (isFollowing) {
+      await supabase.from("follows").delete().eq("follower_id", currentUser.id).eq("following_id", profile.id);
+      setIsFollowing(false);
+      setProfile({
+        ...profile,
+        follower_count: Math.max((profile.follower_count || 0) - 1, 0)
+      });
+    } else {
+      await supabase.from("follows").insert({ follower_id: currentUser.id, following_id: profile.id });
+      setIsFollowing(true);
+      setProfile({
+        ...profile,
+        follower_count: (profile.follower_count || 0) + 1
+      });
+    }
+  };
 
   if (loading) return (
     <div style={{ background: "white", minHeight: "100vh" }}>
@@ -75,15 +112,27 @@ export default function ProfilePage() {
               ) : getInitials(profile.full_name)}
             </div>
             <div style={{ flex: 1 }}>
-              <h1 style={{ fontFamily: "var(--display)", fontSize: 32, fontWeight: 700, color: "var(--black)", letterSpacing: "-0.02em", marginBottom: 6 }}>
-                {profile.full_name}
-              </h1>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 6 }}>
+                <h1 style={{ fontFamily: "var(--display)", fontSize: 32, fontWeight: 700, color: "var(--black)", letterSpacing: "-0.02em", margin: 0 }}>
+                  {profile.full_name}
+                </h1>
+                {currentUser && currentUser.id !== profile.id && (
+                  <button
+                    onClick={handleFollow}
+                    className={`btn btn-sm ${isFollowing ? "btn-outline" : "btn-primary"}`}
+                    style={{ borderRadius: 999, height: 32, padding: "0 16px", display: "inline-flex", alignItems: "center" }}
+                  >
+                    {isFollowing ? "Following" : "Follow"}
+                  </button>
+                )}
+              </div>
               {profile.bio && (
                 <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", lineHeight: 1.6, marginBottom: 12 }}>{profile.bio}</p>
               )}
               <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
                 {[
                   { v: posts.length, l: "Stories" },
+                  { v: (profile.follower_count || 0).toLocaleString(), l: "Followers" },
                   { v: totalViews.toLocaleString(), l: "Views" },
                 ].map((s) => (
                   <div key={s.l} style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>

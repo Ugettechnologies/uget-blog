@@ -36,9 +36,25 @@ export async function POST(request: Request) {
         let fieldName = filter.field;
         // Prefix with table name to avoid ambiguity in joins
         if (table === "posts" && selectFields.includes("profiles")) {
-          fieldName = `posts.${filter.field}`;
+          if (filter.field.startsWith("profiles.")) {
+            fieldName = filter.field;
+          } else if (filter.field === "role") {
+            fieldName = `profiles.role`;
+          } else {
+            fieldName = `posts.${filter.field}`;
+          }
         } else if (table === "comments" && selectFields.includes("profiles")) {
           fieldName = `comments.${filter.field}`;
+        } else if (table === "bookmarks" && selectFields.includes("posts")) {
+          if (filter.field.startsWith("posts.")) {
+            fieldName = filter.field;
+          } else {
+            fieldName = `bookmarks.${filter.field}`;
+          }
+        } else if (table === "follows" && selectFields.includes("profiles")) {
+          fieldName = `follows.${filter.field}`;
+        } else if (table === "notifications" && selectFields.includes("profiles")) {
+          fieldName = `notifications.${filter.field}`;
         }
 
         if (filter.type === "eq") {
@@ -62,6 +78,12 @@ export async function POST(request: Request) {
           fieldName = `posts.${o.field}`;
         } else if (table === "comments" && selectFields.includes("profiles")) {
           fieldName = `comments.${o.field}`;
+        } else if (table === "bookmarks" && selectFields.includes("posts")) {
+          fieldName = `bookmarks.${o.field}`;
+        } else if (table === "follows" && selectFields.includes("profiles")) {
+          fieldName = `follows.${o.field}`;
+        } else if (table === "notifications" && selectFields.includes("profiles")) {
+          fieldName = `notifications.${o.field}`;
         }
         return `${fieldName} ${o.ascending ? "ASC" : "DESC"}`;
       });
@@ -121,6 +143,74 @@ export async function POST(request: Request) {
           ${orderString}
           ${limitString}
         `;
+      } else if (table === "bookmarks" && selectFields.includes("posts")) {
+        queryText = `
+          SELECT bookmarks.*, 
+            json_build_object(
+              'id', posts.id,
+              'title', posts.title,
+              'slug', posts.slug,
+              'excerpt', posts.excerpt,
+              'cover_image', posts.cover_image,
+              'category', posts.category,
+              'read_time', posts.read_time,
+              'created_at', posts.created_at,
+              'view_count', posts.view_count,
+              'like_count', posts.like_count,
+              'comment_count', posts.comment_count,
+              'profiles', json_build_object(
+                'id', profiles.id,
+                'full_name', profiles.full_name,
+                'avatar_url', profiles.avatar_url,
+                'username', profiles.username
+              )
+            ) as posts
+          FROM bookmarks
+          JOIN posts ON bookmarks.post_id = posts.id
+          LEFT JOIN profiles ON posts.author_id = profiles.id
+          \${whereString}
+          \${orderString}
+          \${limitString}
+        `;
+      } else if (table === "follows" && selectFields.includes("profiles")) {
+        queryText = `
+          SELECT follows.*, 
+            json_build_object(
+              'id', follower.id,
+              'full_name', follower.full_name,
+              'avatar_url', follower.avatar_url,
+              'username', follower.username,
+              'bio', follower.bio
+            ) as follower_profile,
+            json_build_object(
+              'id', following.id,
+              'full_name', following.full_name,
+              'avatar_url', following.avatar_url,
+              'username', following.username,
+              'bio', following.bio
+            ) as following_profile
+          FROM follows
+          LEFT JOIN profiles follower ON follows.follower_id = follower.id
+          LEFT JOIN profiles following ON follows.following_id = following.id
+          \${whereString}
+          \${orderString}
+          \${limitString}
+        `;
+      } else if (table === "notifications" && selectFields.includes("profiles")) {
+        queryText = `
+          SELECT notifications.*, 
+            json_build_object(
+              'id', actor.id,
+              'full_name', actor.full_name,
+              'avatar_url', actor.avatar_url,
+              'username', actor.username
+            ) as actor_profile
+          FROM notifications
+          LEFT JOIN profiles actor ON notifications.actor_id = actor.id
+          \${whereString}
+          \${orderString}
+          \${limitString}
+        `;
       } else {
         queryText = `
           SELECT * FROM ${table}
@@ -168,6 +258,10 @@ export async function POST(request: Request) {
         }
         const joinedRows = await sql(joinedQuery, [idField]);
         result = joinedRows[0] || result;
+      }
+
+      if (result) {
+        await triggerNotification(sql, table, result);
       }
 
       return NextResponse.json({ data: result, error: null });
@@ -255,5 +349,46 @@ export async function POST(request: Request) {
   } catch (err: any) {
     console.error("DB route error:", err);
     return NextResponse.json({ data: null, error: { message: err.message || "Internal server error" } }, { status: 500 });
+  }
+}
+
+async function triggerNotification(sql: any, table: string, result: any) {
+  try {
+    if (table === "likes") {
+      const postId = result.post_id;
+      const actorId = result.user_id;
+      const posts = await sql(`SELECT title, author_id FROM posts WHERE id = $1`, [postId]);
+      if (posts.length > 0 && posts[0].author_id !== actorId) {
+        const targetUserId = posts[0].author_id;
+        const postTitle = posts[0].title;
+        const shortTitle = postTitle.length > 25 ? postTitle.substring(0, 25) + "..." : postTitle;
+        await sql(`
+          INSERT INTO notifications (user_id, type, actor_id, post_id, content)
+          VALUES ($1, 'like', $2, $3, $4)
+        `, [targetUserId, actorId, postId, `liked your story "${shortTitle}"`]);
+      }
+    } else if (table === "comments") {
+      const postId = result.post_id;
+      const actorId = result.user_id;
+      const posts = await sql(`SELECT title, author_id FROM posts WHERE id = $1`, [postId]);
+      if (posts.length > 0 && posts[0].author_id !== actorId) {
+        const targetUserId = posts[0].author_id;
+        const postTitle = posts[0].title;
+        const shortTitle = postTitle.length > 25 ? postTitle.substring(0, 25) + "..." : postTitle;
+        await sql(`
+          INSERT INTO notifications (user_id, type, actor_id, post_id, content)
+          VALUES ($1, 'comment', $2, $3, $4)
+        `, [targetUserId, actorId, postId, `commented on your story "${shortTitle}"`]);
+      }
+    } else if (table === "follows") {
+      const followerId = result.follower_id;
+      const followingId = result.following_id;
+      await sql(`
+        INSERT INTO notifications (user_id, type, actor_id, content)
+        VALUES ($1, 'follow', $2, 'started following you')
+      `, [followingId, followerId]);
+    }
+  } catch (err) {
+    console.error("Failed to trigger notification:", err);
   }
 }

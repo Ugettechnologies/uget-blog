@@ -18,14 +18,30 @@ export default function Navbar() {
   const notifRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "Amara Johnson started following you", time: "2 hours ago", unread: true, icon: "👤" },
-    { id: 2, text: "Kelechi Obi liked your story '10 Figma Tricks...'", time: "5 hours ago", unread: true, icon: "💖" },
-    { id: 3, text: "Welcome to UGET! Start reading and writing stories that matter.", time: "2 days ago", unread: true, icon: "🎉" },
-    { id: 4, text: "Samuel Eze published a new tutorial 'Build a Full-Stack App...'", time: "3 days ago", unread: false, icon: "📝" },
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   const unreadNotifCount = notifications.filter(n => n.unread).length;
+
+  const loadNotifications = async (userId: string) => {
+    const { data } = await supabase.from("notifications")
+      .select("*, profiles(*)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (data) {
+      setNotifications(data.map((n: any) => {
+        const actor = n.actor_profile;
+        const iconMap: any = { like: "💖", comment: "💬", follow: "👤" };
+        return {
+          id: n.id,
+          text: actor ? `${actor.full_name} ${n.content}` : n.content,
+          time: new Date(n.created_at).toLocaleDateString() || "Just now",
+          unread: !n.read,
+          icon: iconMap[n.type] || "🎉"
+        };
+      }));
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -33,11 +49,20 @@ export default function Navbar() {
       if (user) {
         supabase.from("profiles").select("*").eq("id", user.id).single()
           .then(({ data }) => setProfile(data));
+        loadNotifications(user.id);
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: string, session: any) => {
-      setUser(session?.user ?? null);
-      if (!session?.user) setProfile(null);
+      const u = session?.user ?? null;
+      setUser(u);
+      if (!u) {
+        setProfile(null);
+        setNotifications([]);
+      } else {
+        supabase.from("profiles").select("*").eq("id", u.id).single()
+          .then(({ data }) => setProfile(data));
+        loadNotifications(u.id);
+      }
     });
     return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,15 +82,20 @@ export default function Navbar() {
     if (search.trim()) { router.push(`/?q=${encodeURIComponent(search.trim())}`); setSearch(""); }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    if (!user) return;
+    await supabase.from("notifications").update({ read: true }).eq("user_id", user.id);
     setNotifications(notifications.map(n => ({ ...n, unread: false })));
   };
 
-  const handleNotificationClick = (id: number) => {
+  const handleNotificationClick = async (id: any) => {
+    await supabase.from("notifications").update({ read: true }).eq("id", id);
     setNotifications(notifications.map(n => n.id === id ? { ...n, unread: false } : n));
   };
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = async () => {
+    if (!user) return;
+    await supabase.from("notifications").delete().eq("user_id", user.id);
     setNotifications([]);
   };
 

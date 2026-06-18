@@ -76,6 +76,31 @@ create table if not exists public.comments (
   created_at timestamptz default now()
 );
 
+-- follows table
+create table if not exists public.follows (
+  id uuid primary key default gen_random_uuid(),
+  follower_id uuid references public.profiles(id) on delete cascade not null,
+  following_id uuid references public.profiles(id) on delete cascade not null,
+  created_at timestamptz default now(),
+  unique(follower_id, following_id)
+);
+
+-- notifications table
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  type text not null,
+  actor_id uuid references public.profiles(id) on delete cascade,
+  post_id uuid references public.posts(id) on delete cascade,
+  content text not null,
+  read boolean default false not null,
+  created_at timestamptz default now()
+);
+
+create index if not exists notifications_user_idx on public.notifications(user_id, created_at desc);
+create index if not exists follows_follower_idx on public.follows(follower_id);
+create index if not exists follows_following_idx on public.follows(following_id);
+
 -- ── Auto-update updated_at ────────────────────────────────────────────────────
 create or replace function public.update_updated_at()
 returns trigger language plpgsql as $$

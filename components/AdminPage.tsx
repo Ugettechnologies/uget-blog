@@ -21,6 +21,8 @@ function StatCard({ label, value, icon, color }: { label: string; value: string 
   );
 }
 
+import Navbar from "@/components/Navbar";
+
 export default function AdminPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -30,6 +32,8 @@ export default function AdminPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isNotAdmin, setIsNotAdmin] = useState(false);
+  const [publicPosts, setPublicPosts] = useState<Post[]>([]);
 
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -38,14 +42,33 @@ export default function AdminPage() {
 
   useEffect(() => {
     checkAdmin();
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadPublicPosts = async () => {
+    const { data } = await supabase.from("posts")
+      .select("*, profiles(full_name, avatar_url, username)")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .limit(3);
+    if (data) setPublicPosts(data as Post[]);
+  };
 
   const checkAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/auth"); return; }
+    if (!user) {
+      await loadPublicPosts();
+      setIsNotAdmin(true);
+      setLoading(false);
+      return;
+    }
     const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-    if (prof?.role !== "admin") { router.push("/"); return; }
+    if (prof?.role !== "admin") {
+      await loadPublicPosts();
+      setIsNotAdmin(true);
+      setLoading(false);
+      return;
+    }
     loadData();
   };
 
@@ -98,6 +121,64 @@ export default function AdminPage() {
     { id: "posts", label: "All Posts", icon: "📝" },
     { id: "users", label: "Users", icon: "👥" },
   ];
+
+  if (isNotAdmin) {
+    return (
+      <div style={{ background: "white", minHeight: "100vh", color: "var(--ink)", width: "100%" }}>
+        <Navbar />
+        <div style={{ maxWidth: 680, margin: "80px auto 40px", padding: "0 24px", textAlign: "center" }}>
+          <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.15em" }}>Page not found</span>
+          <h1 style={{ fontFamily: "var(--serif)", fontSize: 110, fontWeight: 400, margin: "16px 0", color: "var(--black)", lineHeight: 1 }}>404</h1>
+          <h2 style={{ fontFamily: "var(--serif)", fontSize: 28, fontWeight: 700, marginBottom: 16, color: "var(--black)" }}>Out of nothing, something.</h2>
+          <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", lineHeight: 1.6, marginBottom: 32, marginLeft: "auto", marginRight: "auto", maxWidth: 540 }}>
+            You can find (just about) anything on UGET — apparently even a page that doesn't exist. Maybe these stories will take you somewhere new?
+          </p>
+          <Link href="/" className="btn btn-outline" style={{ textDecoration: "none", borderRadius: 999, padding: "10px 24px", display: "inline-flex", borderColor: "var(--border)", color: "var(--black)" }}>
+            Home
+          </Link>
+        </div>
+
+        <div style={{ borderTop: "1px solid var(--border)", background: "var(--bg-2)", padding: "60px 24px" }}>
+          <div style={{ maxWidth: 680, margin: "0 auto" }}>
+            <h3 style={{ fontFamily: "var(--display)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 24 }}>Recommended stories</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+              {publicPosts.length === 0 ? (
+                <div style={{ padding: "40px 0", textAlign: "center", color: "var(--muted)" }}>
+                  No recommendations available
+                </div>
+              ) : (
+                publicPosts.map((p) => {
+                  const author = p.profiles as any;
+                  return (
+                    <article key={p.id} style={{ paddingBottom: 24, borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                          <div style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                            {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={20} height={20} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name)}
+                          </div>
+                          <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{author?.full_name || "Writer"}</span>
+                          <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>· {formatDate(p.created_at)}</span>
+                        </div>
+                        <Link href={`/post/${p.slug}`} style={{ textDecoration: "none" }}>
+                          <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)", margin: "4px 0 8px", lineHeight: 1.3 }}>{p.title}</h4>
+                          {p.excerpt && <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", margin: 0, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.excerpt}</p>}
+                        </Link>
+                      </div>
+                      {p.cover_image && (
+                        <Link href={`/post/${p.slug}`} style={{ width: 100, height: 100, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
+                          <Image src={p.cover_image} alt="" width={100} height={100} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                        </Link>
+                      )}
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-2)" }}>
