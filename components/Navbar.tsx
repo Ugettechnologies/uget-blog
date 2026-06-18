@@ -65,7 +65,16 @@ function NavbarInner() {
       setUser(user);
       if (user) {
         supabase.from("profiles").select("*").eq("id", user.id).single()
-          .then(({ data }) => setProfile(data));
+          .then(({ data }) => {
+            setProfile(data);
+            if (data) {
+              localStorage.setItem("uget_last_user", JSON.stringify({
+                full_name: data.full_name || user.email || "User",
+                email: user.email || "",
+                avatar_url: data.avatar_url || ""
+              }));
+            }
+          });
         loadNotifications(user.id);
       }
     });
@@ -77,7 +86,16 @@ function NavbarInner() {
         setNotifications([]);
       } else {
         supabase.from("profiles").select("*").eq("id", u.id).single()
-          .then(({ data }) => setProfile(data));
+          .then(({ data }) => {
+            setProfile(data);
+            if (data) {
+              localStorage.setItem("uget_last_user", JSON.stringify({
+                full_name: data.full_name || u.email || "User",
+                email: u.email || "",
+                avatar_url: data.avatar_url || ""
+              }));
+            }
+          });
         loadNotifications(u.id);
       }
     });

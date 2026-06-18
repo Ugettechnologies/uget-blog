@@ -138,6 +138,12 @@ export default function SettingsPage() {
     if (error) {
       showMsg(error.message, "err");
     } else {
+      // Update localStorage cached profile
+      localStorage.setItem("uget_last_user", JSON.stringify({
+        full_name: payload.full_name || user.email || "User",
+        email: user.email || "",
+        avatar_url: payload.avatar_url || ""
+      }));
       showMsg("Settings saved successfully!");
       router.refresh();
     }

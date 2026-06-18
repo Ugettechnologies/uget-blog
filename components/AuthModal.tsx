@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
+import { getInitials } from "@/lib/types";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -30,6 +31,11 @@ const GithubIcon = () => (
 export default function AuthModal({ isOpen, onClose, initialMode = "login" }: AuthModalProps) {
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const [savedUser, setSavedUser] = useState<{
+    full_name: string;
+    email: string;
+    avatar_url: string;
+  } | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,8 +51,23 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      // Reset options display on modal open
-      setShowMoreOptions(false);
+      
+      // Load saved user from local storage
+      const lastUserStr = localStorage.getItem("uget_last_user");
+      if (lastUserStr) {
+        try {
+          const parsed = JSON.parse(lastUserStr);
+          setSavedUser(parsed);
+          setShowMoreOptions(false);
+        } catch (e) {
+          setSavedUser(null);
+          setShowMoreOptions(true);
+        }
+      } else {
+        setSavedUser(null);
+        setShowMoreOptions(true);
+      }
+
       setError("");
       setSuccess("");
       setName("");
@@ -104,6 +125,20 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        
+        // Cache user details to localStorage for future quick sign-in
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+          if (profile) {
+            localStorage.setItem("uget_last_user", JSON.stringify({
+              full_name: profile.full_name || user.email || "User",
+              email: user.email || "",
+              avatar_url: profile.avatar_url || ""
+            }));
+          }
+        }
+
         onClose();
         router.refresh();
       }
@@ -267,16 +302,28 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   marginBottom: 12,
                   boxShadow: "var(--shadow-md)",
                   border: "2px solid var(--border)",
-                  position: "relative"
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: savedUser?.avatar_url ? "none" : "var(--bg-3)",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  fontFamily: "var(--sans)",
+                  color: "var(--ink-2)"
                 }}
               >
-                <Image 
-                  src="/ogobor_avatar.png" 
-                  alt="ogobor blessed" 
-                  fill 
-                  style={{ objectFit: "cover" }} 
-                  priority
-                />
+                {savedUser?.avatar_url ? (
+                  <Image 
+                    src={savedUser.avatar_url} 
+                    alt={savedUser.full_name || "User avatar"} 
+                    fill 
+                    style={{ objectFit: "cover" }} 
+                    priority
+                  />
+                ) : (
+                  <span>{getInitials(savedUser?.full_name || savedUser?.email || "?")}</span>
+                )}
               </div>
               <div 
                 style={{ 
@@ -286,7 +333,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   color: "var(--ink)" 
                 }}
               >
-                ogobor blessed
+                {savedUser?.full_name}
               </div>
               <div 
                 style={{ 
@@ -295,7 +342,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   color: "var(--muted)" 
                 }}
               >
-                bl*********@gmail.com
+                {savedUser?.email}
               </div>
             </div>
 
@@ -350,7 +397,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
               }}
             >
               <button 
-                onClick={() => setShowMoreOptions(true)} 
+                onClick={() => {
+                  localStorage.removeItem("uget_last_user");
+                  setSavedUser(null);
+                  setShowMoreOptions(true);
+                }} 
                 style={{ 
                   color: "var(--muted)", 
                   textDecoration: "underline", 
