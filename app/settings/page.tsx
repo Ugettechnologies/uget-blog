@@ -125,7 +125,14 @@ export default function SettingsPage() {
       updated_at: new Date().toISOString()
     };
 
-    const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
+    let { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
+
+    // Self-healing fallback if the database schema is not migrated yet and 'theme' column is missing
+    if (error && error.message && (error.message.includes('column "theme"') || error.message.includes('theme'))) {
+      const { theme: _, ...fallbackPayload } = payload;
+      const retry = await supabase.from("profiles").update(fallbackPayload).eq("id", user.id);
+      error = retry.error;
+    }
 
     setSaving(false);
     if (error) {
@@ -230,12 +237,70 @@ export default function SettingsPage() {
             <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)" }}>Appearance & Role</h3>
             
             <div className="form-group">
-              <label className="form-label">App Theme</label>
-              <select className="form-input" value={theme} onChange={(e) => handleThemeChange(e.target.value)} style={{ background: "var(--bg)", color: "var(--ink)", cursor: "pointer" }}>
-                <option value="light">☀️ Light theme</option>
-                <option value="dark">🌙 Dark theme</option>
-                <option value="system">💻 System settings</option>
-              </select>
+              <label className="form-label" style={{ marginBottom: 12, display: "block" }}>App Theme</label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
+                {[
+                  { id: "light", label: "Light theme", icon: "☀️" },
+                  { id: "dark", label: "Dark theme", icon: "🌙" },
+                  { id: "system", label: "System settings", icon: "💻" },
+                ].map((t) => {
+                  const isSelected = theme === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => handleThemeChange(t.id)}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "16px 12px",
+                        background: isSelected ? "var(--bg-3)" : "var(--bg-2)",
+                        border: isSelected ? "2px solid #7c3aed" : "1px solid var(--border)",
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        boxShadow: isSelected ? "0 4px 12px rgba(124, 58, 237, 0.12)" : "none",
+                        color: "var(--ink)",
+                        position: "relative"
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = "var(--muted-2)";
+                          e.currentTarget.style.background = "var(--bg-3)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = "var(--border)";
+                          e.currentTarget.style.background = "var(--bg-2)";
+                        }
+                      }}
+                    >
+                      <span style={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        width: 14,
+                        height: 14,
+                        borderRadius: "50%",
+                        border: "1px solid var(--border)",
+                        background: isSelected ? "#7c3aed" : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}>
+                        {isSelected && (
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />
+                        )}
+                      </span>
+                      <span style={{ fontSize: 24 }}>{t.icon}</span>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: isSelected ? 600 : 500 }}>{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="form-group">

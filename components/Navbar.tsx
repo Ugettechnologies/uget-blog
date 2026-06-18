@@ -11,10 +11,21 @@ export default function Navbar() {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [search, setSearch] = useState("");
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "Amara Johnson started following you", time: "2 hours ago", unread: true, icon: "👤" },
+    { id: 2, text: "Kelechi Obi liked your story '10 Figma Tricks...'", time: "5 hours ago", unread: true, icon: "💖" },
+    { id: 3, text: "Welcome to UGET! Start reading and writing stories that matter.", time: "2 days ago", unread: true, icon: "🎉" },
+    { id: 4, text: "Samuel Eze published a new tutorial 'Build a Full-Stack App...'", time: "3 days ago", unread: false, icon: "📝" },
+  ]);
+
+  const unreadNotifCount = notifications.filter(n => n.unread).length;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -35,6 +46,7 @@ export default function Navbar() {
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -43,6 +55,18 @@ export default function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) { router.push(`/?q=${encodeURIComponent(search.trim())}`); setSearch(""); }
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+  };
+
+  const handleNotificationClick = (id: number) => {
+    setNotifications(notifications.map(n => n.id === id ? { ...n, unread: false } : n));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
   };
 
   const handleSignOut = async () => {
@@ -71,12 +95,118 @@ export default function Navbar() {
                 <span style={{ color: "#ef4444" }}>🔴</span>
                 <span>Live</span>
               </Link>
-              <Link href="/write" className="nav-btn-write">
+              <Link href="/write" className="nav-btn-write" style={{ marginRight: 8 }}>
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
                 <span className="hide-sm">Write</span>
               </Link>
+
+              {/* Notification bell button */}
+              <div style={{ position: "relative", marginRight: 8 }} ref={notifRef}>
+                <button 
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  style={{ 
+                    background: "none", 
+                    border: "none", 
+                    cursor: "pointer", 
+                    color: "var(--ink-2)", 
+                    padding: 6, 
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative"
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-3)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                  title="Notifications"
+                >
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {unreadNotifCount > 0 && (
+                    <span style={{
+                      position: "absolute",
+                      top: 2,
+                      right: 2,
+                      background: "#ef4444",
+                      color: "white",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      borderRadius: "50%",
+                      width: 14,
+                      height: 14,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1px solid var(--bg)"
+                    }}>
+                      {unreadNotifCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notifications dropdown menu */}
+                {notifOpen && (
+                  <div style={{
+                    position: "absolute", right: 0, top: "calc(100% + 8px)", background: "var(--bg-2)",
+                    border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-lg)",
+                    width: 320, zIndex: 200, overflow: "hidden", animation: "fadeIn 0.15s ease",
+                  }}>
+                    <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {unreadNotifCount > 0 && (
+                          <button onClick={markAllAsRead} style={{ background: "none", border: "none", color: "var(--primary)", fontSize: 12, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500, padding: 0 }}>
+                            Mark all read
+                          </button>
+                        )}
+                        {notifications.length > 0 && (
+                          <button onClick={clearAllNotifications} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500, padding: 0 }}>
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ maxHeight: 280, overflowY: "auto" }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--muted)", fontFamily: "var(--sans)", fontSize: 14 }}>
+                          No notifications yet
+                        </div>
+                      ) : (
+                        notifications.map((item) => (
+                          <div 
+                            key={item.id} 
+                            onClick={() => handleNotificationClick(item.id)}
+                            style={{ 
+                              display: "flex", 
+                              gap: 12, 
+                              padding: "12px 16px", 
+                              borderBottom: "1px solid var(--border-2)",
+                              cursor: "pointer",
+                              background: item.unread ? "var(--bg-3)" : "none",
+                              position: "relative"
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(0.95)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.filter = "")}
+                          >
+                            <span style={{ fontSize: 18, alignSelf: "flex-start" }}>{item.icon}</span>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ margin: 0, fontFamily: "var(--sans)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.4, fontWeight: item.unread ? 500 : 400 }}>{item.text}</p>
+                              <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted-2)", marginTop: 4, display: "block" }}>{item.time}</span>
+                            </div>
+                            {item.unread && (
+                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary)", alignSelf: "center", flexShrink: 0 }} />
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div style={{ position: "relative" }} ref={menuRef}>
                 <button className="nav-avatar" onClick={() => setMenuOpen(!menuOpen)}>
                   {profile?.avatar_url ? (
@@ -137,7 +267,6 @@ export default function Navbar() {
                 <span style={{ color: "#ef4444" }}>🔴</span>
                 <span>Live</span>
               </Link>
-              <Link href="/auth" className="nav-link">Sign in</Link>
               <Link href="/auth?mode=signup" className="nav-btn-write">Get started</Link>
             </>
           )}

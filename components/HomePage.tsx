@@ -126,12 +126,19 @@ export default function HomePage() {
               Human stories<br />&amp; ideas
             </h1>
             <p className="home-hero-sub">A place to read, write, and deepen your understanding.</p>
-            <Link href="/auth?mode=signup" className="home-hero-cta">
+            <a
+              href="#feed"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("feed")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="home-hero-cta"
+            >
               Start reading
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-            </Link>
+            </a>
             <div className="topic-pills">
               {CATEGORIES.slice(0, 6).map((cat) => (
                 <button
