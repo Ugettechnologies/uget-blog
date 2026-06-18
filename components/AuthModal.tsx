@@ -28,9 +28,23 @@ const GithubIcon = () => (
   </svg>
 );
 
+const FacebookIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" style={{ flexShrink: 0 }}>
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const EmailIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ flexShrink: 0 }}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+  </svg>
+);
+
 export default function AuthModal({ isOpen, onClose, initialMode = "login" }: AuthModalProps) {
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [savedUser, setSavedUser] = useState<{
     full_name: string;
     email: string;
@@ -68,6 +82,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         setShowMoreOptions(true);
       }
 
+      setShowEmailForm(false);
       setError("");
       setSuccess("");
       setName("");
@@ -83,9 +98,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
   if (!isOpen) return null;
 
-  const handleOAuth = async (provider: "google" | "github") => {
+  const handleOAuth = async (provider: "google" | "github" | "facebook") => {
     setOauthLoading(provider);
     setError("");
+    localStorage.setItem("uget_remember_me", rememberMe ? "true" : "false");
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -105,6 +121,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       return;
     }
     setLoading(true);
+    localStorage.setItem("uget_remember_me", rememberMe ? "true" : "false");
     try {
       if (mode === "signup") {
         if (!name.trim()) {
@@ -126,16 +143,20 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         
-        // Cache user details to localStorage for future quick sign-in
+        // Cache user details to localStorage for future quick sign-in if rememberMe is enabled
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-          if (profile) {
-            localStorage.setItem("uget_last_user", JSON.stringify({
-              full_name: profile.full_name || user.email || "User",
-              email: user.email || "",
-              avatar_url: profile.avatar_url || ""
-            }));
+          if (rememberMe) {
+            const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+            if (profile) {
+              localStorage.setItem("uget_last_user", JSON.stringify({
+                full_name: profile.full_name || user.email || "User",
+                email: user.email || "",
+                avatar_url: profile.avatar_url || ""
+              }));
+            }
+          } else {
+            localStorage.removeItem("uget_last_user");
           }
         }
 
@@ -436,223 +457,338 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
           /* ────────────────────────────────────────────────────────
              FULL LOG IN & SIGN UP OPTIONS VIEW
              ──────────────────────────────────────────────────────── */
-          <div style={{ textAlign: "left" }}>
-            <h2 
-              style={{ 
-                fontFamily: "var(--display)", 
-                fontSize: 28, 
-                fontWeight: 700, 
-                color: "var(--black)", 
-                marginBottom: 6,
-                textAlign: "center",
-                letterSpacing: "-0.015em"
-              }}
-            >
-              {mode === "login" ? "Welcome back." : "Join UGET."}
-            </h2>
-            <p 
-              style={{ 
-                fontFamily: "var(--serif)", 
-                fontSize: 14, 
-                color: "var(--muted)", 
-                marginBottom: 24,
-                textAlign: "center"
-              }}
-            >
-              {mode === "login" ? "Sign in to continue reading." : "Create an account to start writing."}
-            </p>
+          <div style={{ textAlign: "center" }}>
+            {!showEmailForm ? (
+              /* Simple Options List */
+              <div>
+                <h2 
+                  style={{ 
+                    fontFamily: "var(--display)", 
+                    fontSize: 32, 
+                    fontWeight: 700, 
+                    color: "var(--black)", 
+                    marginBottom: 24,
+                    textAlign: "center",
+                    letterSpacing: "-0.02em"
+                  }}
+                >
+                  {mode === "login" ? "Welcome back." : "Join UGET."}
+                </h2>
 
-            {/* Mode Tabs */}
-            <div className="auth-tabs" style={{ marginBottom: 20 }}>
-              <button 
-                className={`auth-tab ${mode === "login" ? "active" : ""}`} 
-                onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
-              >
-                Sign in
-              </button>
-              <button 
-                className={`auth-tab ${mode === "signup" ? "active" : ""}`} 
-                onClick={() => { setMode("signup"); setError(""); setSuccess(""); }}
-              >
-                Sign up
-              </button>
-            </div>
+                {/* Google Sign In Button */}
+                <button 
+                  onClick={() => handleOAuth("google")} 
+                  className="oauth-btn"
+                  disabled={!!oauthLoading}
+                  style={{
+                    width: "100%",
+                    padding: "14px 20px",
+                    borderRadius: 999,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    marginBottom: 12,
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--bg)",
+                    color: "var(--ink)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 12,
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg-3)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg)";
+                    e.currentTarget.style.transform = "";
+                  }}
+                >
+                  {oauthLoading === "google" ? (
+                    <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
+                  ) : (
+                    <GoogleIcon />
+                  )}
+                  {mode === "login" ? "Sign in with Google" : "Sign up with Google"}
+                </button>
 
-            {/* OAuth Buttons */}
-            <button 
-              onClick={() => handleOAuth("google")} 
-              className="oauth-btn" 
-              disabled={!!oauthLoading}
-              style={{
-                width: "100%",
-                padding: "12px 20px",
-                borderRadius: 999,
-                fontSize: 14,
-                fontWeight: 500,
-                border: "1px solid var(--border)",
-                backgroundColor: "var(--bg)",
-                color: "var(--ink)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 12,
-                cursor: "pointer",
-                marginBottom: 10,
-                transition: "all 0.2s"
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-3)")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--bg)")}
-            >
-              {oauthLoading === "google" ? (
-                <div className="spinner" style={{ width: 16, height: 16, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
-              ) : (
-                <GoogleIcon />
-              )}
-              Continue with Google
-            </button>
+                {/* Facebook Sign In Button */}
+                <button 
+                  onClick={() => handleOAuth("facebook")} 
+                  className="oauth-btn"
+                  disabled={!!oauthLoading}
+                  style={{
+                    width: "100%",
+                    padding: "14px 20px",
+                    borderRadius: 999,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    marginBottom: 12,
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--bg)",
+                    color: "var(--ink)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 12,
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg-3)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg)";
+                    e.currentTarget.style.transform = "";
+                  }}
+                >
+                  {oauthLoading === "facebook" ? (
+                    <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
+                  ) : (
+                    <FacebookIcon />
+                  )}
+                  {mode === "login" ? "Sign in with Facebook" : "Sign up with Facebook"}
+                </button>
 
-            <button 
-              onClick={() => handleOAuth("github")} 
-              className="oauth-btn oauth-github" 
-              disabled={!!oauthLoading}
-              style={{
-                width: "100%",
-                padding: "12px 20px",
-                borderRadius: 999,
-                fontSize: 14,
-                fontWeight: 500,
-                backgroundColor: "var(--brand)",
-                color: "white",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 12,
-                cursor: "pointer",
-                border: "none",
-                marginBottom: 20,
-                transition: "all 0.2s"
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--brand-hover)")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--brand)")}
-            >
-              {oauthLoading === "github" ? (
-                <div className="spinner" style={{ width: 16, height: 16 }} />
-              ) : (
-                <GithubIcon />
-              )}
-              Continue with GitHub
-            </button>
+                {/* Email Sign In Button */}
+                <button 
+                  onClick={() => { setError(""); setSuccess(""); setShowEmailForm(true); }} 
+                  className="oauth-btn"
+                  style={{
+                    width: "100%",
+                    padding: "14px 20px",
+                    borderRadius: 999,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    marginBottom: 20,
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--bg)",
+                    color: "var(--ink)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 12,
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg-3)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--bg)";
+                    e.currentTarget.style.transform = "";
+                  }}
+                >
+                  <EmailIcon />
+                  {mode === "login" ? "Sign in with email" : "Sign up with email"}
+                </button>
 
-            {/* Divider */}
-            <div className="auth-divider" style={{ margin: "20px 0" }}>
-              <div className="auth-divider-line" />
-              <span className="auth-divider-text">or</span>
-              <div className="auth-divider-line" />
-            </div>
-
-            {/* Alerts */}
-            {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
-            {success && <div className="alert alert-success" style={{ marginBottom: 12 }}>{success}</div>}
-
-            {/* Form */}
-            <form onSubmit={handleSubmit}>
-              {mode === "signup" && (
-                <div className="form-group" style={{ marginBottom: 12 }}>
-                  <label className="form-label">Full name</label>
+                {/* Remember Me Checkbox */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, margin: "24px 0 28px" }}>
                   <input 
-                    type="text" 
-                    className="form-input" 
-                    placeholder="Your full name" 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    required 
+                    type="checkbox" 
+                    id="rememberMe" 
+                    checked={rememberMe} 
+                    onChange={(e) => setRememberMe(e.target.checked)} 
+                    style={{ cursor: "pointer", width: 16, height: 16 }}
                   />
-                </div>
-              )}
-              <div className="form-group" style={{ marginBottom: 12 }}>
-                <label className="form-label">Email</label>
-                <input 
-                  type="email" 
-                  className="form-input" 
-                  placeholder="you@example.com" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
-                />
-              </div>
-              <div className="form-group" style={{ marginBottom: 16 }}>
-                <label className="form-label">Password</label>
-                <div style={{ position: "relative" }}>
-                  <input 
-                    type={showPw ? "text" : "password"} 
-                    className="form-input" 
-                    placeholder={mode === "signup" ? "Min 6 characters" : "Your password"} 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    style={{ paddingRight: 44 }} 
-                    required 
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPw(!showPw)}
+                  <label 
+                    htmlFor="rememberMe" 
                     style={{ 
-                      position: "absolute", 
-                      right: 12, 
-                      top: "50%", 
-                      transform: "translateY(-50%)", 
-                      background: "none", 
-                      border: "none", 
+                      fontFamily: "var(--sans)", 
+                      fontSize: 13, 
+                      color: "var(--ink-2)", 
                       cursor: "pointer", 
-                      color: "var(--muted-2)", 
-                      padding: 4,
-                      display: "flex",
-                      alignItems: "center"
+                      userSelect: "none" 
                     }}
                   >
-                    {showPw ? (
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
-                    ) : (
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    )}
-                  </button>
+                    Remember me for faster sign in
+                  </label>
                 </div>
-              </div>
-              <button 
-                type="submit" 
-                className="auth-submit" 
-                disabled={loading}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: 999,
-                  fontWeight: 600,
-                  fontSize: 15,
-                  cursor: "pointer",
-                  marginTop: 8
-                }}
-              >
-                {loading ? <div className="spinner" /> : (mode === "login" ? "Sign in" : "Create account")}
-              </button>
-            </form>
 
-            <button 
-              onClick={() => setShowMoreOptions(false)} 
-              style={{
-                display: "block",
-                margin: "16px auto 0",
-                fontFamily: "var(--sans)",
-                fontSize: 13,
-                color: "var(--muted)",
-                textDecoration: "underline",
-                border: "none",
-                background: "none",
-                cursor: "pointer"
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
-            >
-              ← Back to quick sign-in
-            </button>
+                {/* Mode Toggles */}
+                {mode === "login" ? (
+                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink)" }}>
+                    No account?{" "}
+                    <button 
+                      onClick={() => { setMode("signup"); setError(""); setSuccess(""); }}
+                      style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}
+                    >
+                      Create one
+                    </button>
+                  </p>
+                ) : (
+                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink)" }}>
+                    Already have an account?{" "}
+                    <button 
+                      onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
+                      style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}
+                    >
+                      Sign in
+                    </button>
+                  </p>
+                )}
+
+                {/* Back to Quick Sign-In */}
+                {savedUser && (
+                  <button 
+                    onClick={() => setShowMoreOptions(false)} 
+                    style={{
+                      display: "block",
+                      margin: "24px auto 0",
+                      fontFamily: "var(--sans)",
+                      fontSize: 13,
+                      color: "var(--muted)",
+                      textDecoration: "underline",
+                      border: "none",
+                      background: "none",
+                      cursor: "pointer"
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
+                  >
+                    ← Back to quick sign-in
+                  </button>
+                )}
+              </div>
+            ) : (
+              /* Email/Password Fields Form View */
+              <div style={{ textAlign: "left" }}>
+                <h2 
+                  style={{ 
+                    fontFamily: "var(--display)", 
+                    fontSize: 28, 
+                    fontWeight: 700, 
+                    color: "var(--black)", 
+                    marginBottom: 6,
+                    textAlign: "center",
+                    letterSpacing: "-0.015em"
+                  }}
+                >
+                  {mode === "login" ? "Welcome back." : "Join UGET."}
+                </h2>
+                <p 
+                  style={{ 
+                    fontFamily: "var(--serif)", 
+                    fontSize: 14, 
+                    color: "var(--muted)", 
+                    marginBottom: 24,
+                    textAlign: "center"
+                  }}
+                >
+                  {mode === "login" ? "Sign in with email." : "Create an account with email."}
+                </p>
+
+                {/* Alerts */}
+                {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
+                {success && <div className="alert alert-success" style={{ marginBottom: 12 }}>{success}</div>}
+
+                {/* Form */}
+                <form onSubmit={handleSubmit}>
+                  {mode === "signup" && (
+                    <div className="form-group" style={{ marginBottom: 12 }}>
+                      <label className="form-label">Full name</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="Your full name" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)} 
+                        required 
+                      />
+                    </div>
+                  )}
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label className="form-label">Email</label>
+                    <input 
+                      type="email" 
+                      className="form-input" 
+                      placeholder="you@example.com" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 16 }}>
+                    <label className="form-label">Password</label>
+                    <div style={{ position: "relative" }}>
+                      <input 
+                        type={showPw ? "text" : "password"} 
+                        className="form-input" 
+                        placeholder={mode === "signup" ? "Min 6 characters" : "Your password"} 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        style={{ paddingRight: 44 }} 
+                        required 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowPw(!showPw)}
+                        style={{ 
+                          position: "absolute", 
+                          right: 12, 
+                          top: "50%", 
+                          transform: "translateY(-50%)", 
+                          background: "none", 
+                          border: "none", 
+                          cursor: "pointer", 
+                          color: "var(--muted-2)", 
+                          padding: 4,
+                          display: "flex",
+                          alignItems: "center"
+                        }}
+                      >
+                        {showPw ? (
+                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                        ) : (
+                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <button 
+                    type="submit" 
+                    className="auth-submit" 
+                    disabled={loading}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: 999,
+                      fontWeight: 600,
+                      fontSize: 15,
+                      cursor: "pointer",
+                      marginTop: 8
+                    }}
+                  >
+                    {loading ? <div className="spinner" /> : (mode === "login" ? "Sign in" : "Create account")}
+                  </button>
+                </form>
+
+                {/* Back to all options */}
+                <button 
+                  onClick={() => setShowEmailForm(false)} 
+                  style={{
+                    display: "block",
+                    margin: "24px auto 0",
+                    fontFamily: "var(--sans)",
+                    fontSize: 13,
+                    color: "var(--muted)",
+                    textDecoration: "underline",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer"
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
+                >
+                  ← Back to all options
+                </button>
+              </div>
+            )}
           </div>
         )}
 

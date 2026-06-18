@@ -68,11 +68,16 @@ function NavbarInner() {
           .then(({ data }) => {
             setProfile(data);
             if (data) {
-              localStorage.setItem("uget_last_user", JSON.stringify({
-                full_name: data.full_name || user.email || "User",
-                email: user.email || "",
-                avatar_url: data.avatar_url || ""
-              }));
+              const remember = localStorage.getItem("uget_remember_me") !== "false";
+              if (remember) {
+                localStorage.setItem("uget_last_user", JSON.stringify({
+                  full_name: data.full_name || user.email || "User",
+                  email: user.email || "",
+                  avatar_url: data.avatar_url || ""
+                }));
+              } else {
+                localStorage.removeItem("uget_last_user");
+              }
             }
           });
         loadNotifications(user.id);
@@ -89,11 +94,16 @@ function NavbarInner() {
           .then(({ data }) => {
             setProfile(data);
             if (data) {
-              localStorage.setItem("uget_last_user", JSON.stringify({
-                full_name: data.full_name || u.email || "User",
-                email: u.email || "",
-                avatar_url: data.avatar_url || ""
-              }));
+              const remember = localStorage.getItem("uget_remember_me") !== "false";
+              if (remember) {
+                localStorage.setItem("uget_last_user", JSON.stringify({
+                  full_name: data.full_name || u.email || "User",
+                  email: u.email || "",
+                  avatar_url: data.avatar_url || ""
+                }));
+              } else {
+                localStorage.removeItem("uget_last_user");
+              }
             }
           });
         loadNotifications(u.id);

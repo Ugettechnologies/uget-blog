@@ -138,12 +138,17 @@ export default function SettingsPage() {
     if (error) {
       showMsg(error.message, "err");
     } else {
-      // Update localStorage cached profile
-      localStorage.setItem("uget_last_user", JSON.stringify({
-        full_name: payload.full_name || user.email || "User",
-        email: user.email || "",
-        avatar_url: payload.avatar_url || ""
-      }));
+      // Update localStorage cached profile if rememberMe is enabled
+      const remember = localStorage.getItem("uget_remember_me") !== "false";
+      if (remember) {
+        localStorage.setItem("uget_last_user", JSON.stringify({
+          full_name: payload.full_name || user.email || "User",
+          email: user.email || "",
+          avatar_url: payload.avatar_url || ""
+        }));
+      } else {
+        localStorage.removeItem("uget_last_user");
+      }
       showMsg("Settings saved successfully!");
       router.refresh();
     }
