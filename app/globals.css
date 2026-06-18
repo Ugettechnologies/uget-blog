@@ -682,6 +682,27 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 .toolbar-btn.active { background: var(--ink); color: white; }
 .toolbar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
 
+/* ── Editor mobile ── */
+@media (max-width: 768px) {
+  .editor-topbar { top: 0; padding: 8px 16px; gap: 8px; }
+  .editor-cover-upload { padding: 0 16px 16px; }
+  .editor-wrap { padding: 0 16px 80px; }
+  .editor-title { font-size: clamp(22px, 6vw, 32px); padding: 20px 0 12px; }
+  .editor-subtitle-input { font-size: 18px; padding: 0 0 16px; }
+}
+@media (max-width: 480px) {
+  .editor-topbar { padding: 8px 12px; gap: 6px; }
+  .editor-topbar .btn-sm { font-size: 12px; padding: 6px 12px; }
+  .editor-cover-upload { padding: 0 12px 16px; }
+  .editor-wrap { padding: 0 12px 80px; }
+  .editor-title { font-size: clamp(20px, 7vw, 28px); padding: 16px 0 10px; }
+  .editor-subtitle-input { font-size: 16px; }
+  .tiptap-editor p, .tiptap-editor li { font-size: 16px; }
+  /* Publish modal grid → stack on mobile */
+  .modal { padding: 20px 16px; }
+  .modal [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; gap: 16px !important; }
+}
+
 /* ══════════════════════════════════════
    PROFILE / DASHBOARD
 ══════════════════════════════════════ */

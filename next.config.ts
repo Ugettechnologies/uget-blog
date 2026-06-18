@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        // Supabase Storage — covers all project subdomains
+        protocol: "https",
+        hostname: "*.supabase.co",
+      },
+      {
+        // Vercel Blob storage
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
     ],
   },
 };

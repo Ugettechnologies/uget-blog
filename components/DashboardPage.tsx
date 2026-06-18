@@ -66,7 +66,7 @@ export default function DashboardPage() {
       )}
 
       <div style={{ maxWidth: 1192, margin: "0 auto", padding: "40px 24px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 48, alignItems: "start" }}>
+        <div className="dash-layout">
           {/* Left sidebar */}
           <div>
             {profile && (
@@ -136,7 +136,7 @@ export default function DashboardPage() {
               shown.map((post) => {
                 const cat = CATEGORIES.find((c) => c.id === post.category);
                 return (
-                  <div key={post.id} style={{ display: "flex", gap: 16, padding: "20px 0", borderBottom: "1px solid var(--border-2)", alignItems: "flex-start" }}>
+                  <div key={post.id} className="dash-post-row" style={{ display: "flex", gap: 16, padding: "20px 0", borderBottom: "1px solid var(--border-2)", alignItems: "flex-start" }}>
                     {/* Cover thumb */}
                     <div style={{ width: 80, height: 60, borderRadius: 6, overflow: "hidden", background: "var(--bg-3)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {post.cover_image ? (
@@ -173,7 +173,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     {/* Actions */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <div className="dash-post-actions" style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                       <Link href={`/write/${post.id}`} className="btn btn-outline btn-sm" style={{ textDecoration: "none" }}>Edit</Link>
                       <button onClick={() => handleTogglePublish(post)} className="btn btn-sm" style={{ border: "1px solid var(--border)", borderRadius: 999, color: "var(--muted)", padding: "7px 12px", fontSize: 13 }}>
                         {post.published ? "Unpublish" : "Publish"}
@@ -189,7 +189,18 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      <style>{`@media (max-width: 768px) { .grid-layout { grid-template-columns: 1fr !important; } }`}</style>
+      <style>{`
+        .dash-layout { display: grid; grid-template-columns: 240px 1fr; gap: 48px; align-items: start; }
+        @media (max-width: 768px) {
+          .dash-layout { grid-template-columns: 1fr; gap: 28px; }
+          .dash-post-row { flex-wrap: wrap; }
+          .dash-post-actions { flex-wrap: wrap; }
+        }
+        @media (max-width: 480px) {
+          .dash-post-row { gap: 10px !important; }
+          .dash-post-actions { width: 100%; justify-content: flex-start; }
+        }
+      `}</style>
     </div>
   );
 }
