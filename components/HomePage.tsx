@@ -86,27 +86,27 @@ function FeaturedCard({ post }: { post: Post }) {
 const MediumIllustration = () => (
   <svg viewBox="0 0 400 400" width="100%" height="100%" style={{ maxWidth: 420 }}>
     {/* Geometric diagram lines */}
-    <line x1="100" y1="50" x2="100" y2="350" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeDasharray="4 4" />
-    <line x1="50" y1="300" x2="350" y2="300" stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeDasharray="4 4" />
+    <line x1="100" y1="50" x2="100" y2="350" stroke="rgba(124,58,237,0.08)" strokeWidth="1" strokeDasharray="4 4" />
+    <line x1="50" y1="300" x2="350" y2="300" stroke="rgba(124,58,237,0.08)" strokeWidth="1" strokeDasharray="4 4" />
     
-    <circle cx="100" cy="300" r="120" stroke="rgba(21,128,61,0.12)" strokeWidth="1" fill="none" />
-    <circle cx="100" cy="300" r="180" stroke="rgba(21,128,61,0.06)" strokeWidth="1" fill="none" />
+    <circle cx="100" cy="300" r="120" stroke="rgba(124,58,237,0.15)" strokeWidth="1" fill="none" />
+    <circle cx="100" cy="300" r="180" stroke="rgba(124,58,237,0.08)" strokeWidth="1" fill="none" />
     
     {/* Math diagram arcs and lines */}
-    <path d="M 100 120 A 180 180 0 0 1 280 300" stroke="rgba(21,128,61,0.25)" strokeWidth="1.5" fill="none" />
-    <line x1="100" y1="300" x2="227" y2="173" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+    <path d="M 100 120 A 180 180 0 0 1 280 300" stroke="rgba(124,58,237,0.3)" strokeWidth="1.5" fill="none" />
+    <line x1="100" y1="300" x2="227" y2="173" stroke="rgba(124,58,237,0.2)" strokeWidth="1" />
     <circle cx="227" cy="173" r="4" fill="var(--brand)" />
     
-    {/* Green flower elements */}
+    {/* Brand purple flower elements */}
     <g transform="translate(250, 150)">
       {/* Central center circle */}
-      <circle cx="0" cy="0" r="28" fill="#15803d" />
+      <circle cx="0" cy="0" r="28" fill="var(--brand)" />
       {/* 5 Petals */}
-      <path d="M 0 -28 C -30 -80, 30 -80, 0 -28" fill="#15803d" opacity="0.95" />
-      <path d="M 26.6 -8.6 C 75 -35, 85 25, 26.6 -8.6" fill="#15803d" opacity="0.95" transform="rotate(72)" />
-      <path d="M 16.5 22.7 C 55 60, -15 85, 16.5 22.7" fill="#15803d" opacity="0.95" transform="rotate(144)" />
-      <path d="M -16.5 22.7 C -55 60, 15 85, -16.5 22.7" fill="#15803d" opacity="0.95" transform="rotate(216)" />
-      <path d="M -26.6 -8.6 C -75 -35, -85 25, -26.6 -8.6" fill="#15803d" opacity="0.95" transform="rotate(288)" />
+      <path d="M 0 -28 C -30 -80, 30 -80, 0 -28" fill="var(--brand)" opacity="0.95" />
+      <path d="M 26.6 -8.6 C 75 -35, 85 25, 26.6 -8.6" fill="var(--brand)" opacity="0.95" transform="rotate(72)" />
+      <path d="M 16.5 22.7 C 55 60, -15 85, 16.5 22.7" fill="var(--brand)" opacity="0.95" transform="rotate(144)" />
+      <path d="M -16.5 22.7 C -55 60, 15 85, -16.5 22.7" fill="var(--brand)" opacity="0.95" transform="rotate(216)" />
+      <path d="M -26.6 -8.6 C -75 -35, -85 25, -26.6 -8.6" fill="var(--brand)" opacity="0.95" transform="rotate(288)" />
     </g>
   </svg>
 );
@@ -137,12 +137,12 @@ function TrendingSection({ posts, router }: TrendingSectionProps) {
             const authorUsername = (post.profiles as any)?.username || post.author_id;
             return (
               <div key={post.id} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-                <div style={{ fontFamily: "var(--sans)", fontSize: 30, fontWeight: 700, color: "#e6e6e6", lineHeight: 1, marginTop: -4 }}>
+                <div style={{ fontFamily: "var(--sans)", fontSize: 30, fontWeight: 700, color: "#ddd6fe", lineHeight: 1, marginTop: -4 }}>
                   {String(idx + 1).padStart(2, "0")}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 9, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--brand)", color: "white", fontSize: 9, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" }}>
                       {authorAvatar ? (
                         <Image src={authorAvatar} alt="" width={20} height={20} style={{ objectFit: "cover" }} />
                       ) : (
@@ -217,11 +217,11 @@ export default function HomePage() {
 
   if (isLoggedOut) {
     return (
-      <div style={{ background: "#f6f4ee", minHeight: "100vh" }}>
+      <div style={{ background: "#f5f3ff", minHeight: "100vh" }}>
         <Navbar />
 
         {/* ── Logged-out Hero ── */}
-        <div style={{ borderBottom: "1px solid var(--border)", padding: "20px 0 60px" }}>
+        <div style={{ borderBottom: "1px solid #ddd6fe", padding: "20px 0 60px" }}>
           <div 
             style={{ 
               maxWidth: 1192, 
@@ -264,13 +264,15 @@ export default function HomePage() {
                 onClick={() => router.push("/?auth=signin")}
                 className="btn btn-primary btn-lg"
                 style={{
-                  backgroundColor: "#1a1a1a",
+                  backgroundColor: "var(--brand)",
                   color: "#ffffff",
                   fontSize: 16,
                   fontWeight: 600,
                   padding: "14px 36px",
                   borderRadius: "999px"
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--brand-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--brand)")}
               >
                 Start reading
               </button>

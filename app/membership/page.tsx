@@ -259,8 +259,8 @@ export default function MembershipPage() {
       {/* Header Banner (Screenshot 4) */}
       <div 
         style={{ 
-          background: "#ffd1dc", 
-          borderBottom: "1px solid #e2b6c0", 
+          background: "#f5f3ff", 
+          borderBottom: "1px solid #ddd6fe", 
           padding: "80px 24px" 
         }}
       >
@@ -305,7 +305,9 @@ export default function MembershipPage() {
               <button 
                 onClick={() => setCheckoutPlan({ name: "UGET Member", price: "$5/mo" })}
                 className="btn btn-primary btn-lg"
-                style={{ backgroundColor: "#1a1a1a", color: "white", padding: "12px 28px", fontSize: 15, borderRadius: "999px" }}
+                style={{ backgroundColor: "var(--brand)", color: "white", padding: "12px 28px", fontSize: 15, borderRadius: "999px" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--brand-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--brand)")}
               >
                 Get started
               </button>
@@ -316,7 +318,7 @@ export default function MembershipPage() {
                   document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" });
                 }}
                 className="btn btn-outline btn-lg"
-                style={{ borderColor: "#1a1a1a", color: "#1a1a1a", padding: "12px 28px", fontSize: 15, borderRadius: "999px", textDecoration: "none" }}
+                style={{ borderColor: "var(--brand)", color: "var(--brand)", padding: "12px 28px", fontSize: 15, borderRadius: "999px", textDecoration: "none" }}
               >
                 View plans
               </a>
@@ -350,8 +352,8 @@ export default function MembershipPage() {
                     display: "inline-flex", 
                     alignItems: "center", 
                     gap: 4, 
-                    backgroundColor: "#fef0e0", 
-                    color: "#b37c00", 
+                    backgroundColor: "var(--brand-light)", 
+                    color: "var(--brand)", 
                     fontSize: 11, 
                     fontWeight: 700, 
                     fontFamily: "var(--sans)", 
@@ -368,7 +370,7 @@ export default function MembershipPage() {
                   How to Sleep on Hot Summer Nights: Science vs. Myth
                 </h4>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#ffd1dc", fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--brand-light)", color: "var(--brand)", fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     RB
                   </div>
                   <div>
@@ -420,14 +422,14 @@ export default function MembershipPage() {
                       width: "100%", 
                       padding: "10px", 
                       borderRadius: 999, 
-                      backgroundColor: "#15803d", 
+                      backgroundColor: "var(--brand)", 
                       color: "white", 
                       fontWeight: 600, 
                       marginTop: 20,
                       fontSize: 14
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#166534")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--brand-hover)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--brand)")}
                   >
                     Get started
                   </button>
@@ -443,7 +445,7 @@ export default function MembershipPage() {
                 <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
                   {plan.features.map((feat) => (
                     <li key={feat} style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--ink-2)", fontFamily: "var(--serif)", lineHeight: 1.45 }}>
-                      <span style={{ color: "#15803d", fontWeight: "bold" }}>✓</span>
+                      <span style={{ color: "var(--brand)", fontWeight: "bold" }}>✓</span>
                       <span>{feat}</span>
                     </li>
                   ))}

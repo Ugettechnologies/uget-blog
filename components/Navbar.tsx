@@ -143,11 +143,11 @@ function NavbarInner() {
     writeBtnColor = "#ffffff";
     writeBtnBorder = "1px solid rgba(255, 255, 255, 0.6)";
   } else if (isLoggedOutHome) {
-    navBg = "#f6f4ee";
-    navBorder = "1px solid var(--border)";
-    logoColor = "#000000";
-    linkColor = "#000000";
-    writeBtnBg = "#1a1a1a";
+    navBg = "#f5f3ff";
+    navBorder = "1px solid #ddd6fe";
+    logoColor = "var(--brand)";
+    linkColor = "var(--ink)";
+    writeBtnBg = "var(--brand)";
     writeBtnColor = "#ffffff";
     writeBtnBorder = "none";
   }
