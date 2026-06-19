@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
+import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
 import { getInitials } from "@/lib/types";
@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // User and Profile states
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +28,35 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState("light");
   const [avatarUrl, setAvatarUrl] = useState("");
 
+  // Tab State: account, publishing, privacy, notifications, membership, security
+  const [activeTab, setActiveTab] = useState<
+    "account" | "publishing" | "privacy" | "notifications" | "membership" | "security"
+  >("account");
+
+  // Inline edit toggle states
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [isEditingProfileInfo, setIsEditingProfileInfo] = useState(false);
+  const [isEditingDomain, setIsEditingDomain] = useState(false);
+  const [isEditingTipping, setIsEditingTipping] = useState(false);
+
+  // Simulated state checkboxes
+  const [hideHighlights, setHideHighlights] = useState(false);
+  const [aiAllowed, setAiAllowed] = useState(true);
+  const [provideFeedback, setProvideFeedback] = useState(true);
+  const [allowPrivateNotes, setAllowPrivateNotes] = useState(true);
+  const [allowEmailReplies, setAllowEmailReplies] = useState(false);
+  const [tippingUrl, setTippingUrl] = useState("");
+
+  // Layout states
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [followingProfiles, setFollowingProfiles] = useState<any[]>([]);
+
+  // Toast notifications state
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
 
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
@@ -35,37 +65,138 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) {
         router.push("/auth");
         return;
       }
       setUser(user);
-      supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setProfile(data);
-            setFullName(data.full_name || "");
-            setUsername(data.username || "");
-            setBio(data.bio || "");
-            setTwitter(data.twitter || "");
-            setWebsite(data.website || "");
-            setRole(data.role || "writer");
-            setAvatarUrl(data.avatar_url || "");
-            
-            // Read theme from localStorage or DB
-            const localTheme = localStorage.getItem("theme") || data.theme || "light";
-            setTheme(localTheme);
-          }
-          setLoading(false);
-        });
+
+      // Load profile
+      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (data) {
+        setProfile(data);
+        setFullName(data.full_name || "");
+        setUsername(data.username || "");
+        setBio(data.bio || "");
+        setTwitter(data.twitter || "");
+        setWebsite(data.website || "");
+        setRole(data.role || "writer");
+        setAvatarUrl(data.avatar_url || "");
+
+        const localTheme = localStorage.getItem("theme") || data.theme || "light";
+        setTheme(localTheme);
+      }
+      setLoading(false);
+
+      // Load notifications & following
+      loadNotifications(user.id);
+      loadFollowingProfiles(user.id);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // Load simulated states from localStorage
+    if (typeof window !== "undefined") {
+      setHideHighlights(localStorage.getItem("uget_settings_hide_highlights") === "true");
+      setAiAllowed(localStorage.getItem("uget_settings_ai_allowed") !== "false");
+      setProvideFeedback(localStorage.getItem("uget_settings_provide_feedback") !== "false");
+      setAllowPrivateNotes(localStorage.getItem("uget_settings_private_notes") !== "false");
+      setAllowEmailReplies(localStorage.getItem("uget_settings_email_replies") === "true");
+      setTippingUrl(localStorage.getItem("uget_settings_tipping_url") || "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Click outside dropdowns listener
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".avatar-dropdown-trigger") && !target.closest(".avatar-dropdown")) {
+        setUserDropdownOpen(false);
+      }
+      if (!target.closest(".notif-dropdown-trigger") && !target.closest(".notif-dropdown")) {
+        setNotifDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const loadNotifications = async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from("notifications")
+        .select("*, actor_profile:profiles(*)")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (data) {
+        setNotifications(
+          data.map((n: any) => {
+            const actor = n.actor_profile || n.profiles;
+            const iconMap: any = { like: "💖", comment: "💬", follow: "👤" };
+            return {
+              id: n.id,
+              text: actor ? `${actor.full_name} ${n.content}` : n.content,
+              time: new Date(n.created_at).toLocaleDateString() || "Just now",
+              unread: !n.read,
+              icon: iconMap[n.type] || "🎉",
+            };
+          })
+        );
+        setUnreadNotifCount(data.filter((n: any) => !n.read).length);
+      }
+    } catch (err) {
+      console.error("Error loading notifications:", err);
+    }
+  };
+
+  const loadFollowingProfiles = async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from("follows")
+        .select("following_id, following_profile:profiles(*)")
+        .eq("follower_id", userId)
+        .limit(5);
+      if (data) {
+        setFollowingProfiles(data.map((f: any) => f.following_profile).filter(Boolean));
+      }
+    } catch (err) {
+      console.error("Error loading following profiles:", err);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+    await supabase.from("notifications").update({ read: true }).eq("user_id", user.id);
+    setNotifications(notifications.map((n) => ({ ...n, unread: false })));
+    setUnreadNotifCount(0);
+  };
+
+  const handleNotificationClick = async (id: any) => {
+    await supabase.from("notifications").update({ read: true }).eq("id", id);
+    setNotifications(notifications.map((n) => (n.id === id ? { ...n, unread: false } : n)));
+    setUnreadNotifCount((prev) => Math.max(0, prev - 1));
+  };
+
+  const clearAllNotifications = async () => {
+    if (!user) return;
+    await supabase.from("notifications").delete().eq("user_id", user.id);
+    setNotifications([]);
+    setUnreadNotifCount(0);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      router.push(`/?q=${encodeURIComponent(searchInput.trim())}`);
+    }
+  };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -91,14 +222,13 @@ export default function SettingsPage() {
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
-    
+
     const root = document.documentElement;
     if (newTheme === "dark") {
       root.classList.add("dark");
     } else if (newTheme === "light") {
       root.classList.remove("dark");
     } else {
-      // System theme
       const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
       if (darkQuery.matches) {
         root.classList.add("dark");
@@ -108,28 +238,20 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveField = async (updatedFields: Partial<Profile>) => {
     if (!user) return;
-
     setSaving(true);
+
     const payload = {
-      full_name: fullName.trim(),
-      username: username.trim().toLowerCase().replace(/[^a-z0-9_-]/g, ""),
-      bio: bio.trim(),
-      twitter: twitter.trim(),
-      website: website.trim(),
-      role: role,
-      theme: theme,
-      avatar_url: avatarUrl || null,
-      updated_at: new Date().toISOString()
+      ...updatedFields,
+      updated_at: new Date().toISOString(),
     };
 
     let { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
 
-    // Self-healing fallback if the database schema is not migrated yet and 'theme' column is missing
-    if (error && error.message && (error.message.includes('column "theme"') || error.message.includes('theme'))) {
-      const { theme: _, ...fallbackPayload } = payload;
+    // self-healing fallback for theme field if missing
+    if (error && error.message && (error.message.includes('column "theme"') || error.message.includes("theme"))) {
+      const { theme: _, ...fallbackPayload } = payload as any;
       const retry = await supabase.from("profiles").update(fallbackPayload).eq("id", user.id);
       error = retry.error;
     }
@@ -138,37 +260,203 @@ export default function SettingsPage() {
     if (error) {
       showMsg(error.message, "err");
     } else {
-      // Update localStorage cached profile if rememberMe is enabled
+      // Sync cache
       const remember = localStorage.getItem("uget_remember_me") !== "false";
       if (remember) {
-        localStorage.setItem("uget_last_user", JSON.stringify({
-          full_name: payload.full_name || user.email || "User",
-          email: user.email || "",
-          avatar_url: payload.avatar_url || ""
-        }));
-      } else {
-        localStorage.removeItem("uget_last_user");
+        localStorage.setItem(
+          "uget_last_user",
+          JSON.stringify({
+            full_name: payload.full_name || fullName || user.email || "User",
+            email: user.email || "",
+            avatar_url: payload.avatar_url || avatarUrl || "",
+          })
+        );
       }
       showMsg("Settings saved successfully!");
-      router.refresh();
+
+      // Update local profile view
+      setProfile((prev: any) => ({ ...prev, ...payload }));
     }
   };
 
+  // Simulated field toggles
+  const handleToggleSimulated = (key: string, value: any) => {
+    localStorage.setItem(key, String(value));
+    showMsg("Setting updated successfully!");
+  };
+
+  // SVG Icons
+  const HomeIcon = () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+  );
+
+  const LibraryIcon = () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+  );
+
+  const ProfileIcon = () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  );
+
+  const StoriesIcon = () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+
+  const StatsIcon = () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  );
+
+  const WriteIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+    </svg>
+  );
+
+  const BellIcon = () => (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+  );
+
+  const SearchIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+
+  const HamburgerIcon = () => (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+
+  const CloseIcon = () => (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+
+  const ArrowRightIcon = () => (
+    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+    </svg>
+  );
+
+  const activeLinkStyle =
+    "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-semibold bg-[#f3efff] text-[#7c3aed] transition-colors";
+  const inactiveLinkStyle =
+    "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-medium text-gray-500 hover:bg-[#f8f6ff] hover:text-[#7c3aed] transition-colors";
+
+  const renderSidebarLinks = (onItemClick?: () => void) => (
+    <div className="flex flex-col gap-1.5">
+      <Link href="/" className={inactiveLinkStyle} onClick={onItemClick}>
+        <HomeIcon />
+        <span>Home</span>
+      </Link>
+      <Link href="/library" className={inactiveLinkStyle} onClick={onItemClick}>
+        <LibraryIcon />
+        <span>Library</span>
+      </Link>
+      <Link
+        href={`/profile/${profile?.username || user?.id}`}
+        className={inactiveLinkStyle}
+        onClick={onItemClick}
+      >
+        <ProfileIcon />
+        <span>Profile</span>
+      </Link>
+      <Link href="/dashboard?tab=stories" className={inactiveLinkStyle} onClick={onItemClick}>
+        <StoriesIcon />
+        <span>Stories</span>
+      </Link>
+      <Link href="/dashboard?tab=stats" className={inactiveLinkStyle} onClick={onItemClick}>
+        <StatsIcon />
+        <span>Stats</span>
+      </Link>
+    </div>
+  );
+
+  const renderFollowingList = () => (
+    <div className="mt-8 border-t border-gray-100 pt-6">
+      <div className="text-[11px] font-sans font-bold text-gray-400 uppercase tracking-wider mb-3 px-4">
+        Following
+      </div>
+      <div className="flex flex-col gap-2">
+        {followingProfiles.length === 0 ? (
+          <Link
+            href="/profile/admin"
+            className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
+            style={{ textDecoration: "none" }}
+          >
+            <div className="w-5 h-5 rounded-full overflow-hidden bg-violet-600 flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0">
+              UG
+            </div>
+            <span className="truncate font-medium">UGET Staff</span>
+          </Link>
+        ) : (
+          followingProfiles.map((prof) => (
+            <Link
+              key={prof.id}
+              href={`/profile/${prof.username || prof.id}`}
+              className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
+              style={{ textDecoration: "none" }}
+            >
+              <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                {prof.avatar_url ? (
+                  <Image
+                    src={prof.avatar_url}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-[8px] flex items-center justify-center">
+                    {getInitials(prof.full_name || "?")}
+                  </div>
+                )}
+              </div>
+              <span className="truncate font-medium">{prof.full_name}</span>
+            </Link>
+          ))
+        )}
+
+        <Link
+          href="/dashboard?tab=followers"
+          className="px-4 text-xs text-gray-500 hover:underline font-sans mt-2"
+          style={{ textDecoration: "none", display: "block", lineHeight: "1.4" }}
+        >
+          <div className="text-gray-400 font-medium">+ Find writers and publications to follow.</div>
+          <div className="text-violet-600 font-semibold mt-0.5">See suggestions</div>
+        </Link>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-        <Navbar />
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh" }}>
-          <div className="spinner" style={{ width: 28, height: 28, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} />
-        </div>
+      <div style={{ background: "white", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="spinner" style={{ width: 28, height: 28, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} />
       </div>
     );
   }
 
-  return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
-      <Navbar />
+  const activeTabStyle = "settings-tab active";
+  const inactiveTabStyle = "settings-tab";
 
+  return (
+    <div className="uget-layout">
+      {/* Toast Alert */}
       {toast && (
         <div className="toast-container">
           <div className={`toast ${toast.type === "err" ? "toast-error" : "toast-success"}`}>
@@ -177,165 +465,1689 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <main style={{ maxWidth: 680, margin: "0 auto", padding: "60px 24px 100px" }}>
-        <h1 style={{ fontFamily: "var(--display)", fontSize: 36, fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 8, color: "var(--black)" }}>
-          Settings
-        </h1>
-        <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginBottom: 40 }}>
-          Manage your profile settings, app appearance, and event configurations.
-        </p>
+      {/* Inject custom styling locally for setting specific widgets */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .uget-layout {
+          display: flex;
+          min-height: 100vh;
+          background-color: #ffffff;
+        }
+        .uget-sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: 240px;
+          background-color: #ffffff;
+          border-right: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          padding: 24px 16px;
+          z-index: 100;
+        }
+        .uget-main {
+          flex: 1;
+          margin-left: 240px;
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          min-width: 0;
+        }
+        .uget-header {
+          position: sticky;
+          top: 0;
+          height: 64px;
+          background-color: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(8px);
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 32px;
+          z-index: 90;
+        }
+        .uget-header-search {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background-color: #fafafa;
+          border-radius: 99px;
+          padding: 6px 16px;
+          width: 240px;
+          border: 1px solid transparent;
+          transition: all 0.2s;
+        }
+        .uget-header-search:focus-within {
+          background-color: #ffffff;
+          border-color: #e2e8f0;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .settings-grid {
+          display: grid;
+          grid-template-columns: 1fr 280px;
+          gap: 48px;
+          padding: 48px 32px 100px;
+          max-width: 1060px;
+          width: 100%;
+          margin: 0 auto;
+        }
+        .settings-content {
+          min-width: 0;
+        }
+        .settings-help-sidebar {
+          position: sticky;
+          top: 88px;
+          align-self: start;
+        }
+        .settings-tabs-wrapper {
+          border-bottom: 1px solid var(--border-2);
+          display: flex;
+          gap: 20px;
+          margin-bottom: 32px;
+          overflow-x: auto;
+          white-space: nowrap;
+          scrollbar-width: none;
+        }
+        .settings-tabs-wrapper::-webkit-scrollbar {
+          display: none;
+        }
+        .settings-tab {
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--muted);
+          padding: 10px 2px 12px;
+          border-bottom: 2.5px solid transparent;
+          background: none;
+          border-top: none;
+          border-left: none;
+          border-right: none;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .settings-tab.active {
+          color: #7c3aed;
+          border-bottom-color: #7c3aed;
+          font-weight: 600;
+        }
+        .settings-section-title {
+          font-family: var(--sans);
+          font-size: 13px;
+          font-weight: 700;
+          color: #7c3aed;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 16px;
+          border-bottom: 1px solid #f3efff;
+          padding-bottom: 8px;
+        }
+        .settings-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 24px;
+          padding: 20px 0;
+          border-bottom: 1px solid #f9f9f9;
+        }
+        .settings-row:last-child {
+          border-bottom: none;
+        }
+        .settings-row-main {
+          flex: 1;
+        }
+        .settings-label {
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--black);
+          margin-bottom: 3px;
+        }
+        .settings-value {
+          font-family: var(--sans);
+          font-size: 14px;
+          color: var(--ink-2);
+          margin-bottom: 4px;
+        }
+        .settings-desc {
+          font-family: var(--sans);
+          font-size: 12px;
+          color: var(--muted);
+          line-height: 1.5;
+        }
+        .settings-row-action {
+          flex-shrink: 0;
+          text-align: right;
+        }
+        .settings-action-btn {
+          font-family: var(--sans);
+          font-size: 13px;
+          font-weight: 600;
+          color: #7c3aed;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 2px 8px;
+          border-radius: 99px;
+          transition: all 0.2s;
+        }
+        .settings-action-btn:hover {
+          background-color: #f8f6ff;
+        }
+        .settings-inline-editor {
+          margin-top: 12px;
+          background-color: #fafafa;
+          border: 1px solid var(--border-2);
+          border-radius: 12px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .settings-help-card {
+          border: 1px solid var(--border-2);
+          border-radius: 16px;
+          padding: 24px;
+          background-color: #ffffff;
+        }
+        .settings-help-title {
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--black);
+          margin-bottom: 16px;
+        }
+        .settings-help-link {
+          font-family: var(--sans);
+          font-size: 13px;
+          color: var(--muted);
+          display: block;
+          margin-bottom: 12px;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .settings-help-link:hover {
+          color: #7c3aed;
+          text-decoration: underline;
+        }
+        .settings-help-footer {
+          margin-top: 24px;
+          padding-top: 16px;
+          border-t: 1px solid var(--border-2);
+          font-family: var(--sans);
+          font-size: 11px;
+          color: var(--muted-2);
+          line-height: 1.6;
+        }
+        .uget-mobile-drawer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: 280px;
+          background-color: #ffffff;
+          z-index: 1001;
+          padding: 24px 20px;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+          transition: transform 0.3s ease-in-out;
+        }
+        .uget-mobile-drawer-overlay {
+          position: fixed;
+          inset: 0;
+          background-color: rgba(0,0,0,0.4);
+          backdrop-filter: blur(2px);
+          z-index: 1000;
+        }
+        .toggle-switch {
+          position: relative;
+          display: inline-block;
+          width: 44px;
+          height: 24px;
+        }
+        .toggle-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .toggle-slider {
+          position: absolute;
+          cursor: pointer;
+          inset: 0;
+          background-color: #e2e8f0;
+          transition: .3s;
+          border-radius: 24px;
+        }
+        .toggle-slider:before {
+          position: absolute;
+          content: "";
+          height: 18px;
+          width: 18px;
+          left: 3px;
+          bottom: 3px;
+          background-color: white;
+          transition: .3s;
+          border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+          background-color: #7c3aed;
+        }
+        input:checked + .toggle-slider:before {
+          transform: translateX(20px);
+        }
+        @media (max-width: 1024px) {
+          .uget-sidebar {
+            display: none;
+          }
+          .uget-main {
+            margin-left: 0;
+          }
+        }
+        @media (max-width: 900px) {
+          .settings-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+            padding: 24px 16px 80px;
+          }
+          .settings-help-sidebar {
+            display: none;
+          }
+          .uget-header {
+            padding: 0 16px;
+          }
+        }
+      `}} />
 
-        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-          {/* Avatar Upload block */}
-          <div style={{ display: "flex", alignItems: "center", gap: 24, paddingBottom: 24, borderBottom: "1px solid var(--border-2)" }}>
-            <div style={{ position: "relative", width: 80, height: 80, borderRadius: "50%", background: "var(--ink-2)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", cursor: "pointer", flexShrink: 0 }}>
-              {avatarUrl ? (
-                <Image src={avatarUrl} alt="Avatar" width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+      {/* ── Persistent Desktop Left Sidebar ── */}
+      <aside className="uget-sidebar">
+        <div style={{ marginBottom: 32 }}>
+          <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
+            <Image src="/favicon.png" alt="UGET Logo" width={32} height={32} />
+            <span className="font-bold text-2xl text-violet-600 font-display">UGET</span>
+          </Link>
+        </div>
+
+        <nav style={{ flex: 1 }}>
+          {renderSidebarLinks()}
+          {renderFollowingList()}
+        </nav>
+
+        {profile && (
+          <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
+            <Link
+              href={`/profile/${profile.username || user?.id}`}
+              className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0"
+              style={{ display: "block" }}
+            >
+              {profile.avatar_url ? (
+                <Image
+                  src={profile.avatar_url}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                />
               ) : (
-                <span style={{ fontSize: 28, fontFamily: "var(--sans)", fontWeight: 700 }}>{getInitials(fullName || user?.email || "?")}</span>
+                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
+                  {getInitials(profile.full_name || user?.email || "?")}
+                </div>
               )}
-              {uploading && (
-                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div className="spinner" style={{ width: 18, height: 18 }} />
+            </Link>
+            <div className="min-w-0" style={{ flex: 1 }}>
+              <div className="font-bold text-sm text-gray-900 truncate">
+                {profile.full_name || "Writer"}
+              </div>
+              <div className="text-xs text-gray-500 truncate">@{profile.username || "writer"}</div>
+            </div>
+          </div>
+        )}
+      </aside>
+
+      {/* ── Mobile Sidebar Drawer overlay ── */}
+      {sidebarOpen && (
+        <>
+          <div className="uget-mobile-drawer-overlay" onClick={() => setSidebarOpen(false)} />
+          <div
+            className="uget-mobile-drawer"
+            style={{ transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}
+          >
+            <div className="flex justify-between items-center mb-8">
+              <Link
+                href="/"
+                className="flex items-center gap-2"
+                style={{ textDecoration: "none" }}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Image src="/favicon.png" alt="UGET Logo" width={28} height={28} />
+                <span className="font-bold text-xl text-violet-600 font-display">UGET</span>
+              </Link>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-100 mb-6"
+            >
+              <SearchIcon />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search UGET..."
+                className="bg-transparent border-none outline-none text-sm w-full text-gray-800"
+              />
+            </form>
+
+            <nav style={{ flex: 1 }}>
+              {renderSidebarLinks(() => setSidebarOpen(false))}
+              {renderFollowingList()}
+            </nav>
+
+            {profile && (
+              <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  {profile.avatar_url ? (
+                    <Image
+                      src={profile.avatar_url}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
+                      {getInitials(profile.full_name || user?.email || "?")}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0" style={{ flex: 1 }}>
+                  <div className="font-bold text-sm text-gray-900 truncate">
+                    {profile.full_name || "Writer"}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">@{profile.username || "writer"}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ── Main Area ── */}
+      <main className="uget-main">
+        {/* Header bar */}
+        <header className="uget-header">
+          <div className="flex items-center gap-3">
+            {/* Hamburger for mobile */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+              title="Open menu"
+            >
+              <HamburgerIcon />
+            </button>
+
+            {/* Logo for mobile */}
+            <Link
+              href="/"
+              className="lg:hidden flex items-center gap-1.5"
+              style={{ textDecoration: "none" }}
+            >
+              <Image src="/favicon.png" alt="UGET" width={24} height={24} />
+              <span className="font-bold text-lg text-violet-600 font-display">UGET</span>
+            </Link>
+
+            {/* Search Input on Desktop */}
+            <form onSubmit={handleSearchSubmit} className="hidden sm:flex uget-header-search">
+              <SearchIcon />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search..."
+                className="bg-transparent border-none outline-none text-sm w-full text-black placeholder-gray-400 font-sans"
+              />
+            </form>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Live Indicator */}
+            <Link href="/live" className="uget-live-pill" style={{ textDecoration: "none" }}>
+              <span className="uget-live-dot" />
+              <span className="hidden xs:inline">Live</span>
+            </Link>
+
+            {/* Write button */}
+            <Link
+              href="/write"
+              className="flex items-center gap-2 text-white bg-violet-600 hover:bg-violet-700 px-4 py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm"
+              style={{ textDecoration: "none" }}
+            >
+              <WriteIcon />
+              <span className="hidden sm:inline">Write</span>
+            </Link>
+
+            {/* Notification bell trigger */}
+            <div className="relative notif-dropdown-trigger">
+              <button
+                onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+                className="p-1.5 hover:bg-gray-100 rounded-full text-gray-700 transition-colors relative flex items-center justify-center"
+                title="Notifications"
+              >
+                <BellIcon />
+                {unreadNotifCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 2,
+                      right: 2,
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      fontSize: 9,
+                      fontWeight: "bold",
+                      borderRadius: "50%",
+                      width: 14,
+                      height: 14,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1.5px solid #ffffff",
+                    }}
+                  >
+                    {unreadNotifCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Bell dropdown */}
+              {notifDropdownOpen && (
+                <div
+                  className="notif-dropdown absolute right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1"
+                  style={{ right: 0, width: 320 }}
+                >
+                  <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <span className="font-bold text-sm text-gray-900 font-sans">Notifications</span>
+                    <div className="flex gap-2.5">
+                      {unreadNotifCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-xs text-violet-600 hover:text-violet-700 font-semibold font-sans"
+                        >
+                          Mark read
+                        </button>
+                      )}
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={clearAllNotifications}
+                          className="text-xs text-gray-500 hover:text-gray-600 font-medium font-sans"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ maxHeight: 320, overflowY: "auto" }}>
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-sm text-gray-400 font-sans">
+                        No notifications yet
+                      </div>
+                    ) : (
+                      notifications.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handleNotificationClick(item.id)}
+                          className={`flex gap-3 px-4 py-3 border-b border-gray-55 cursor-pointer transition-colors ${
+                            item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <span className="text-lg flex-shrink-0">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={`text-xs text-gray-700 leading-relaxed font-sans ${
+                                item.unread ? "font-semibold" : ""
+                              }`}
+                            >
+                              {item.text}
+                            </p>
+                            <span className="text-[10px] text-gray-400 mt-1 block font-sans">
+                              {item.time}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-            <div>
-              <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)", marginBottom: 4 }}>Profile photo</div>
-              <p style={{ fontFamily: "var(--serif)", fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>
-                Upload a PNG or JPEG file. Recommended size 150x150 pixels.
-              </p>
-              <label className="btn btn-outline btn-sm" style={{ cursor: "pointer" }}>
-                Upload photo
-                <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarUpload} disabled={uploading} />
-              </label>
-            </div>
-          </div>
 
-          {/* Profile fields */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div className="form-group">
-              <label className="form-label">Full name</label>
-              <input type="text" className="form-input" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-            </div>
+            {/* Avatar Dropdown trigger */}
+            <div className="relative avatar-dropdown-trigger">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 cursor-pointer flex items-center justify-center relative focus:outline-none"
+              >
+                {profile?.avatar_url ? (
+                  <Image
+                    src={profile.avatar_url}
+                    alt=""
+                    width={36}
+                    height={36}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center font-sans">
+                    {getInitials(profile?.full_name || user?.email || "?")}
+                  </div>
+                )}
+              </button>
 
-            <div className="form-group">
-              <label className="form-label">Username</label>
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <span style={{ background: "var(--bg-3)", border: "1px solid var(--border)", borderRight: "none", borderRadius: "8px 0 0 8px", padding: "12px 14px", fontFamily: "var(--sans)", fontSize: 15, color: "var(--muted)" }}>@</span>
-                <input type="text" className="form-input" value={username} onChange={(e) => setUsername(e.target.value)} style={{ borderRadius: "0 8px 8px 0" }} required />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Bio (Short introduction)</label>
-              <textarea className="form-input" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} style={{ resize: "vertical", fontFamily: "var(--serif)" }} placeholder="Write a short bio about yourself..." />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Twitter handle (without @)</label>
-              <input type="text" className="form-input" value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="username" />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Website URL</label>
-              <input type="url" className="form-input" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://yourwebsite.com" />
-            </div>
-          </div>
-
-          {/* Theme & Customization block */}
-          <div style={{ padding: "24px 0", borderTop: "1px solid var(--border-2)", borderBottom: "1px solid var(--border-2)", display: "flex", flexDirection: "column", gap: 20 }}>
-            <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)" }}>Appearance & Role</h3>
-            
-            <div className="form-group">
-              <label className="form-label" style={{ marginBottom: 12, display: "block" }}>App Theme</label>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
-                {[
-                  { id: "light", label: "Light theme", icon: "☀️" },
-                  { id: "dark", label: "Dark theme", icon: "🌙" },
-                  { id: "system", label: "System settings", icon: "💻" },
-                ].map((t) => {
-                  const isSelected = theme === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => handleThemeChange(t.id)}
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "16px 12px",
-                        background: isSelected ? "var(--bg-3)" : "var(--bg-2)",
-                        border: isSelected ? "2px solid #7c3aed" : "1px solid var(--border)",
-                        borderRadius: 12,
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        boxShadow: isSelected ? "0 4px 12px rgba(124, 58, 237, 0.12)" : "none",
-                        color: "var(--ink)",
-                        position: "relative"
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor = "var(--muted-2)";
-                          e.currentTarget.style.background = "var(--bg-3)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor = "var(--border)";
-                          e.currentTarget.style.background = "var(--bg-2)";
-                        }
-                      }}
+              {/* Avatar Dropdown */}
+              {userDropdownOpen && (
+                <div
+                  className="avatar-dropdown absolute right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1"
+                  style={{ right: 0, minWidth: 240 }}
+                >
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                      {profile?.avatar_url ? (
+                        <Image
+                          src={profile.avatar_url}
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center font-sans">
+                          {getInitials(profile?.full_name || user?.email || "?")}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0" style={{ flex: 1 }}>
+                      <div className="font-bold text-sm text-gray-900 truncate font-sans">
+                        {profile?.full_name || "Writer"}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate font-sans">{user?.email}</div>
+                    </div>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      href="/write"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans"
+                      style={{ textDecoration: "none" }}
+                      onClick={() => setUserDropdownOpen(false)}
                     >
-                      <span style={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        width: 14,
-                        height: 14,
-                        borderRadius: "50%",
-                        border: "1px solid var(--border)",
-                        background: isSelected ? "#7c3aed" : "transparent",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}>
-                        {isSelected && (
-                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />
-                        )}
-                      </span>
-                      <span style={{ fontSize: 24 }}>{t.icon}</span>
-                      <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: isSelected ? 600 : 500 }}>{t.label}</span>
+                      <span>✍️</span> Write
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        setNotifDropdownOpen(true);
+                      }}
+                      className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans"
+                    >
+                      <span>🔔</span> Notifications
                     </button>
-                  );
-                })}
+                    <Link
+                      href="/settings"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans"
+                      style={{ textDecoration: "none" }}
+                      onClick={() => setUserDropdownOpen(false)}
+                    >
+                      <span>⚙️</span> Settings
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        alert(
+                          "Need help? Please send an email to support@uget.com or check our Help Center."
+                        );
+                      }}
+                      className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans"
+                    >
+                      <span>💡</span> Help
+                    </button>
+                  </div>
+                  <div className="border-t border-gray-100 py-1">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-sans"
+                    >
+                      <span>🚪</span> Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* ── Settings layout grid ── */}
+        <div className="settings-grid">
+          {/* Main content column */}
+          <div className="settings-content">
+            <h1
+              className="font-bold text-3xl md:text-4xl text-gray-900 mb-2 font-display"
+              style={{ letterSpacing: "-0.025em" }}
+            >
+              Settings
+            </h1>
+            <p className="text-sm text-gray-500 font-sans mb-8">
+              Manage your personal settings, publishing defaults, and account privacy.
+            </p>
+
+            {/* Tabs matching Screenshots */}
+            <div className="settings-tabs-wrapper">
+              <button
+                onClick={() => setActiveTab("account")}
+                className={activeTab === "account" ? activeTabStyle : inactiveTabStyle}
+              >
+                Account
+              </button>
+              <button
+                onClick={() => setActiveTab("publishing")}
+                className={activeTab === "publishing" ? activeTabStyle : inactiveTabStyle}
+              >
+                Publishing
+              </button>
+              <button
+                onClick={() => setActiveTab("privacy")}
+                className={activeTab === "privacy" ? activeTabStyle : inactiveTabStyle}
+              >
+                Privacy
+              </button>
+              <button
+                onClick={() => setActiveTab("notifications")}
+                className={activeTab === "notifications" ? activeTabStyle : inactiveTabStyle}
+              >
+                Notifications
+              </button>
+              <button
+                onClick={() => setActiveTab("membership")}
+                className={activeTab === "membership" ? activeTabStyle : inactiveTabStyle}
+              >
+                Membership and payment
+              </button>
+              <button
+                onClick={() => setActiveTab("security")}
+                className={activeTab === "security" ? activeTabStyle : inactiveTabStyle}
+              >
+                Security and apps
+              </button>
+            </div>
+
+            {/* TAB CONTENT: Account */}
+            {activeTab === "account" && (
+              <div className="flex flex-col gap-8">
+                {/* Profile Settings Block */}
+                <div>
+                  <div className="settings-section-title">Profile</div>
+
+                  {/* Email row */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Email address</div>
+                      <div className="settings-value">{user?.email || "Not authenticated"}</div>
+                      <div className="settings-desc">
+                        Your login email address. To change it, please contact support.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() =>
+                          alert("Please contact support@uget.com to update your email address.")
+                        }
+                        className="settings-action-btn"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Username row */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Username and subdomain</div>
+                      {isEditingUsername ? (
+                        <div className="settings-inline-editor">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 font-sans">
+                              Username
+                            </label>
+                            <div className="flex items-center">
+                              <span className="bg-gray-100 border border-gray-200 border-r-0 rounded-l-lg px-3 py-2 text-gray-500 font-sans text-sm">
+                                uget.com/@
+                              </span>
+                              <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="border border-gray-200 rounded-r-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600 flex-1"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => {
+                                handleSaveField({
+                                  username: username.trim().toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+                                });
+                                setIsEditingUsername(false);
+                              }}
+                              disabled={saving}
+                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setUsername(profile?.username || "");
+                                setIsEditingUsername(false);
+                              }}
+                              className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-xs font-semibold font-sans"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="settings-value">@{profile?.username || "writer"}</div>
+                          <div className="settings-desc">
+                            Edit your unique UGET username and public profile URL path.
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {!isEditingUsername && (
+                      <div className="settings-row-action">
+                        <button
+                          onClick={() => setIsEditingUsername(true)}
+                          className="settings-action-btn"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Profile info row */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Profile information</div>
+                      {isEditingProfileInfo ? (
+                        <div className="settings-inline-editor">
+                          {/* Avatar Upload */}
+                          <div className="flex items-center gap-4 py-2 border-b border-gray-100 mb-2">
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-violet-100 border border-gray-200 flex-shrink-0 flex items-center justify-center text-violet-700 text-xl font-bold relative">
+                              {avatarUrl ? (
+                                <Image
+                                  src={avatarUrl}
+                                  alt="Avatar"
+                                  width={64}
+                                  height={64}
+                                  className="object-cover w-full h-full"
+                                />
+                              ) : (
+                                <span>{getInitials(fullName || "?")}</span>
+                              )}
+                              {uploading && (
+                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                  <div className="spinner w-5 h-5" />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 font-sans">
+                                Profile Photo
+                              </div>
+                              <label className="text-xs text-violet-600 hover:underline cursor-pointer font-sans font-medium mt-1 block">
+                                Upload image file...
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={handleAvatarUpload}
+                                  disabled={uploading}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                              Display Name
+                            </label>
+                            <input
+                              type="text"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                              Bio
+                            </label>
+                            <textarea
+                              value={bio}
+                              onChange={(e) => setBio(e.target.value)}
+                              rows={3}
+                              placeholder="Tell readers about yourself..."
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-serif focus:outline-none focus:border-violet-600"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                              Website URL
+                            </label>
+                            <input
+                              type="url"
+                              value={website}
+                              onChange={(e) => setWebsite(e.target.value)}
+                              placeholder="https://yourpage.com"
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                              Twitter Handle (no @)
+                            </label>
+                            <input
+                              type="text"
+                              value={twitter}
+                              onChange={(e) => setTwitter(e.target.value)}
+                              placeholder="handle"
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600"
+                            />
+                          </div>
+
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => {
+                                handleSaveField({
+                                  full_name: fullName.trim(),
+                                  bio: bio.trim(),
+                                  website: website.trim(),
+                                  twitter: twitter.trim(),
+                                });
+                                setIsEditingProfileInfo(false);
+                              }}
+                              disabled={saving}
+                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setFullName(profile?.full_name || "");
+                                setBio(profile?.bio || "");
+                                setWebsite(profile?.website || "");
+                                setTwitter(profile?.twitter || "");
+                                setIsEditingProfileInfo(false);
+                              }}
+                              className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-xs font-semibold font-sans"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-3 py-1.5">
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                              {profile?.avatar_url ? (
+                                <Image
+                                  src={profile.avatar_url}
+                                  alt=""
+                                  width={36}
+                                  height={36}
+                                  className="object-cover w-full h-full"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center">
+                                  {getInitials(profile?.full_name || "?")}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-sans font-bold text-sm text-gray-900">
+                                {profile?.full_name}
+                              </div>
+                              {profile?.bio && (
+                                <div className="font-serif text-xs text-gray-500 mt-0.5 max-w-sm truncate">
+                                  {profile.bio}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="settings-desc">
+                            Edit your display photo, name, short bio, website URL, and Twitter handle.
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {!isEditingProfileInfo && (
+                      <div className="settings-row-action">
+                        <button
+                          onClick={() => setIsEditingProfileInfo(true)}
+                          className="settings-action-btn"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Custom Domain row */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Custom domain</div>
+                      {isEditingDomain ? (
+                        <div className="settings-inline-editor">
+                          <div className="text-sm text-gray-700 font-sans leading-relaxed">
+                            💡 <strong>UGET Custom Domains</strong> allow you to map your own personal web
+                            domain (e.g. `yourname.com`) directly to your UGET publication.
+                          </div>
+                          <div className="text-xs text-gray-500 font-sans">
+                            This feature is premium and requires a valid active UGET Membership subscription.
+                          </div>
+                          <div className="flex gap-2 justify-end mt-2">
+                            <button
+                              onClick={() => {
+                                showMsg("Upgrade page simulated!", "ok");
+                                setIsEditingDomain(false);
+                              }}
+                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                            >
+                              Upgrade to Member
+                            </button>
+                            <button
+                              onClick={() => setIsEditingDomain(false)}
+                              className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-xs font-semibold font-sans"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="settings-value">None</div>
+                          <div className="settings-desc">
+                            Upgrade to a UGET Membership to map your own custom domain.
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {!isEditingDomain && (
+                      <div className="settings-row-action">
+                        <button
+                          onClick={() => setIsEditingDomain(true)}
+                          className="settings-action-btn"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stories block */}
+                <div>
+                  <div className="settings-section-title">Stories</div>
+
+                  {/* Partner Program */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Partner Program</div>
+                      <div className="settings-value">Not enrolled</div>
+                      <div className="settings-desc">
+                        You are not currently enrolled in the Partner Program. Enroll to earn revenue from your
+                        published articles.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() =>
+                          alert(
+                            "Thank you for your interest! The Partner Program is currently invitation-only. Maintain a regular writing schedule to qualify for review."
+                          )
+                        }
+                        className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors inline-flex"
+                      >
+                        <ArrowRightIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Third party AI */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Third-party AI indexing bots</div>
+                      <div className="settings-value">{aiAllowed ? "Allowed" : "Blocked"}</div>
+                      <div className="settings-desc">
+                        Control whether AI scrapers and Large Language Models (LLMs) can crawl and index your UGET
+                        stories for training datasets.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={aiAllowed}
+                          onChange={(e) => {
+                            setAiAllowed(e.target.checked);
+                            handleToggleSimulated("uget_settings_ai_allowed", e.target.checked);
+                          }}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Hide highlights */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Hide highlights from others</div>
+                      <div className="settings-desc">
+                        Prevent other readers and authors from seeing the custom highlights you make on posts.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={hideHighlights}
+                          onChange={(e) => {
+                            setHideHighlights(e.target.checked);
+                            handleToggleSimulated("uget_settings_hide_highlights", e.target.checked);
+                          }}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendations settings */}
+                <div>
+                  <div className="settings-section-title">Recommendations</div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Refine recommendations</div>
+                      <div className="settings-desc">
+                        Adjust recommendations by updating the writers, publications, and categories you follow.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <Link
+                        href="/me/following"
+                        className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors inline-flex"
+                      >
+                        <ArrowRightIcon />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Muted writers and publications</div>
+                      <div className="settings-desc">
+                        Manage who you've muted. Muted accounts will not appear in your feeds.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <Link
+                        href="/me/following"
+                        className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors inline-flex"
+                      >
+                        <ArrowRightIcon />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Blocked users</div>
+                      <div className="settings-value">0 users blocked</div>
+                      <div className="settings-desc">
+                        Accounts you block cannot follow you, comment on your posts, or view your profile page.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() => alert("You haven't blocked any accounts.")}
+                        className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors inline-flex"
+                      >
+                        <ArrowRightIcon />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Actions */}
+                <div>
+                  <div className="settings-section-title">Account</div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Provide feedback</div>
+                      <div className="settings-desc">
+                        Opt-in to participate in feedback programs, surveys, and user research.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={provideFeedback}
+                          onChange={(e) => {
+                            setProvideFeedback(e.target.checked);
+                            handleToggleSimulated("uget_settings_provide_feedback", e.target.checked);
+                          }}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Deactivate account */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <button
+                        onClick={() => {
+                          const confirm = window.confirm(
+                            "Are you sure you want to deactivate your UGET account? This will hide your stories and profile temporarily."
+                          );
+                          if (confirm) {
+                            showMsg("Account deactivated (simulated).", "ok");
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-700 font-sans font-semibold text-sm text-left block border-none bg-none p-0"
+                      >
+                        Deactivate account
+                      </button>
+                      <div className="settings-desc mt-1">
+                        Deactivating will suspend your public profile until you sign back in.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Delete account */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <button
+                        onClick={() => {
+                          const confirm = window.confirm(
+                            "⚠️ WARNING: Are you sure you want to delete your UGET account? This will permanently delete your stories, comments, and profile. This action CANNOT be undone."
+                          );
+                          if (confirm) {
+                            showMsg("Account deletion started (simulated).", "ok");
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-700 font-sans font-semibold text-sm text-left block border-none bg-none p-0"
+                      >
+                        Delete account
+                      </button>
+                      <div className="settings-desc mt-1">
+                        Permanently delete your UGET account, all published stories, and stats metrics.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Publishing */}
+            {activeTab === "publishing" && (
+              <div className="flex flex-col gap-8">
+                <div>
+                  <div className="settings-section-title">Publications</div>
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Manage publications</div>
+                      <div className="settings-desc font-sans text-sm text-violet-600 hover:underline">
+                        <Link href="/dashboard" style={{ color: "inherit", textDecoration: "none" }}>
+                          Create or manage your publications &gt;
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="settings-section-title">Reader Engagement</div>
+
+                  {/* Private notes */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Allow private notes on your stories</div>
+                      <div className="settings-desc">
+                        Readers can leave private annotations visible only to you and editors of the publication.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={allowPrivateNotes}
+                          onChange={(e) => {
+                            setAllowPrivateNotes(e.target.checked);
+                            handleToggleSimulated("uget_settings_private_notes", e.target.checked);
+                          }}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Tipping settings */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Manage tipping on your stories</div>
+                      {isEditingTipping ? (
+                        <div className="settings-inline-editor">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 font-sans">
+                              Payment URL / Link
+                            </label>
+                            <input
+                              type="url"
+                              value={tippingUrl}
+                              onChange={(e) => setTippingUrl(e.target.value)}
+                              placeholder="e.g. https://ko-fi.com/username or PayPal URL"
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600"
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => {
+                                handleToggleSimulated("uget_settings_tipping_url", tippingUrl);
+                                setIsEditingTipping(false);
+                              }}
+                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setTippingUrl(localStorage.getItem("uget_settings_tipping_url") || "");
+                                setIsEditingTipping(false);
+                              }}
+                              className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-xs font-semibold font-sans"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="settings-value">
+                            {tippingUrl ? `Enabled: ${tippingUrl}` : "Disabled"}
+                          </div>
+                          <div className="settings-desc">
+                            Allow readers to send tips or support your writing via external links like PayPal or Ko-fi.
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {!isEditingTipping && (
+                      <div className="settings-row-action">
+                        <button
+                          onClick={() => setIsEditingTipping(true)}
+                          className="settings-action-btn"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Allow email replies */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Allow email replies</div>
+                      <div className="settings-desc">
+                        Let newsletter subscribers reply to your articles directly from their email inbox.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={allowEmailReplies}
+                          onChange={(e) => {
+                            setAllowEmailReplies(e.target.checked);
+                            handleToggleSimulated("uget_settings_email_replies", e.target.checked);
+                          }}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Reply to email address */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">'Reply To' email address</div>
+                      <div className="settings-value">{user?.email || "No email"}</div>
+                      <div className="settings-desc">
+                        The email address that newsletter subscribers will see in the 'Reply-To' field.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Import subscribers */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Import email subscribers</div>
+                      <div className="settings-desc">
+                        Upload a CSV or TXT file list containing up to 25,000 email addresses to migrate your newsletter audience.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = ".csv,.txt";
+                          input.onchange = () => {
+                            if (input.files?.[0]) {
+                              showMsg(`File "${input.files[0].name}" successfully parsed. Added subscribers (simulation).`, "ok");
+                            }
+                          };
+                          input.click();
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors inline-flex"
+                        title="Import list"
+                      >
+                        <ArrowRightIcon />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Privacy */}
+            {activeTab === "privacy" && (
+              <div className="flex flex-col gap-8">
+                <div>
+                  <div className="settings-section-title">Privacy Settings</div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Search engine indexing</div>
+                      <div className="settings-desc">
+                        Allow search engines (Google, Bing, Yahoo) to discover and index your public profile page and stories.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Personalized telemetry data</div>
+                      <div className="settings-desc">
+                        Allow UGET to track your reading activity history to customize feeds and recommend more relative content.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Social connections visibility</div>
+                      <div className="settings-desc">
+                        Let other users see which external accounts (Twitter, GitHub) are linked to your profile page.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Notifications */}
+            {activeTab === "notifications" && (
+              <div className="flex flex-col gap-8">
+                <div>
+                  <div className="settings-section-title">Notification Settings</div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Email Digest Frequency</div>
+                      <div className="settings-desc">
+                        Control how often you receive summary emails about trending stories and writer recommendations.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <select className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-sans focus:outline-none bg-white">
+                        <option>Daily Digest</option>
+                        <option>Weekly Digest</option>
+                        <option>Off / Unsubscribed</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Likes and comments notifications</div>
+                      <div className="settings-desc">
+                        Send notifications when another user likes, comments on, or tags you in a story.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">New follower updates</div>
+                      <div className="settings-desc">
+                        Send notifications immediately when a new user follows your profile page.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input type="checkbox" defaultChecked />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Membership */}
+            {activeTab === "membership" && (
+              <div className="flex flex-col gap-8">
+                <div>
+                  <div className="settings-section-title">UGET Membership</div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Active Subscription Plan</div>
+                      <div className="settings-value">UGET Free Tier</div>
+                      <div className="settings-desc">
+                        Upgrade to UGET Member to read unlimited stories, customize your profile subdomain, and enroll in the Partner Program.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() => alert("Upgrade system simulated! Thanks for testing.")}
+                        className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans transition-colors"
+                      >
+                        Upgrade
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Payout methods</div>
+                      <div className="settings-value">No payout methods configured</div>
+                      <div className="settings-desc">
+                        Connect a Stripe Express account to receive payouts from the Partner Program and reader tipping.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() => alert("Stripe onboarding flow simulated!")}
+                        className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-xs font-semibold font-sans transition-colors"
+                      >
+                        Set up Stripe
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Security */}
+            {activeTab === "security" && (
+              <div className="flex flex-col gap-8">
+                <div>
+                  <div className="settings-section-title">Account Security</div>
+
+                  {/* Password row */}
+                  <div className="settings-row">
+                    <div className="settings-row-main flex flex-col gap-3">
+                      <div className="settings-label">Change Password</div>
+                      <div className="flex flex-col gap-2.5 max-w-sm">
+                        <input
+                          type="password"
+                          placeholder="Current Password"
+                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-sans focus:outline-none"
+                        />
+                        <input
+                          type="password"
+                          placeholder="New Password"
+                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-sans focus:outline-none"
+                        />
+                        <input
+                          type="password"
+                          placeholder="Confirm New Password"
+                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-sans focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() => showMsg("Password changed (simulated)!", "ok")}
+                        className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans transition-colors"
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Two factor */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Two-factor authentication (2FA)</div>
+                      <div className="settings-desc">
+                        Add an extra layer of security to your UGET account by requiring a code from your phone upon sign in.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              alert("Please set up Google Authenticator or an equivalent TOTP app (simulation).");
+                            }
+                          }}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right sidebar help articles widget */}
+          <aside className="settings-help-sidebar">
+            <div className="settings-help-card">
+              <h3 className="settings-help-title">Suggested help articles</h3>
+              <a
+                href="https://help.uget.com"
+                target="_blank"
+                rel="noreferrer"
+                className="settings-help-link"
+              >
+                Sign in or sign up to UGET
+              </a>
+              <a
+                href="https://help.uget.com"
+                target="_blank"
+                rel="noreferrer"
+                className="settings-help-link"
+              >
+                Your profile page
+              </a>
+              <a
+                href="https://help.uget.com"
+                target="_blank"
+                rel="noreferrer"
+                className="settings-help-link"
+              >
+                Writing and publishing your first story
+              </a>
+              <a
+                href="https://help.uget.com"
+                target="_blank"
+                rel="noreferrer"
+                className="settings-help-link"
+              >
+                About UGET's distribution system
+              </a>
+              <a
+                href="https://help.uget.com"
+                target="_blank"
+                rel="noreferrer"
+                className="settings-help-link"
+              >
+                Get started with the Partner Program
+              </a>
+
+              <div className="settings-help-footer">
+                Help · Status · Writers · Blog · Careers · Privacy · Terms · About · Knowable
               </div>
             </div>
-
-            <div className="form-group">
-              <label className="form-label">User Role (For admin testing)</label>
-              <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)} style={{ background: "var(--bg)", color: "var(--ink)", cursor: "pointer" }}>
-                <option value="reader">Reader</option>
-                <option value="writer">Writer</option>
-                <option value="admin">🔑 Admin</option>
-              </select>
-              <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 6, fontFamily: "var(--sans)" }}>
-                🚩 Promoted roles grant access to protected dashboards. Selecting <strong>Admin</strong> will unlock the admin panel.
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-            <button type="submit" className="btn btn-primary btn-md" disabled={saving} style={{ padding: "12px 32px" }}>
-              {saving ? "Saving..." : "Save changes"}
-            </button>
-            <button type="button" className="btn btn-outline btn-md" onClick={() => router.back()}>
-              Cancel
-            </button>
-          </div>
-        </form>
+          </aside>
+        </div>
       </main>
     </div>
   );

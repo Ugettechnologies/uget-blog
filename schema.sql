@@ -22,6 +22,7 @@ create table if not exists public.profiles (
   website text,
   role text not null default 'writer' check (role in ('admin', 'writer', 'reader')),
   theme text default 'light' check (theme in ('light', 'dark', 'system')),
+  interests text[] default '{}',
   follower_count integer default 0,
   post_count integer default 0,
   created_at timestamptz default now(),

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
-import { getInitials } from "@/lib/types";
+import { getInitials, saveUserToSavedList } from "@/lib/types";
 import AuthModal from "./AuthModal";
 
 function NavbarInner() {
@@ -70,13 +70,7 @@ function NavbarInner() {
             if (data) {
               const remember = localStorage.getItem("uget_remember_me") !== "false";
               if (remember) {
-                localStorage.setItem("uget_last_user", JSON.stringify({
-                  full_name: data.full_name || user.email || "User",
-                  email: user.email || "",
-                  avatar_url: data.avatar_url || ""
-                }));
-              } else {
-                localStorage.removeItem("uget_last_user");
+                saveUserToSavedList(user, data);
               }
             }
           });
@@ -96,13 +90,7 @@ function NavbarInner() {
             if (data) {
               const remember = localStorage.getItem("uget_remember_me") !== "false";
               if (remember) {
-                localStorage.setItem("uget_last_user", JSON.stringify({
-                  full_name: data.full_name || u.email || "User",
-                  email: u.email || "",
-                  avatar_url: data.avatar_url || ""
-                }));
-              } else {
-                localStorage.removeItem("uget_last_user");
+                saveUserToSavedList(u, data);
               }
             }
           });

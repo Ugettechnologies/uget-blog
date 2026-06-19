@@ -132,12 +132,13 @@ function AuthForm() {
     try {
       if (mode === "signup") {
         if (!name.trim()) { setError("Please enter your name"); setLoading(false); return; }
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email, password,
           options: { data: { full_name: name }, emailRedirectTo: `${window.location.origin}/auth/callback` },
         });
         if (error) throw error;
-        setSuccess("Account created! Check your email to confirm, then sign in.");
+        router.push("/onboarding");
+        router.refresh();
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;

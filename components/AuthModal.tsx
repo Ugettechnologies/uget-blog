@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
-import { getInitials } from "@/lib/types";
+import { getInitials, getSavedUsers, saveUserToSavedList, removeUserFromSavedList } from "@/lib/types";
+import type { SavedUser } from "@/lib/types";
+
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -45,11 +47,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [savedUser, setSavedUser] = useState<{
-    full_name: string;
-    email: string;
-    avatar_url: string;
-  } | null>(null);
+  const [savedUsers, setSavedUsers] = useState<SavedUser[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,19 +64,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     if (isOpen) {
       document.body.style.overflow = "hidden";
       
-      // Load saved user from local storage
-      const lastUserStr = localStorage.getItem("uget_last_user");
-      if (lastUserStr) {
-        try {
-          const parsed = JSON.parse(lastUserStr);
-          setSavedUser(parsed);
-          setShowMoreOptions(false);
-        } catch (e) {
-          setSavedUser(null);
-          setShowMoreOptions(true);
-        }
+      const list = getSavedUsers();
+      setSavedUsers(list);
+      
+      if (list.length > 0 && mode === "login") {
+        setShowMoreOptions(false);
       } else {
-        setSavedUser(null);
         setShowMoreOptions(true);
       }
 
@@ -94,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [isOpen, mode]);
 
   if (!isOpen) return null;
 
@@ -102,6 +93,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     setOauthLoading(provider);
     setError("");
     localStorage.setItem("uget_remember_me", rememberMe ? "true" : "false");
+    localStorage.setItem("uget_pending_provider", provider);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -129,7 +121,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
           setLoading(false);
           return;
         }
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -138,7 +130,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
           },
         });
         if (error) throw error;
-        setSuccess("Account created! Check your email to confirm, then sign in.");
+        
+        if (data?.user) {
+          if (rememberMe) {
+            saveUserToSavedList(data.user, { full_name: name, avatar_url: "" }, "email");
+          }
+        }
+        onClose();
+        router.push("/onboarding");
+        router.refresh();
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -148,15 +148,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         if (user) {
           if (rememberMe) {
             const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-            if (profile) {
-              localStorage.setItem("uget_last_user", JSON.stringify({
-                full_name: profile.full_name || user.email || "User",
-                email: user.email || "",
-                avatar_url: profile.avatar_url || ""
-              }));
-            }
-          } else {
-            localStorage.removeItem("uget_last_user");
+            saveUserToSavedList(user, profile, "email");
           }
         }
 
@@ -287,9 +279,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
           </svg>
         </button>
 
-        {!showMoreOptions ? (
+        {!showMoreOptions && mode === "login" && savedUsers.length > 0 ? (
           /* ────────────────────────────────────────────────────────
-             PRE-FILLED VIEW (Screenshot: Welcome back ogobor blessed)
+             PRE-FILLED MULTI-PROFILE VIEW (Welcome back chooser)
              ──────────────────────────────────────────────────────── */
           <div>
             <h2 
@@ -298,158 +290,211 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                 fontSize: 32, 
                 fontWeight: 700, 
                 color: "var(--black)", 
-                marginBottom: 24,
+                marginBottom: 28,
                 letterSpacing: "-0.02em"
               }}
             >
               Welcome back.
             </h2>
 
-            {/* Simulated Avatar Card */}
+            {/* Profile Chooser grid */}
             <div 
               style={{ 
                 display: "flex", 
-                flexDirection: "column", 
-                alignItems: "center", 
-                marginBottom: 32 
+                flexWrap: "wrap",
+                justifyContent: "center", 
+                gap: "20px 24px",
+                marginBottom: 32,
+                maxHeight: 280,
+                overflowY: "auto",
+                padding: "8px"
               }}
             >
-              <div 
-                style={{ 
-                  width: 80, 
-                  height: 80, 
-                  borderRadius: "50%", 
-                  overflow: "hidden", 
-                  marginBottom: 12,
-                  boxShadow: "var(--shadow-md)",
-                  border: "2px solid var(--border)",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: savedUser?.avatar_url ? "none" : "var(--bg-3)",
-                  fontSize: 28,
-                  fontWeight: 700,
-                  fontFamily: "var(--sans)",
-                  color: "var(--ink-2)"
-                }}
-              >
-                {savedUser?.avatar_url ? (
-                  <Image 
-                    src={savedUser.avatar_url} 
-                    alt={savedUser.full_name || "User avatar"} 
-                    fill 
-                    style={{ objectFit: "cover" }} 
-                    priority
-                  />
-                ) : (
-                  <span>{getInitials(savedUser?.full_name || savedUser?.email || "?")}</span>
-                )}
-              </div>
-              <div 
-                style={{ 
-                  fontFamily: "var(--sans)", 
-                  fontSize: 16, 
-                  fontWeight: 600, 
-                  color: "var(--ink)" 
-                }}
-              >
-                {savedUser?.full_name}
-              </div>
-              <div 
-                style={{ 
-                  fontFamily: "var(--sans)", 
-                  fontSize: 13, 
-                  color: "var(--muted)" 
-                }}
-              >
-                {savedUser?.email}
-              </div>
+              {savedUsers.map((su) => (
+                <div 
+                  key={su.email}
+                  style={{
+                    position: "relative",
+                    width: 110,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    cursor: "pointer"
+                  }}
+                  onClick={() => {
+                    if (su.provider === "email") {
+                      setEmail(su.email);
+                      setShowEmailForm(true);
+                      setShowMoreOptions(true);
+                      setTimeout(() => {
+                        const pwInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+                        if (pwInput) pwInput.focus();
+                      }, 100);
+                    } else {
+                      handleOAuth(su.provider as any);
+                    }
+                  }}
+                >
+                  {/* Remove profile button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeUserFromSavedList(su.email);
+                      const updated = getSavedUsers();
+                      setSavedUsers(updated);
+                      if (updated.length === 0) {
+                        setShowMoreOptions(true);
+                      }
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: -6,
+                      right: 10,
+                      background: "rgba(0, 0, 0, 0.6)",
+                      border: "none",
+                      color: "white",
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      fontSize: 10,
+                      fontWeight: "bold",
+                      zIndex: 10,
+                      transition: "background 0.2s"
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(220, 38, 38, 0.9)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0, 0, 0, 0.6)"; }}
+                    title="Forget this account"
+                  >
+                    ✕
+                  </button>
+
+                  {/* Avatar wrapper */}
+                  <div
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: "50%",
+                      position: "relative",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: su.avatar_url ? "none" : "var(--bg-3)",
+                      boxShadow: "var(--shadow-md)",
+                      border: "2px solid var(--border)",
+                      transition: "all 0.2s",
+                      marginBottom: 10
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.06)";
+                      e.currentTarget.style.boxShadow = "var(--shadow-lg)";
+                      e.currentTarget.style.borderColor = "var(--brand)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "none";
+                      e.currentTarget.style.boxShadow = "var(--shadow-md)";
+                      e.currentTarget.style.borderColor = "var(--border)";
+                    }}
+                  >
+                    {su.avatar_url ? (
+                      <Image 
+                        src={su.avatar_url} 
+                        alt={su.full_name} 
+                        fill 
+                        style={{ objectFit: "cover", borderRadius: "50%" }} 
+                        priority
+                      />
+                    ) : (
+                      <span style={{ fontSize: 24, fontWeight: 700, color: "var(--ink-2)" }}>
+                        {getInitials(su.full_name || su.email)}
+                      </span>
+                    )}
+
+                    {/* Provider Badge icon */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: -2,
+                        right: -2,
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        backgroundColor: "white",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "1px solid var(--border)",
+                        padding: 3
+                      }}
+                    >
+                      {su.provider === "google" && <GoogleIcon />}
+                      {su.provider === "facebook" && <FacebookIcon />}
+                      {su.provider === "github" && <GithubIcon />}
+                      {su.provider === "email" && <EmailIcon />}
+                    </div>
+                  </div>
+
+                  {/* Name and Email */}
+                  <div 
+                    style={{
+                      fontFamily: "var(--sans)",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "var(--ink)",
+                      width: "100%",
+                      textAlign: "center",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}
+                  >
+                    {su.full_name}
+                  </div>
+                  <div 
+                    style={{
+                      fontFamily: "var(--sans)",
+                      fontSize: 11,
+                      color: "var(--muted)",
+                      width: "100%",
+                      textAlign: "center",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}
+                  >
+                    {su.email}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Google Sign In Button */}
-            <button 
-              onClick={() => handleOAuth("google")} 
-              className="oauth-btn"
-              disabled={!!oauthLoading}
-              style={{
-                width: "100%",
-                padding: "14px 20px",
-                borderRadius: 999,
-                fontSize: 15,
-                fontWeight: 500,
-                marginBottom: 20,
-                border: "1px solid var(--border)",
-                backgroundColor: "var(--bg)",
-                color: "var(--ink)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 12,
-                cursor: "pointer",
-                transition: "all 0.2s"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--bg-3)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--bg)";
-                e.currentTarget.style.transform = "";
-              }}
-            >
-              {oauthLoading === "google" ? (
-                <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
-              ) : (
-                <GoogleIcon />
-              )}
-              Sign in with Google
-            </button>
-
-            {/* Action Links */}
+            {/* Use another account option */}
             <div 
               style={{ 
                 display: "flex", 
                 flexDirection: "column", 
                 gap: 12, 
-                marginBottom: 32,
-                fontSize: 13,
+                marginBottom: 20,
+                fontSize: 14,
                 fontFamily: "var(--sans)"
               }}
             >
               <button 
-                onClick={() => {
-                  localStorage.removeItem("uget_last_user");
-                  setSavedUser(null);
-                  setShowMoreOptions(true);
-                }} 
-                style={{ 
-                  color: "var(--muted)", 
-                  textDecoration: "underline", 
-                  background: "none", 
-                  border: "none", 
-                  cursor: "pointer" 
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
-              >
-                Forget this account
-              </button>
-
-              <button 
                 onClick={() => setShowMoreOptions(true)} 
                 style={{ 
-                  color: "var(--ink)", 
-                  fontWeight: 500, 
+                  color: "#1a8917", 
+                  fontWeight: 700, 
                   textDecoration: "underline", 
                   background: "none", 
                   border: "none", 
                   cursor: "pointer" 
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--brand)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink)")}
               >
-                Not your account? More sign in options
+                Use another account
               </button>
             </div>
           </div>
@@ -467,7 +512,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                     fontSize: 32, 
                     fontWeight: 700, 
                     color: "var(--black)", 
-                    marginBottom: 24,
+                    marginBottom: 28,
                     textAlign: "center",
                     letterSpacing: "-0.02em"
                   }}
@@ -482,35 +527,37 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   disabled={!!oauthLoading}
                   style={{
                     width: "100%",
-                    padding: "14px 20px",
+                    padding: "12px 20px",
                     borderRadius: 999,
                     fontSize: 15,
-                    fontWeight: 500,
+                    fontWeight: 400,
                     marginBottom: 12,
-                    border: "1px solid var(--border)",
-                    backgroundColor: "var(--bg)",
-                    color: "var(--ink)",
+                    border: "1px solid #242424",
+                    backgroundColor: "white",
+                    color: "#242424",
                     display: "flex",
                     alignItems: "center",
+                    position: "relative",
                     justifyContent: "center",
-                    gap: 12,
                     cursor: "pointer",
                     transition: "all 0.2s"
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--bg-3)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.backgroundColor = "#f9f9f9";
+                    e.currentTarget.style.borderColor = "#000";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--bg)";
-                    e.currentTarget.style.transform = "";
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.borderColor = "#242424";
                   }}
                 >
-                  {oauthLoading === "google" ? (
-                    <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
-                  ) : (
-                    <GoogleIcon />
-                  )}
+                  <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
+                    {oauthLoading === "google" ? (
+                      <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
+                    ) : (
+                      <GoogleIcon />
+                    )}
+                  </div>
                   {mode === "login" ? "Sign in with Google" : "Sign up with Google"}
                 </button>
 
@@ -521,35 +568,37 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   disabled={!!oauthLoading}
                   style={{
                     width: "100%",
-                    padding: "14px 20px",
+                    padding: "12px 20px",
                     borderRadius: 999,
                     fontSize: 15,
-                    fontWeight: 500,
+                    fontWeight: 400,
                     marginBottom: 12,
-                    border: "1px solid var(--border)",
-                    backgroundColor: "var(--bg)",
-                    color: "var(--ink)",
+                    border: "1px solid #242424",
+                    backgroundColor: "white",
+                    color: "#242424",
                     display: "flex",
                     alignItems: "center",
+                    position: "relative",
                     justifyContent: "center",
-                    gap: 12,
                     cursor: "pointer",
                     transition: "all 0.2s"
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--bg-3)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.backgroundColor = "#f9f9f9";
+                    e.currentTarget.style.borderColor = "#000";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--bg)";
-                    e.currentTarget.style.transform = "";
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.borderColor = "#242424";
                   }}
                 >
-                  {oauthLoading === "facebook" ? (
-                    <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
-                  ) : (
-                    <FacebookIcon />
-                  )}
+                  <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
+                    {oauthLoading === "facebook" ? (
+                      <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
+                    ) : (
+                      <FacebookIcon />
+                    )}
+                  </div>
                   {mode === "login" ? "Sign in with Facebook" : "Sign up with Facebook"}
                 </button>
 
@@ -559,49 +608,56 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   className="oauth-btn"
                   style={{
                     width: "100%",
-                    padding: "14px 20px",
+                    padding: "12px 20px",
                     borderRadius: 999,
                     fontSize: 15,
-                    fontWeight: 500,
-                    marginBottom: 20,
-                    border: "1px solid var(--border)",
-                    backgroundColor: "var(--bg)",
-                    color: "var(--ink)",
+                    fontWeight: 400,
+                    marginBottom: 12,
+                    border: "1px solid #242424",
+                    backgroundColor: "white",
+                    color: "#242424",
                     display: "flex",
                     alignItems: "center",
+                    position: "relative",
                     justifyContent: "center",
-                    gap: 12,
                     cursor: "pointer",
                     transition: "all 0.2s"
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--bg-3)";
-                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.backgroundColor = "#f9f9f9";
+                    e.currentTarget.style.borderColor = "#000";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--bg)";
-                    e.currentTarget.style.transform = "";
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.borderColor = "#242424";
                   }}
                 >
-                  <EmailIcon />
+                  <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
+                    <EmailIcon />
+                  </div>
                   {mode === "login" ? "Sign in with email" : "Sign up with email"}
                 </button>
 
                 {/* Remember Me Checkbox */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, margin: "24px 0 28px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "24px 0 28px" }}>
                   <input 
                     type="checkbox" 
                     id="rememberMe" 
                     checked={rememberMe} 
                     onChange={(e) => setRememberMe(e.target.checked)} 
-                    style={{ cursor: "pointer", width: 16, height: 16 }}
+                    style={{ 
+                      cursor: "pointer", 
+                      width: 16, 
+                      height: 16,
+                      accentColor: "#191919"
+                    }}
                   />
                   <label 
                     htmlFor="rememberMe" 
                     style={{ 
                       fontFamily: "var(--sans)", 
-                      fontSize: 13, 
-                      color: "var(--ink-2)", 
+                      fontSize: 14, 
+                      color: "#242424", 
                       cursor: "pointer", 
                       userSelect: "none" 
                     }}
@@ -612,21 +668,21 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
                 {/* Mode Toggles */}
                 {mode === "login" ? (
-                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink)" }}>
+                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "#242424", margin: "16px 0 24px" }}>
                     No account?{" "}
                     <button 
                       onClick={() => { setMode("signup"); setError(""); setSuccess(""); }}
-                      style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}
+                      style={{ color: "#1a8917", fontWeight: 700, cursor: "pointer", border: "none", background: "none", textDecoration: "underline" }}
                     >
                       Create one
                     </button>
                   </p>
                 ) : (
-                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink)" }}>
+                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "#242424", margin: "16px 0 24px" }}>
                     Already have an account?{" "}
                     <button 
                       onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
-                      style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}
+                      style={{ color: "#1a8917", fontWeight: 700, cursor: "pointer", border: "none", background: "none", textDecoration: "underline" }}
                     >
                       Sign in
                     </button>
@@ -634,7 +690,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                 )}
 
                 {/* Back to Quick Sign-In */}
-                {savedUser && (
+                {savedUsers.length > 0 && mode === "login" && (
                   <button 
                     onClick={() => setShowMoreOptions(false)} 
                     style={{
@@ -802,7 +858,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             lineHeight: 1.6 
           }}
         >
-          By clicking &ldquo;Sign in&rdquo;, you accept UGET&rsquo;s{" "}
+          By clicking &ldquo;{mode === "login" ? "Sign in" : "Sign up"}&rdquo;, you accept UGET&rsquo;s{" "}
           <Link href="/terms" style={{ color: "var(--ink)", textDecoration: "underline" }} onClick={onClose}>Terms of Service</Link> and{" "}
           <Link href="/privacy" style={{ color: "var(--ink)", textDecoration: "underline" }} onClick={onClose}>Privacy Policy</Link>.
         </p>
@@ -810,3 +866,4 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     </div>
   );
 }
+

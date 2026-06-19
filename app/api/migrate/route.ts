@@ -44,6 +44,17 @@ export async function GET() {
       console.warn("Could not alter profiles table directly, check if column exists:", colErr.message);
     }
 
+    // 3.5 Add interests column to profiles table
+    try {
+      await sql`
+        ALTER TABLE public.profiles 
+        ADD COLUMN IF NOT EXISTS interests text[] DEFAULT '{}'
+      `;
+      console.log("✓ Profiles interests column added/checked");
+    } catch (colErr: any) {
+      console.warn("Could not alter profiles table directly for interests:", colErr.message);
+    }
+
     // 4. Create follows table
     await sql`
       CREATE TABLE IF NOT EXISTS public.follows (

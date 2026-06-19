@@ -103,3 +103,61 @@ export function getInitials(name: string | null): string {
   if (!name) return "?";
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
+
+export interface SavedUser {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url: string;
+  provider: "email" | "google" | "facebook" | "github";
+}
+
+export function getSavedUsers(): SavedUser[] {
+  if (typeof window === "undefined") return [];
+  const stored = localStorage.getItem("uget_saved_users");
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return [];
+  }
+}
+
+export function saveUserToSavedList(
+  user: { id: string; email?: string },
+  profile: { full_name: string | null; avatar_url: string | null } | null,
+  provider?: "email" | "google" | "facebook" | "github"
+) {
+  if (typeof window === "undefined") return;
+  const list = getSavedUsers();
+  const email = user.email || "";
+  if (!email) return;
+
+  const resolvedProvider = provider || (localStorage.getItem("uget_pending_provider") as any) || "email";
+  localStorage.removeItem("uget_pending_provider");
+
+  const existingIndex = list.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
+  const updatedUser: SavedUser = {
+    id: user.id,
+    full_name: profile?.full_name || email.split("@")[0] || "User",
+    email,
+    avatar_url: profile?.avatar_url || "",
+    provider: resolvedProvider,
+  };
+
+  if (existingIndex > -1) {
+    list[existingIndex] = updatedUser;
+  } else {
+    list.unshift(updatedUser);
+  }
+
+  localStorage.setItem("uget_saved_users", JSON.stringify(list));
+}
+
+export function removeUserFromSavedList(email: string) {
+  if (typeof window === "undefined") return;
+  const list = getSavedUsers();
+  const filtered = list.filter((u) => u.email.toLowerCase() !== email.toLowerCase());
+  localStorage.setItem("uget_saved_users", JSON.stringify(filtered));
+}
+
