@@ -51,6 +51,7 @@ export default function TipTapEditor({ content, onChange }: Props) {
     ],
     content,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    onSelectionUpdate: () => setMenuExpanded(false),
     editorProps: {
       attributes: {
         class: "tiptap-editor",
@@ -270,118 +271,83 @@ export default function TipTapEditor({ content, onChange }: Props) {
 
       {/* Floating Menu for empty lines (Medium-like plus button) */}
       <FloatingMenu editor={editor} options={{ placement: "left-start", offset: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", pointerEvents: "auto" }}>
-          {!menuExpanded ? (
-            <button
-              type="button"
-              onClick={() => setMenuExpanded(true)}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                border: "1px solid var(--border)",
-                background: "var(--bg)",
-                color: "var(--muted-2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                fontSize: 18,
-                fontWeight: 300,
-                transition: "transform 0.2s ease, border-color 0.2s ease",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ink-2)"; e.currentTarget.style.color = "var(--ink-2)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted-2)"; }}
+        <div className="editor-floating-menu">
+          <button
+            type="button"
+            onClick={() => setMenuExpanded(!menuExpanded)}
+            className={`floating-menu-btn ${menuExpanded ? "active" : ""}`}
+            title="More options"
+          >
+            +
+          </button>
+
+          <div className={`floating-menu-options ${menuExpanded ? "open" : ""}`}>
+            {/* Photo Upload */}
+            <button 
+              type="button" 
+              onClick={() => fileInputRef.current?.click()} 
+              className="floating-option-btn" 
+              title="Upload Image"
             >
-              +
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
             </button>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--bg)", padding: "2px 6px", borderRadius: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", border: "1px solid var(--border-2)" }}>
-              <button
-                type="button"
-                onClick={() => setMenuExpanded(false)}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  border: "none",
-                  background: "none",
-                  color: "var(--muted)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  fontSize: 18,
-                  transform: "rotate(45deg)",
-                  transition: "color 0.2s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
-              >
-                +
-              </button>
 
-              {/* Photo Upload */}
-              <button 
-                type="button" 
-                onClick={() => fileInputRef.current?.click()} 
-                style={optionBtnStyle} 
-                title="Upload Image"
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.background = "var(--bg-3)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-2)"; }}
-              >
-                📷
-              </button>
+            {/* Unsplash Search */}
+            <button 
+              type="button" 
+              onClick={() => { setUnsplashOpen(true); setMenuExpanded(false); }} 
+              className="floating-option-btn" 
+              title="Search Unsplash"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </button>
 
-              {/* Unsplash Search */}
-              <button 
-                type="button" 
-                onClick={() => { setUnsplashOpen(true); setMenuExpanded(false); }} 
-                style={optionBtnStyle} 
-                title="Search Unsplash"
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.background = "var(--bg-3)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-2)"; }}
-              >
-                🔍
-              </button>
+            {/* Video Embed */}
+            <button 
+              type="button" 
+              onClick={() => { setVideoOpen(true); setMenuExpanded(false); }} 
+              className="floating-option-btn" 
+              title="Embed Video"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+            </button>
 
-              {/* Video Embed */}
-              <button 
-                type="button" 
-                onClick={() => { setVideoOpen(true); setMenuExpanded(false); }} 
-                style={optionBtnStyle} 
-                title="Embed Video"
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.background = "var(--bg-3)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-2)"; }}
-              >
-                🎥
-              </button>
+            {/* Code block */}
+            <button 
+              type="button" 
+              onClick={insertCodeBlock} 
+              className="floating-option-btn" 
+              title="Insert Code Block"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            </button>
 
-              {/* Code block */}
-              <button 
-                type="button" 
-                onClick={insertCodeBlock} 
-                style={optionBtnStyle} 
-                title="Insert Code Block"
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.background = "var(--bg-3)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-2)"; }}
-              >
-                💻
-              </button>
-
-              {/* Separator */}
-              <button 
-                type="button" 
-                onClick={insertSeparator} 
-                style={optionBtnStyle} 
-                title="Insert Divider"
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.background = "var(--bg-3)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-2)"; }}
-              >
-                ➖
-              </button>
-            </div>
-          )}
+            {/* Separator */}
+            <button 
+              type="button" 
+              onClick={insertSeparator} 
+              className="floating-option-btn" 
+              title="Insert Divider"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <circle cx="12" cy="6" r="1" />
+                <circle cx="12" cy="18" r="1" />
+              </svg>
+            </button>
+          </div>
         </div>
       </FloatingMenu>
 

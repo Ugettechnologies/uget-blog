@@ -169,6 +169,75 @@ function TrendingSection({ posts, router }: TrendingSectionProps) {
   );
 }
 
+const EmptyStateIllustration = () => (
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" style={{ margin: "0 auto 20px", opacity: 0.9 }}>
+    <circle cx="60" cy="60" r="50" fill="#f5f3ff" />
+    <rect x="42" y="32" width="36" height="48" rx="3" fill="white" stroke="#7c3aed" strokeWidth="2" />
+    <rect x="48" y="38" width="36" height="48" rx="3" fill="white" stroke="#c0a1f9" strokeWidth="1.5" />
+    <line x1="56" y1="46" x2="74" y2="46" stroke="#e2e8f0" strokeWidth="2" strokeLinecap="round" />
+    <line x1="56" y1="54" x2="74" y2="54" stroke="#e2e8f0" strokeWidth="2" strokeLinecap="round" />
+    <line x1="56" y1="62" x2="68" y2="62" stroke="#e2e8f0" strokeWidth="2" strokeLinecap="round" />
+    <path d="M78 72 L88 52 C88 52 90 48 94 48 C98 48 100 52 100 52 L90 72 Z" fill="#7c3aed" />
+    <path d="M78 72 L76 76 L80 74 Z" fill="#1a1a1a" />
+    <path d="M82 64 C84 64 86 66 86 68" stroke="#ffffff" strokeWidth="1" />
+  </svg>
+);
+
+interface EmptyStateProps {
+  showWriteButton?: boolean;
+}
+
+function EmptyState({ showWriteButton = false }: EmptyStateProps) {
+  return (
+    <div style={{ padding: "60px 0", textAlign: "center" }}>
+      <EmptyStateIllustration />
+      <h3 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, color: "var(--black)", marginBottom: 8 }}>
+        No stories yet
+      </h3>
+      <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", maxWidth: 360, margin: "0 auto 24px", lineHeight: 1.5 }}>
+        Be the first to write something and share your perspective with the UGET community.
+      </p>
+      {showWriteButton && (
+        <Link 
+          href="/write" 
+          className="btn-premium-action font-sans"
+          style={{ 
+            display: "inline-flex", 
+            textDecoration: "none",
+            backgroundColor: "#0d0d0d",
+            color: "#ffffff",
+            fontSize: 14,
+            fontWeight: 600,
+            padding: "10px 24px",
+            borderRadius: "999px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            transition: "all 0.2s"
+          }}
+        >
+          Write a story
+        </Link>
+      )}
+    </div>
+  );
+}
+
+const tabStyle = (isActive: boolean) => ({
+  fontFamily: "var(--sans)",
+  fontSize: "14px",
+  fontWeight: isActive ? 600 : 500,
+  color: isActive ? "var(--black)" : "var(--muted)",
+  padding: "12px 4px",
+  borderBottom: isActive ? "2px solid var(--black)" : "2px solid transparent",
+  backgroundColor: "transparent",
+  cursor: "pointer",
+  borderLeft: "none",
+  borderRight: "none",
+  borderTop: "none",
+  whiteSpace: "nowrap" as const,
+  flexShrink: 0,
+  transition: "all 0.2s"
+});
+
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -462,11 +531,7 @@ export default function HomePage() {
                     <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
                   </div>
                 ) : rest.length === 0 ? (
-                  <div style={{ padding: "80px 0", textAlign: "center" }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
-                    <p style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>No stories yet</p>
-                    <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>Be the first to write something.</p>
-                  </div>
+                  <EmptyState />
                 ) : (
                   rest.map((post) => <PostCard key={post.id} post={post} />)
                 )}
@@ -501,7 +566,7 @@ export default function HomePage() {
                         onClick={() => setActiveCategory(cat.id)}
                         className={`tag-chip${activeCategory === cat.id ? " active" : ""}`}
                       >
-                        {cat.icon} {cat.label}
+                        {cat.label}
                       </button>
                     ))}
                   </div>
@@ -528,21 +593,6 @@ export default function HomePage() {
       </div>
     );
   }
-
-  // Click outside dropdowns listener
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest(".avatar-dropdown-trigger") && !target.closest(".avatar-dropdown")) {
-        setUserDropdownOpen(false);
-      }
-      if (!target.closest(".notif-dropdown-trigger") && !target.closest(".notif-dropdown")) {
-        setNotifDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // SVG Icons
   const HomeIcon = () => (
@@ -614,8 +664,8 @@ export default function HomePage() {
     }
   };
 
-  const activeLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-semibold bg-[#f3efff] text-[#7c3aed] transition-colors";
-  const inactiveLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-medium text-gray-500 hover:bg-[#f8f6ff] hover:text-[#7c3aed] transition-colors";
+  const activeLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-semibold bg-gray-50 text-gray-950 transition-colors";
+  const inactiveLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-medium text-gray-500 hover:bg-gray-50/80 hover:text-gray-900 transition-colors";
 
   const renderFollowingList = () => (
     <div className="mt-8 border-t border-gray-100 pt-6">
@@ -670,7 +720,7 @@ export default function HomePage() {
 
   const renderSidebarLinks = (onItemClick?: () => void) => (
     <div className="flex flex-col gap-1.5">
-      <Link href="/" className={activeCategory === "all" ? activeLinkStyle : inactiveLinkStyle} onClick={() => { setActiveCategory("all"); if (onItemClick) onItemClick(); }}>
+      <Link href="/" className={activeLinkStyle} onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); if (onItemClick) onItemClick(); }}>
         <HomeIcon />
         <span>Home</span>
       </Link>
@@ -968,7 +1018,7 @@ export default function HomePage() {
             </Link>
 
             {/* Write button */}
-            <Link href="/write" className="flex items-center gap-2 text-white bg-violet-600 hover:bg-violet-700 px-4 py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm" style={{ textDecoration: "none" }}>
+            <Link href="/write" className="flex items-center gap-2 text-gray-700 hover:text-gray-900 px-3 py-1.5 rounded-full text-sm font-medium transition-all" style={{ textDecoration: "none" }}>
               <WriteIcon />
               <span className="hidden sm:inline">Write</span>
             </Link>
@@ -1105,79 +1155,40 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* Explore Categories Horizontal Bar */}
-        <div style={{ borderBottom: "1px solid var(--border)", backgroundColor: "#ffffff" }}>
-          <div className="home-cat-tabs" style={{ paddingTop: 8, paddingBottom: 8, margin: "0 auto", paddingLeft: 32, paddingRight: 32, maxWidth: 1200 }}>
-            <button
-              onClick={() => setActiveCategory("all")}
-              className={`home-cat-tab${activeCategory === "all" ? " active" : ""}`}
-              style={{ fontWeight: 600 }}
-            >
-              For you
-            </button>
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`home-cat-tab${activeCategory === cat.id ? " active" : ""}`}
-              >
-                {cat.icon} {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Content columns */}
         <div className="uget-content-grid">
           {/* Feed Column */}
           <div className="uget-feed-column">
-            {/* Feed Tabs: For you / Following / Featured */}
-            <div style={{ borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, marginBottom: 16 }}>
+            {/* Unified Feed & Category Navigation Tabs */}
+            <div style={{ borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, marginBottom: 20, overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }} className="feed-nav-scroll">
               <button
-                onClick={() => setActiveFeedTab("foryou")}
-                style={{
-                  fontFamily: "var(--sans)",
-                  fontSize: 14,
-                  fontWeight: activeFeedTab === "foryou" ? 600 : 500,
-                  color: activeFeedTab === "foryou" ? "var(--black)" : "var(--muted)",
-                  padding: "12px 4px",
-                  borderBottom: activeFeedTab === "foryou" ? "2px solid var(--black)" : "2px solid transparent",
-                  backgroundColor: "transparent",
-                  cursor: "pointer"
-                }}
+                onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); }}
+                style={tabStyle(activeFeedTab === "foryou" && activeCategory === "all")}
               >
                 For you
               </button>
               <button
-                onClick={() => setActiveFeedTab("following")}
-                style={{
-                  fontFamily: "var(--sans)",
-                  fontSize: 14,
-                  fontWeight: activeFeedTab === "following" ? 600 : 500,
-                  color: activeFeedTab === "following" ? "var(--black)" : "var(--muted)",
-                  padding: "12px 4px",
-                  borderBottom: activeFeedTab === "following" ? "2px solid var(--black)" : "2px solid transparent",
-                  backgroundColor: "transparent",
-                  cursor: "pointer"
-                }}
+                onClick={() => { setActiveCategory("all"); setActiveFeedTab("following"); }}
+                style={tabStyle(activeFeedTab === "following")}
               >
                 Following
               </button>
               <button
-                onClick={() => setActiveFeedTab("featured")}
-                style={{
-                  fontFamily: "var(--sans)",
-                  fontSize: 14,
-                  fontWeight: activeFeedTab === "featured" ? 600 : 500,
-                  color: activeFeedTab === "featured" ? "var(--black)" : "var(--muted)",
-                  padding: "12px 4px",
-                  borderBottom: activeFeedTab === "featured" ? "2px solid var(--black)" : "2px solid transparent",
-                  backgroundColor: "transparent",
-                  cursor: "pointer"
-                }}
+                onClick={() => { setActiveCategory("all"); setActiveFeedTab("featured"); }}
+                style={tabStyle(activeFeedTab === "featured")}
               >
                 Featured
               </button>
+              <div style={{ width: 1, backgroundColor: "var(--border)", margin: "12px 0", alignSelf: "stretch", flexShrink: 0 }} />
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveCategory(cat.id); setActiveFeedTab("foryou"); }}
+                  style={tabStyle(activeFeedTab === "foryou" && activeCategory === cat.id)}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
 
             {/* Sub-tabs row when Following is active */}
@@ -1303,14 +1314,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : feedPosts.length === 0 ? (
-              <div style={{ padding: "80px 0", textAlign: "center" }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
-                <p style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>No stories yet</p>
-                <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>Be the first to write something.</p>
-                <Link href="/write" className="btn btn-primary btn-md" style={{ marginTop: 20, display: "inline-flex", textDecoration: "none" }}>
-                  Write a story
-                </Link>
-              </div>
+              <EmptyState showWriteButton />
             ) : (
               feedPosts.map((post) => <PostCard key={post.id} post={post} />)
             )}
@@ -1349,11 +1353,11 @@ export default function HomePage() {
                 {CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
+                    onClick={() => { setActiveCategory(cat.id); setActiveFeedTab("foryou"); }}
                     className={`tag-chip${activeCategory === cat.id ? " active" : ""}`}
                     style={{ fontSize: 12, padding: "6px 12px" }}
                   >
-                    {cat.icon} {cat.label}
+                    {cat.label}
                   </button>
                 ))}
               </div>

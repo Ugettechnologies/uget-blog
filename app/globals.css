@@ -271,6 +271,21 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 }
 .home-cat-tabs::-webkit-scrollbar { display: none; }
 
+/* Feed unified nav scroll */
+.feed-nav-scroll {
+  scrollbar-width: none;
+}
+.feed-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Premium action empty state button */
+.btn-premium-action:hover {
+  background-color: #262626 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15) !important;
+}
+
 .home-cat-tab {
   font-family: var(--sans);
   font-size: 14px;

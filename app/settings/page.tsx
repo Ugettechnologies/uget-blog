@@ -47,6 +47,31 @@ export default function SettingsPage() {
   const [allowEmailReplies, setAllowEmailReplies] = useState(false);
   const [tippingUrl, setTippingUrl] = useState("");
 
+  // Privacy tab states
+  const [privClaps, setPrivClaps] = useState(true);
+  const [privResponses, setPrivResponses] = useState(true);
+  const [privHighlights, setPrivHighlights] = useState(true);
+  const [privDiscoverability, setPrivDiscoverability] = useState("Everyone");
+
+  // Notification settings states
+  const [digestEnabled, setDigestEnabled] = useState(true);
+  const [digestFrequency, setDigestFrequency] = useState("Daily");
+  const [recommendedReading, setRecommendedReading] = useState(true);
+  const [savedLists, setSavedLists] = useState(true);
+  const [followsHighlights, setFollowsHighlights] = useState(true);
+  const [repliesResponses, setRepliesResponses] = useState(true);
+  const [storyMentions, setStoryMentions] = useState("In network");
+  const [writerActivity, setWriterActivity] = useState(true);
+  const [writerLists, setWriterLists] = useState(true);
+  const [writerEditorFeature, setWriterEditorFeature] = useState(true);
+  const [pubSubmissions, setPubSubmissions] = useState(true);
+  const [submissionStatus, setSubmissionStatus] = useState(true);
+  const [otherProductFeatures, setOtherProductFeatures] = useState(true);
+  const [otherMembership, setOtherMembership] = useState(true);
+  const [otherAnnouncements, setOtherAnnouncements] = useState(true);
+  const [allowEmailNotifications, setAllowEmailNotifications] = useState(true);
+  const [showPromoBanner, setShowPromoBanner] = useState(true);
+
   // Layout states
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -102,6 +127,30 @@ export default function SettingsPage() {
       setAllowPrivateNotes(localStorage.getItem("uget_settings_private_notes") !== "false");
       setAllowEmailReplies(localStorage.getItem("uget_settings_email_replies") === "true");
       setTippingUrl(localStorage.getItem("uget_settings_tipping_url") || "");
+
+      // Load privacy states
+      setPrivClaps(localStorage.getItem("uget_settings_priv_claps") !== "false");
+      setPrivResponses(localStorage.getItem("uget_settings_priv_responses") !== "false");
+      setPrivHighlights(localStorage.getItem("uget_settings_priv_highlights") !== "false");
+      setPrivDiscoverability(localStorage.getItem("uget_settings_priv_discoverability") || "Everyone");
+
+      // Load notifications states
+      setDigestEnabled(localStorage.getItem("uget_settings_notif_digest") !== "false");
+      setDigestFrequency(localStorage.getItem("uget_settings_notif_digest_freq") || "Daily");
+      setRecommendedReading(localStorage.getItem("uget_settings_notif_recommended") !== "false");
+      setSavedLists(localStorage.getItem("uget_settings_notif_saved_lists") !== "false");
+      setFollowsHighlights(localStorage.getItem("uget_settings_notif_follows_highlights") !== "false");
+      setRepliesResponses(localStorage.getItem("uget_settings_notif_replies_responses") !== "false");
+      setStoryMentions(localStorage.getItem("uget_settings_notif_story_mentions") || "In network");
+      setWriterActivity(localStorage.getItem("uget_settings_notif_writer_activity") !== "false");
+      setWriterLists(localStorage.getItem("uget_settings_notif_writer_lists") !== "false");
+      setWriterEditorFeature(localStorage.getItem("uget_settings_notif_writer_feature") !== "false");
+      setPubSubmissions(localStorage.getItem("uget_settings_notif_pub_submissions") !== "false");
+      setSubmissionStatus(localStorage.getItem("uget_settings_notif_sub_status") !== "false");
+      setOtherProductFeatures(localStorage.getItem("uget_settings_notif_other_features") !== "false");
+      setOtherMembership(localStorage.getItem("uget_settings_notif_other_membership") !== "false");
+      setOtherAnnouncements(localStorage.getItem("uget_settings_notif_other_announcements") !== "false");
+      setAllowEmailNotifications(localStorage.getItem("uget_settings_notif_allow_email") !== "false");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -540,9 +589,9 @@ export default function SettingsPage() {
           align-self: start;
         }
         .settings-tabs-wrapper {
-          border-bottom: 1px solid var(--border-2);
+          border-bottom: 1px solid #f2f2f2;
           display: flex;
-          gap: 20px;
+          gap: 24px;
           margin-bottom: 32px;
           overflow-x: auto;
           white-space: nowrap;
@@ -554,32 +603,193 @@ export default function SettingsPage() {
         .settings-tab {
           font-family: var(--sans);
           font-size: 14px;
-          font-weight: 500;
-          color: var(--muted);
-          padding: 10px 2px 12px;
-          border-bottom: 2.5px solid transparent;
+          font-weight: 400;
+          color: #757575;
+          padding: 10px 0 12px;
+          border-bottom: 1px solid transparent;
           background: none;
           border-top: none;
           border-left: none;
           border-right: none;
           cursor: pointer;
           transition: all 0.2s;
+          margin-bottom: -1px;
         }
         .settings-tab.active {
-          color: #7c3aed;
-          border-bottom-color: #7c3aed;
-          font-weight: 600;
+          color: #242424;
+          border-bottom-color: #242424;
+          font-weight: 500;
         }
         .settings-section-title {
           font-family: var(--sans);
-          font-size: 13px;
+          font-size: 22px;
           font-weight: 700;
+          color: #242424;
+          margin-bottom: 20px;
+          margin-top: 32px;
+          border-bottom: none;
+          padding-bottom: 0;
+          text-transform: none;
+          letter-spacing: normal;
+        }
+        .settings-section-title:first-of-type {
+          margin-top: 0;
+        }
+
+        /* Medium checkmark custom checkbox styling */
+        .medium-checkbox-container {
+          display: inline-flex;
+          align-items: center;
+          cursor: pointer;
+          user-select: none;
+        }
+        .medium-checkbox-box {
+          width: 16px;
+          height: 16px;
+          border: 1px solid #757575;
+          border-radius: 3px;
+          background-color: #ffffff;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.15s, border-color 0.15s;
+        }
+        .medium-checkbox-box.checked {
+          background-color: #242424;
+          border-color: #242424;
+        }
+        .medium-checkbox-box svg {
+          width: 10px;
+          height: 10px;
+          stroke: #ffffff;
+          stroke-width: 2.5px;
+          fill: none;
+        }
+        .medium-checkbox-label {
+          font-family: var(--sans);
+          font-size: 14px;
+          color: #242424;
+          margin-left: 12px;
+        }
+
+        /* Medium custom radio button styling */
+        .medium-radio-container {
+          display: inline-flex;
+          align-items: center;
+          cursor: pointer;
+          user-select: none;
+        }
+        .medium-radio-circle {
+          width: 18px;
+          height: 18px;
+          border: 1px solid #757575;
+          border-radius: 50%;
+          background-color: #ffffff;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: border-color 0.15s;
+        }
+        .medium-radio-circle.selected {
+          border-color: #242424;
+        }
+        .medium-radio-circle-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: #242424;
+        }
+        .medium-radio-label {
+          font-family: var(--sans);
+          font-size: 14px;
+          color: #242424;
+          margin-left: 12px;
+        }
+
+        /* Medium custom select styling */
+        .medium-select-container {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          color: #1a8917;
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+        }
+        .medium-select {
+          appearance: none;
+          background: transparent;
+          border: none;
+          color: #1a8917;
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 500;
+          padding-right: 18px;
+          cursor: pointer;
+          outline: none;
+        }
+        .medium-select-caret {
+          position: absolute;
+          right: 0;
+          pointer-events: none;
+          width: 10px;
+          height: 10px;
+          fill: #1a8917;
+          display: inline-flex;
+          align-items: center;
+        }
+
+        /* Membership banner styling */
+        .membership-promo-banner {
+          background: linear-gradient(135deg, #fdf4ff 0%, #f0fdf4 100%);
+          border: 1px solid #e9d5ff;
+          border-radius: 12px;
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+        .membership-promo-text {
+          font-family: var(--sans);
+          font-size: 14px;
+          color: #242424;
+          line-height: 1.5;
+        }
+        .membership-promo-link {
           color: #7c3aed;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 16px;
-          border-bottom: 1px solid #f3efff;
-          padding-bottom: 8px;
+          font-weight: 700;
+          text-decoration: underline;
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 0;
+        }
+        .membership-promo-close {
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 20px;
+          color: #9ca3af;
+          line-height: 1;
+        }
+
+        /* Diagonal Arrow Link */
+        .diagonal-arrow-btn {
+          color: #757575;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.15s;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+        }
+        .diagonal-arrow-btn:hover {
+          color: #242424;
         }
         .settings-row {
           display: flex;
@@ -1877,55 +2087,72 @@ export default function SettingsPage() {
                 </div>
               </div>
             )}
-
+ 
             {/* TAB CONTENT: Privacy */}
             {activeTab === "privacy" && (
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-10">
+                {/* Social section */}
                 <div>
-                  <div className="settings-section-title">Privacy Settings</div>
+                  <h2 className="settings-section-title" style={{ marginTop: 0 }}>Social</h2>
 
-                  <div className="settings-row">
-                    <div className="settings-row-main">
-                      <div className="settings-label">Search engine indexing</div>
-                      <div className="settings-desc">
-                        Allow search engines (Google, Bing, Yahoo) to discover and index your public profile page and stories.
-                      </div>
+                  <div style={{ marginBottom: 4 }}>
+                    <div className="settings-label" style={{ marginBottom: 4 }}>Activity tab</div>
+                    <div className="settings-desc" style={{ marginBottom: 16 }}>
+                      Control which public actions appear on your profile&apos;s recent activity tab.
                     </div>
-                    <div className="settings-row-action">
-                      <label className="toggle-switch">
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider" />
-                      </label>
+                    <div className="flex flex-col gap-3">
+                      {([
+                        { label: "Claps", checked: privClaps, set: setPrivClaps, key: "priv_claps" },
+                        { label: "Responses", checked: privResponses, set: setPrivResponses, key: "priv_responses" },
+                        { label: "Highlights", checked: privHighlights, set: setPrivHighlights, key: "priv_highlights" }
+                      ] as { label: string; checked: boolean; set: (v: boolean) => void; key: string }[]).map(({ label, checked, set, key }) => (
+                        <div key={label} className="medium-checkbox-container" style={{ padding: "4px 0" }}>
+                          <div
+                            onClick={() => {
+                              const n = !checked;
+                              set(n);
+                              localStorage.setItem(`uget_settings_${key}`, String(n));
+                              showMsg(`${label} ${n ? "visible" : "hidden"}`);
+                            }}
+                            className={`medium-checkbox-box ${checked ? "checked" : ""}`}
+                          >
+                            {checked && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className="medium-checkbox-label" style={{ userSelect: "none" }}>{label}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
+                </div>
 
-                  <div className="settings-row">
-                    <div className="settings-row-main">
-                      <div className="settings-label">Personalized telemetry data</div>
-                      <div className="settings-desc">
-                        Allow UGET to track your reading activity history to customize feeds and recommend more relative content.
-                      </div>
+                {/* Address book section */}
+                <div>
+                  <h2 className="settings-section-title">Address book</h2>
+                  <div>
+                    <div className="settings-label" style={{ marginBottom: 4 }}>Discoverability</div>
+                    <div className="settings-desc" style={{ marginBottom: 16 }}>
+                      Who can discover your profile or connect with you if they have your email?
                     </div>
-                    <div className="settings-row-action">
-                      <label className="toggle-switch">
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider" />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="settings-row">
-                    <div className="settings-row-main">
-                      <div className="settings-label">Social connections visibility</div>
-                      <div className="settings-desc">
-                        Let other users see which external accounts (Twitter, GitHub) are linked to your profile page.
-                      </div>
-                    </div>
-                    <div className="settings-row-action">
-                      <label className="toggle-switch">
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider" />
-                      </label>
+                    <div className="flex flex-col gap-3">
+                      {["Everyone", "Nobody"].map((option) => (
+                        <div key={option} className="medium-radio-container" style={{ padding: "4px 0" }}>
+                          <div
+                            onClick={() => {
+                              setPrivDiscoverability(option);
+                              localStorage.setItem("uget_settings_priv_discoverability", option);
+                              showMsg(`Discoverability set to ${option}`);
+                            }}
+                            className={`medium-radio-circle ${privDiscoverability === option ? "selected" : ""}`}
+                          >
+                            {privDiscoverability === option && <div className="medium-radio-circle-dot" />}
+                          </div>
+                          <span className="medium-radio-label" style={{ userSelect: "none" }}>{option}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -1934,87 +2161,528 @@ export default function SettingsPage() {
 
             {/* TAB CONTENT: Notifications */}
             {activeTab === "notifications" && (
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-0" style={{ maxWidth: 680 }}>
+                <h2 style={{ fontFamily: "var(--sans)", fontSize: 28, fontWeight: 700, color: "#242424", marginBottom: 28 }}>Email notifications</h2>
+
+                {/* Story recommendations */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>Story recommendations</h3>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">UGET Digest</div>
+                        <div className="settings-desc">
+                          The best stories on UGET personalized based on your interests, as well as outstanding stories selected by our editors.
+                        </div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !digestEnabled;
+                              setDigestEnabled(n);
+                              localStorage.setItem("uget_settings_notif_digest", String(n));
+                              showMsg(`Digest recommendations ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${digestEnabled ? "checked" : ""}`}
+                          >
+                            {digestEnabled && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Your UGET Digest frequency</div>
+                        <div className="settings-desc">Adjust how often you see a new Digest.</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-select-container">
+                          <select
+                            value={digestFrequency}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setDigestFrequency(val);
+                              localStorage.setItem("uget_settings_notif_digest_freq", val);
+                              showMsg(`Digest frequency set to ${val}`);
+                            }}
+                            className="medium-select"
+                          >
+                            <option value="Daily">Daily</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Never">Never</option>
+                          </select>
+                          <div className="medium-select-caret">
+                            <svg viewBox="0 0 10 6" width="10" height="6">
+                              <path d="M1 1l4 4 4-4" fill="none" stroke="#1a8917" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Recommended reading</div>
+                        <div className="settings-desc">
+                          Featured stories, columns, and collections that we think you&apos;ll enjoy based on your reading history.
+                        </div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !recommendedReading;
+                              setRecommendedReading(n);
+                              localStorage.setItem("uget_settings_notif_recommended", String(n));
+                              showMsg(`Recommended reading ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${recommendedReading ? "checked" : ""}`}
+                          >
+                            {recommendedReading && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* From writers and publications */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>From writers and publications</h3>
+                  <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                    <div className="settings-row-main">
+                      <div className="settings-label">New stories added to lists you&apos;ve saved</div>
+                    </div>
+                    <div className="settings-row-action">
+                      <div className="medium-checkbox-container">
+                        <div
+                          onClick={() => {
+                            const n = !savedLists;
+                            setSavedLists(n);
+                            localStorage.setItem("uget_settings_notif_saved_lists", String(n));
+                            showMsg(`Saved lists notifications ${n ? "enabled" : "disabled"}`);
+                          }}
+                          className={`medium-checkbox-box ${savedLists ? "checked" : ""}`}
+                        >
+                          {savedLists && (
+                            <svg viewBox="0 0 12 12">
+                              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social activity */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>Social activity</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Follows and matching highlights</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !followsHighlights;
+                              setFollowsHighlights(n);
+                              localStorage.setItem("uget_settings_notif_follows_highlights", String(n));
+                              showMsg(`Follows and highlights notifications ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${followsHighlights ? "checked" : ""}`}
+                          >
+                            {followsHighlights && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Replies to your responses</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !repliesResponses;
+                              setRepliesResponses(n);
+                              localStorage.setItem("uget_settings_notif_replies_responses", String(n));
+                              showMsg(`Replies notifications ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${repliesResponses ? "checked" : ""}`}
+                          >
+                            {repliesResponses && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Story mentions</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-select-container">
+                          <select
+                            value={storyMentions}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setStoryMentions(val);
+                              localStorage.setItem("uget_settings_notif_story_mentions", val);
+                              showMsg(`Story mentions set to ${val}`);
+                            }}
+                            className="medium-select"
+                          >
+                            <option value="In network">In network</option>
+                            <option value="Everyone">Everyone</option>
+                            <option value="Nobody">Nobody</option>
+                          </select>
+                          <div className="medium-select-caret">
+                            <svg viewBox="0 0 10 6" width="10" height="6">
+                              <path d="M1 1l4 4 4-4" fill="none" stroke="#1a8917" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* For writers */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>For writers</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Activity on your published stories</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !writerActivity;
+                              setWriterActivity(n);
+                              localStorage.setItem("uget_settings_notif_writer_activity", String(n));
+                              showMsg(`Published stories activity ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${writerActivity ? "checked" : ""}`}
+                          >
+                            {writerActivity && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Activity on your lists</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !writerLists;
+                              setWriterLists(n);
+                              localStorage.setItem("uget_settings_notif_writer_lists", String(n));
+                              showMsg(`Lists activity notifications ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${writerLists ? "checked" : ""}`}
+                          >
+                            {writerLists && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">From editors about featuring your stories</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !writerEditorFeature;
+                              setWriterEditorFeature(n);
+                              localStorage.setItem("uget_settings_notif_writer_feature", String(n));
+                              showMsg(`Editor feature notifications ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${writerEditorFeature ? "checked" : ""}`}
+                          >
+                            {writerEditorFeature && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* For publications */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>For publications</h3>
+                  <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                    <div className="settings-row-main">
+                      <div className="settings-label">New submissions</div>
+                    </div>
+                    <div className="settings-row-action">
+                      <div className="medium-checkbox-container">
+                        <div
+                          onClick={() => {
+                            const n = !pubSubmissions;
+                            setPubSubmissions(n);
+                            localStorage.setItem("uget_settings_notif_pub_submissions", String(n));
+                            showMsg(`Submissions notifications ${n ? "enabled" : "disabled"}`);
+                          }}
+                          className={`medium-checkbox-box ${pubSubmissions ? "checked" : ""}`}
+                        >
+                          {pubSubmissions && (
+                            <svg viewBox="0 0 12 12">
+                              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* For submissions */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>For submissions</h3>
+                  <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                    <div className="settings-row-main">
+                      <div className="settings-label">Submission status changes</div>
+                    </div>
+                    <div className="settings-row-action">
+                      <div className="medium-checkbox-container">
+                        <div
+                          onClick={() => {
+                            const n = !submissionStatus;
+                            setSubmissionStatus(n);
+                            localStorage.setItem("uget_settings_notif_sub_status", String(n));
+                            showMsg(`Submission status changes ${n ? "enabled" : "disabled"}`);
+                          }}
+                          className={`medium-checkbox-box ${submissionStatus ? "checked" : ""}`}
+                        >
+                          {submissionStatus && (
+                            <svg viewBox="0 0 12 12">
+                              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Others from UGET */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>Others from UGET</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">New product features from UGET</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !otherProductFeatures;
+                              setOtherProductFeatures(n);
+                              localStorage.setItem("uget_settings_notif_other_features", String(n));
+                              showMsg(`Product feature updates ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${otherProductFeatures ? "checked" : ""}`}
+                          >
+                            {otherProductFeatures && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Information about UGET membership</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !otherMembership;
+                              setOtherMembership(n);
+                              localStorage.setItem("uget_settings_notif_other_membership", String(n));
+                              showMsg(`Membership info notifications ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${otherMembership ? "checked" : ""}`}
+                          >
+                            {otherMembership && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                      <div className="settings-row-main">
+                        <div className="settings-label">Writing updates and announcements</div>
+                      </div>
+                      <div className="settings-row-action">
+                        <div className="medium-checkbox-container">
+                          <div
+                            onClick={() => {
+                              const n = !otherAnnouncements;
+                              setOtherAnnouncements(n);
+                              localStorage.setItem("uget_settings_notif_other_announcements", String(n));
+                              showMsg(`Announcements ${n ? "enabled" : "disabled"}`);
+                            }}
+                            className={`medium-checkbox-box ${otherAnnouncements ? "checked" : ""}`}
+                          >
+                            {otherAnnouncements && (
+                              <svg viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Allow email notifications master toggle */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 32 }}>
+                  <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
+                    <div className="settings-row-main">
+                      <div className="settings-label">Allow email notifications</div>
+                      <div className="settings-desc">You&apos;ll still receive administrative emails even if this setting is off.</div>
+                    </div>
+                    <div className="settings-row-action">
+                      <div className="medium-checkbox-container">
+                        <div
+                          onClick={() => {
+                            const n = !allowEmailNotifications;
+                            setAllowEmailNotifications(n);
+                            localStorage.setItem("uget_settings_notif_allow_email", String(n));
+                            showMsg(`Master email notifications ${n ? "enabled" : "disabled"}`);
+                          }}
+                          className={`medium-checkbox-box ${allowEmailNotifications ? "checked" : ""}`}
+                        >
+                          {allowEmailNotifications && (
+                            <svg viewBox="0 0 12 12">
+                              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Push notifications */}
                 <div>
-                  <div className="settings-section-title">Notification Settings</div>
-
-                  <div className="settings-row">
-                    <div className="settings-row-main">
-                      <div className="settings-label">Email Digest Frequency</div>
-                      <div className="settings-desc">
-                        Control how often you receive summary emails about trending stories and writer recommendations.
-                      </div>
-                    </div>
-                    <div className="settings-row-action">
-                      <select className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-sans focus:outline-none bg-white">
-                        <option>Daily Digest</option>
-                        <option>Weekly Digest</option>
-                        <option>Off / Unsubscribed</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="settings-row">
-                    <div className="settings-row-main">
-                      <div className="settings-label">Likes and comments notifications</div>
-                      <div className="settings-desc">
-                        Send notifications when another user likes, comments on, or tags you in a story.
-                      </div>
-                    </div>
-                    <div className="settings-row-action">
-                      <label className="toggle-switch">
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider" />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="settings-row">
-                    <div className="settings-row-main">
-                      <div className="settings-label">New follower updates</div>
-                      <div className="settings-desc">
-                        Send notifications immediately when a new user follows your profile page.
-                      </div>
-                    </div>
-                    <div className="settings-row-action">
-                      <label className="toggle-switch">
-                        <input type="checkbox" defaultChecked />
-                        <span className="toggle-slider" />
-                      </label>
-                    </div>
-                  </div>
+                  <h2 style={{ fontFamily: "var(--sans)", fontSize: 22, fontWeight: 700, color: "#242424", marginBottom: 16 }}>Push notifications</h2>
+                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "#757575" }}>
+                    Open the UGET app from your mobile device to make changes to push notifications.
+                  </p>
                 </div>
               </div>
             )}
 
             {/* TAB CONTENT: Membership */}
             {activeTab === "membership" && (
-              <div className="flex flex-col gap-8">
-                <div>
-                  <div className="settings-section-title">UGET Membership</div>
+              <div className="flex flex-col gap-6" style={{ maxWidth: 680 }}>
+                {/* Top upgrade banner */}
+                {showPromoBanner && (
+                  <div className="membership-promo-banner">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>✨</span>
+                      <span className="membership-promo-text">
+                        Get unlimited access to the best of UGET for less than $1/week.{" "}
+                        <button
+                          onClick={() => alert("Membership page — upgrade flow simulated!")}
+                          className="membership-promo-link"
+                          style={{ color: "#242424", fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: 0, fontFamily: "var(--sans)", textDecoration: "underline" }}
+                        >
+                          Become a member
+                        </button>
+                      </span>
+                    </div>
+                    <button onClick={() => setShowPromoBanner(false)} className="membership-promo-close">×</button>
+                  </div>
+                )}
 
-                  <div className="settings-row">
+                {/* Upgrade to Membership row */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24 }}>
+                  <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
                     <div className="settings-row-main">
-                      <div className="settings-label">Active Subscription Plan</div>
-                      <div className="settings-value">UGET Free Tier</div>
+                      <div className="settings-label" style={{ fontSize: 16 }}>Upgrade to a UGET Membership</div>
                       <div className="settings-desc">
-                        Upgrade to UGET Member to read unlimited stories, customize your profile subdomain, and enroll in the Partner Program.
+                        Subscribe for unlimited access to the smartest writers and biggest ideas on UGET.
                       </div>
                     </div>
                     <div className="settings-row-action">
                       <button
-                        onClick={() => alert("Upgrade system simulated! Thanks for testing.")}
-                        className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans transition-colors"
+                        onClick={() => alert("Membership upgrade page simulated!")}
+                        className="diagonal-arrow-btn"
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                       >
-                        Upgrade
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="7" y1="17" x2="17" y2="7"></line>
+                          <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
                       </button>
                     </div>
                   </div>
+                </div>
 
-                  <div className="settings-row">
+                {/* Payout methods */}
+                <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24 }}>
+                  <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
                     <div className="settings-row-main">
                       <div className="settings-label">Payout methods</div>
-                      <div className="settings-value">No payout methods configured</div>
+                      <div className="settings-value" style={{ fontSize: 14, color: "#242424", fontWeight: 500, margin: "6px 0" }}>No payout methods configured</div>
                       <div className="settings-desc">
                         Connect a Stripe Express account to receive payouts from the Partner Program and reader tipping.
                       </div>
@@ -2022,7 +2690,7 @@ export default function SettingsPage() {
                     <div className="settings-row-action">
                       <button
                         onClick={() => alert("Stripe onboarding flow simulated!")}
-                        className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-xs font-semibold font-sans transition-colors"
+                        style={{ background: "#242424", color: "#ffffff", padding: "8px 16px", borderRadius: "99px", fontSize: 13, fontWeight: 500, transition: "background-color 0.15s", border: "none", cursor: "pointer" }}
                       >
                         Set up Stripe
                       </button>
@@ -2096,16 +2764,17 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
-
+ 
           {/* Right sidebar help articles widget */}
           <aside className="settings-help-sidebar">
-            <div className="settings-help-card">
-              <h3 className="settings-help-title">Suggested help articles</h3>
+            <div className="settings-help-card" style={{ border: "none", padding: "0 0 0 24px", background: "transparent", borderLeft: "1px solid #f2f2f2", borderRadius: 0 }}>
+              <h3 className="settings-help-title" style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "#242424", marginBottom: 20 }}>Suggested help articles</h3>
               <a
                 href="https://help.uget.com"
                 target="_blank"
                 rel="noreferrer"
                 className="settings-help-link"
+                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
               >
                 Sign in or sign up to UGET
               </a>
@@ -2114,6 +2783,7 @@ export default function SettingsPage() {
                 target="_blank"
                 rel="noreferrer"
                 className="settings-help-link"
+                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
               >
                 Your profile page
               </a>
@@ -2122,6 +2792,7 @@ export default function SettingsPage() {
                 target="_blank"
                 rel="noreferrer"
                 className="settings-help-link"
+                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
               >
                 Writing and publishing your first story
               </a>
@@ -2130,6 +2801,7 @@ export default function SettingsPage() {
                 target="_blank"
                 rel="noreferrer"
                 className="settings-help-link"
+                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
               >
                 About UGET's distribution system
               </a>
@@ -2138,12 +2810,22 @@ export default function SettingsPage() {
                 target="_blank"
                 rel="noreferrer"
                 className="settings-help-link"
+                style={{ fontSize: 14, color: "#757575", marginBottom: 24, display: "block" }}
               >
                 Get started with the Partner Program
               </a>
-
-              <div className="settings-help-footer">
-                Help · Status · Writers · Blog · Careers · Privacy · Terms · About · Knowable
+ 
+              <div className="settings-help-footer" style={{ borderTop: "none", paddingTop: 0, marginTop: 40, color: "#9ca3af", fontSize: 12, lineHeight: 1.8, display: "flex", flexWrap: "wrap", gap: "8px 12px" }}>
+                <span>Help</span>
+                <span>Status</span>
+                <span>About</span>
+                <span>Careers</span>
+                <span>Press</span>
+                <span>Blog</span>
+                <span>Privacy</span>
+                <span>Rules</span>
+                <span>Terms</span>
+                <span>Text to speech</span>
               </div>
             </div>
           </aside>
