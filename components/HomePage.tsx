@@ -664,62 +664,74 @@ export default function HomePage() {
     }
   };
 
-  const activeLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-semibold bg-gray-50 text-gray-950 transition-colors";
-  const inactiveLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-medium text-gray-500 hover:bg-gray-50/80 hover:text-gray-900 transition-colors";
+  const activeLinkStyle = "flex items-center gap-3 px-3 py-2.5 rounded-lg font-sans text-sm font-semibold text-gray-900 bg-gray-100 transition-colors";
+  const inactiveLinkStyle = "flex items-center gap-3 px-3 py-2.5 rounded-lg font-sans text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors";
 
   const renderFollowingList = () => (
-    <div className="mt-8 border-t border-gray-100 pt-6">
-      <div className="text-[11px] font-sans font-bold text-gray-400 uppercase tracking-wider mb-3 px-4">
-        Following
-      </div>
-      <div className="flex flex-col gap-2">
+    <div style={{ marginTop: 24, borderTop: "1px solid #f0f0f0", paddingTop: 20 }}>
+      {/* Clickable Following header → goes to followers page */}
+      <Link
+        href="/dashboard?tab=followers"
+        style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 4px" }}
+      >
+        <span style={{ fontSize: 11, fontFamily: "var(--sans)", fontWeight: 700, color: "#9b9b9b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          Following
+        </span>
+        <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "#7c3aed", fontWeight: 600 }}>
+          View all →
+        </span>
+      </Link>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {followingProfiles.length === 0 ? (
           <Link
             href="/profile/admin"
-            className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
-            style={{ textDecoration: "none" }}
+            style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", borderRadius: 8 }}
+            className="hover:bg-gray-50"
           >
-            <div className="w-5 h-5 rounded-full overflow-hidden bg-violet-600 flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0">
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
               UG
             </div>
-            <span className="truncate font-medium">UGET Staff</span>
+            <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>UGET Staff</span>
           </Link>
         ) : (
           followingProfiles.map((prof) => (
             <Link
               key={prof.id}
               href={`/profile/${prof.username || prof.id}`}
-              className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
-              style={{ textDecoration: "none" }}
+              style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", borderRadius: 8 }}
+              className="hover:bg-gray-50"
             >
-              <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+              <div style={{ width: 28, height: 28, borderRadius: "50%", overflow: "hidden", background: "#e5e7eb", flexShrink: 0 }}>
                 {prof.avatar_url ? (
-                  <Image src={prof.avatar_url} alt="" width={20} height={20} className="object-cover w-full h-full" />
+                  <Image src={prof.avatar_url} alt="" width={28} height={28} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                 ) : (
-                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-[8px] flex items-center justify-center">
+                  <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {getInitials(prof.full_name || "?")}
                   </div>
                 )}
               </div>
-              <span className="truncate font-medium">{prof.full_name}</span>
+              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prof.full_name}</span>
             </Link>
           ))
         )}
-        
+
+        {/* Discover more link */}
         <Link
           href="/dashboard?tab=followers"
-          className="px-4 text-xs text-gray-500 hover:underline font-sans mt-2"
-          style={{ textDecoration: "none", display: "block", lineHeight: "1.4" }}
+          style={{ textDecoration: "none", marginTop: 8, padding: "6px 4px", display: "flex", alignItems: "center", gap: 8 }}
         >
-          <div className="text-gray-400 font-medium">+ Find writers and publications to follow.</div>
-          <div className="text-violet-600 font-semibold mt-0.5">See suggestions</div>
+          <div style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#9ca3af", fontSize: 14, fontWeight: 600 }}>+</div>
+          <div>
+            <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "#6b7280", fontWeight: 500, lineHeight: 1.3 }}>Find writers to follow</div>
+            <div style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#7c3aed", fontWeight: 600, marginTop: 1 }}>See suggestions</div>
+          </div>
         </Link>
       </div>
     </div>
   );
 
   const renderSidebarLinks = (onItemClick?: () => void) => (
-    <div className="flex flex-col gap-1.5">
+    <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <Link href="/" className={activeLinkStyle} onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); if (onItemClick) onItemClick(); }}>
         <HomeIcon />
         <span>Home</span>
@@ -740,7 +752,7 @@ export default function HomePage() {
         <StatsIcon />
         <span>Stats</span>
       </Link>
-    </div>
+    </nav>
   );
 
   const feedPosts = activeFeedTab === "foryou" ? posts : (activeFeedTab === "featured" ? posts.filter((p) => p.featured) : posts);
@@ -765,8 +777,17 @@ export default function HomePage() {
           border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
-          padding: 24px 16px;
+          padding: 28px 12px 24px;
+          gap: 0;
           z-index: 100;
+          overflow-y: auto;
+        }
+        .uget-sidebar-logo {
+          padding: 0 8px;
+          margin-bottom: 28px;
+        }
+        .uget-sidebar-nav {
+          flex: 1;
         }
         .uget-main {
           flex: 1;
@@ -906,19 +927,35 @@ export default function HomePage() {
         </nav>
 
         {userProfile && (
-          <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
-            <Link href={`/profile/${userProfile?.username || user?.id}`} className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ display: "block" }}>
-              {userProfile.avatar_url ? (
-                <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
-              ) : (
-                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
-                  {getInitials(userProfile.full_name || user?.email || "?")}
+          <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 16, marginTop: "auto" }}>
+            <div className="flex items-center gap-3" style={{ marginBottom: 10 }}>
+              <Link href={`/profile/${userProfile?.username || user?.id}`} style={{ display: "block", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden" }}>
+                  {userProfile.avatar_url ? (
+                    <Image src={userProfile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {getInitials(userProfile.full_name || user?.email || "?")}
+                    </div>
+                  )}
                 </div>
-              )}
-            </Link>
-            <div className="min-w-0" style={{ flex: 1 }}>
-              <div className="font-bold text-sm text-gray-900 truncate">{userProfile.full_name || "Writer"}</div>
-              <div className="text-xs text-gray-500 truncate">@{userProfile.username || "writer"}</div>
+              </Link>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile.full_name || "Writer"}</div>
+                <div style={{ fontSize: 11, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{userProfile.username || "writer"}</div>
+              </div>
+            </div>
+            {/* Clickable follower/following counts */}
+            <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
+              <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{followingProfiles.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Following</span>
+              </Link>
+              <div style={{ width: 1, background: "#f0f0f0", alignSelf: "stretch" }} />
+              <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>—</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Followers</span>
+              </Link>
             </div>
           </div>
         )}
