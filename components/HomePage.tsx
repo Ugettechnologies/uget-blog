@@ -594,64 +594,83 @@ export default function HomePage() {
     );
   }
 
-  // SVG Icons
-  const HomeIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  // ── Premium Sidebar Icons (solid/filled style) ──
+  const HomeIcon = ({ active }: { active?: boolean }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      {active ? (
+        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a3 3 0 003 3h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a3 3 0 003-3v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+      ) : (
+        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      )}
     </svg>
   );
 
-  const LibraryIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  const LibraryIcon = ({ active }: { active?: boolean }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.12 : 0} />
+      {active && <path d="M9 7h6M9 11h4" strokeWidth={1.5} />}
     </svg>
   );
 
-  const ProfileIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  const ProfileIcon = ({ active }: { active?: boolean }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      {active ? (
+        <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm-7 8a7 7 0 1 1 14 0H5z" />
+      ) : (
+        <><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></>
+      )}
     </svg>
   );
 
-  const StoriesIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  const StoriesIcon = ({ active }: { active?: boolean }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.1 : 0} />
+      <path d="M8 10h8M8 14h5" />
     </svg>
   );
 
-  const StatsIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  const StatsIcon = ({ active }: { active?: boolean }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="12" width="4" height="9" rx="1" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.8 : 0} />
+      <rect x="9" y="7" width="4" height="14" rx="1" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.6 : 0} />
+      <rect x="16" y="3" width="4" height="18" rx="1" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.9 : 0} />
+      {!active && <><path d="M4 12v9M10 7v14M16 3v18" /></>}
     </svg>
   );
 
   const WriteIcon = () => (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
   );
 
   const BellIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   );
 
   const SearchIcon = () => (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
     </svg>
   );
 
   const HamburgerIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="15" y2="18" />
     </svg>
   );
 
   const CloseIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   );
 
@@ -664,8 +683,24 @@ export default function HomePage() {
     }
   };
 
-  const activeLinkStyle = "flex items-center gap-3 px-3 py-2.5 rounded-lg font-sans text-sm font-semibold text-gray-900 bg-gray-100 transition-colors";
-  const inactiveLinkStyle = "flex items-center gap-3 px-3 py-2.5 rounded-lg font-sans text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors";
+  // Sidebar link styles — inline for full control (active has violet left border + bg tint)
+  const getSidebarLinkStyle = (active: boolean): React.CSSProperties => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 11,
+    padding: "10px 12px 10px 10px",
+    borderRadius: 10,
+    textDecoration: "none",
+    fontFamily: "var(--sans, 'Inter', sans-serif)",
+    fontSize: 14,
+    fontWeight: active ? 700 : 500,
+    color: active ? "#5b21b6" : "#4b5563",
+    background: active ? "#f5f3ff" : "transparent",
+    borderLeft: active ? "3px solid #7c3aed" : "3px solid transparent",
+    letterSpacing: active ? "-0.01em" : "normal",
+    transition: "all 0.15s ease",
+    cursor: "pointer",
+  });
 
   const renderFollowingList = () => (
     <div style={{ marginTop: 24, borderTop: "1px solid #f0f0f0", paddingTop: 20 }}>
@@ -730,30 +765,37 @@ export default function HomePage() {
     </div>
   );
 
-  const renderSidebarLinks = (onItemClick?: () => void) => (
-    <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Link href="/" className={activeLinkStyle} onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); if (onItemClick) onItemClick(); }}>
-        <HomeIcon />
-        <span>Home</span>
-      </Link>
-      <Link href="/library" className={inactiveLinkStyle} onClick={onItemClick}>
-        <LibraryIcon />
-        <span>Library</span>
-      </Link>
-      <Link href={`/profile/${userProfile?.username || user?.id}`} className={inactiveLinkStyle} onClick={onItemClick}>
-        <ProfileIcon />
-        <span>Profile</span>
-      </Link>
-      <Link href="/dashboard?tab=stories" className={inactiveLinkStyle} onClick={onItemClick}>
-        <StoriesIcon />
-        <span>Stories</span>
-      </Link>
-      <Link href="/dashboard?tab=stats" className={inactiveLinkStyle} onClick={onItemClick}>
-        <StatsIcon />
-        <span>Stats</span>
-      </Link>
-    </nav>
-  );
+  const renderSidebarLinks = (onItemClick?: () => void) => {
+    const isHome = typeof window !== "undefined" && window.location.pathname === "/" && !window.location.search;
+    const isLibrary = typeof window !== "undefined" && window.location.pathname === "/library";
+    const isProfile = typeof window !== "undefined" && window.location.pathname.startsWith("/profile");
+    const isStories = typeof window !== "undefined" && window.location.search.includes("tab=stories");
+    const isStats = typeof window !== "undefined" && window.location.search.includes("tab=stats");
+
+    return (
+      <nav style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        {[
+          { href: "/", label: "Home", icon: <HomeIcon active={isHome} />, active: isHome, onClick: () => { setActiveCategory("all"); setActiveFeedTab("foryou"); if (onItemClick) onItemClick(); } },
+          { href: "/library", label: "Library", icon: <LibraryIcon active={isLibrary} />, active: isLibrary, onClick: onItemClick },
+          { href: `/profile/${userProfile?.username || user?.id}`, label: "Profile", icon: <ProfileIcon active={isProfile} />, active: isProfile, onClick: onItemClick },
+          { href: "/dashboard?tab=stories", label: "Stories", icon: <StoriesIcon active={isStories} />, active: isStories, onClick: onItemClick },
+          { href: "/dashboard?tab=stats", label: "Stats", icon: <StatsIcon active={isStats} />, active: isStats, onClick: onItemClick },
+        ].map(({ href, label, icon, active, onClick }) => (
+          <Link
+            key={href}
+            href={href}
+            style={getSidebarLinkStyle(active)}
+            onClick={onClick}
+            onMouseEnter={(e) => { if (!active) Object.assign((e.currentTarget as HTMLElement).style, { background: "#f9fafb", color: "#111827" }); }}
+            onMouseLeave={(e) => { if (!active) Object.assign((e.currentTarget as HTMLElement).style, getSidebarLinkStyle(false)); }}
+          >
+            <span style={{ display: "flex", alignItems: "center", color: active ? "#7c3aed" : "#9ca3af", transition: "color 0.15s" }}>{icon}</span>
+            <span>{label}</span>
+          </Link>
+        ))}
+      </nav>
+    );
+  };
 
   const feedPosts = activeFeedTab === "foryou" ? posts : (activeFeedTab === "featured" ? posts.filter((p) => p.featured) : posts);
 
@@ -772,12 +814,12 @@ export default function HomePage() {
           top: 0;
           left: 0;
           bottom: 0;
-          width: 240px;
+          width: 252px;
           background-color: #ffffff;
-          border-right: 1px solid var(--border);
+          border-right: 1px solid #f0f0f0;
           display: flex;
           flex-direction: column;
-          padding: 28px 12px 24px;
+          padding: 28px 14px 24px;
           gap: 0;
           z-index: 100;
           overflow-y: auto;
@@ -791,7 +833,7 @@ export default function HomePage() {
         }
         .uget-main {
           flex: 1;
-          margin-left: 240px;
+          margin-left: 252px;
           display: flex;
           flex-direction: column;
           min-height: 100vh;
