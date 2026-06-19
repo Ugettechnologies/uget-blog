@@ -102,19 +102,47 @@ export default function OnboardingPage() {
   const handleContinue = async () => {
     if (selected.length < 3) return;
     setSaving(true);
+
+    // Always save selections to localStorage as a backup
+    try {
+      localStorage.setItem("uget_user_interests", JSON.stringify(selected));
+    } catch (_) {}
+
     try {
       const { error } = await supabase
         .from("profiles")
         .update({ interests: selected })
         .eq("id", user.id);
-      
-      if (error) throw error;
-      
+
+      if (error) {
+        console.warn("interests column update failed, trying migration then retrying:", error.message);
+
+        // Try to run migration to add interests column
+        try {
+          await fetch("/api/migrate");
+        } catch (_) {}
+
+        // Retry saving after migration
+        const retry = await supabase
+          .from("profiles")
+          .update({ interests: selected })
+          .eq("id", user.id);
+
+        if (retry.error) {
+          // Still failed — but we've saved to localStorage, so we can continue gracefully
+          console.error("Retry also failed:", retry.error.message);
+          // Don't block the user — just redirect since interests are saved locally
+        }
+      }
+
+      // Always redirect — interests are saved in localStorage as fallback
       router.push("/");
       router.refresh();
-    } catch (err) {
-      console.error("Failed to save interests:", err);
-      alert("Something went wrong saving your topics. Please try again.");
+    } catch (err: any) {
+      console.error("Unexpected error saving interests:", err);
+      // Save to localStorage already done above, still redirect gracefully
+      router.push("/");
+      router.refresh();
     } finally {
       setSaving(false);
     }

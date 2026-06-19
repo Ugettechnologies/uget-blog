@@ -296,7 +296,10 @@ export default function HomePage() {
       if (user) {
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         setUserProfile(profile);
-        if (profile && (!profile.interests || !Array.isArray(profile.interests) || profile.interests.length === 0)) {
+        // Check localStorage fallback before redirecting (in case DB column is missing)
+        const localInterests = (() => { try { const s = localStorage.getItem("uget_user_interests"); return s ? JSON.parse(s) : []; } catch { return []; } })();
+        const hasInterests = (profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0) || localInterests.length > 0;
+        if (profile && !hasInterests) {
           router.push("/onboarding");
         }
         loadNotifications(user.id);
@@ -310,7 +313,10 @@ export default function HomePage() {
       if (u) {
         const { data: profile } = await supabase.from("profiles").select("*").eq("id", u.id).single();
         setUserProfile(profile);
-        if (profile && (!profile.interests || !Array.isArray(profile.interests) || profile.interests.length === 0)) {
+        // Check localStorage fallback before redirecting (in case DB column is missing)
+        const localInterestsAuth = (() => { try { const s = localStorage.getItem("uget_user_interests"); return s ? JSON.parse(s) : []; } catch { return []; } })();
+        const hasInterestsAuth = (profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0) || localInterestsAuth.length > 0;
+        if (profile && !hasInterestsAuth) {
           router.push("/onboarding");
         }
         loadNotifications(u.id);
