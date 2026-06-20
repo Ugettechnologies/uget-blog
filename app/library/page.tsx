@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import type { Post } from "@/lib/types";
+import { SidebarNav, SidebarFollowingList } from "@/components/SidebarNav";
 
 export default function LibraryPage() {
   const [bookmarks, setBookmarks] = useState<any[]>([]);
@@ -163,144 +164,39 @@ export default function LibraryPage() {
     }
   };
 
-  // SVG Icons
-  const HomeIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-  );
-
-  const LibraryIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-    </svg>
-  );
-
-  const ProfileIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  );
-
-  const StoriesIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-  );
-
-  const StatsIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  );
-
   const WriteIcon = () => (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
   );
 
   const BellIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   );
 
   const SearchIcon = () => (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
     </svg>
   );
 
   const HamburgerIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="15" y2="18" />
     </svg>
   );
 
   const CloseIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6 6 18M6 6l12 12" />
     </svg>
-  );
-
-  const activeLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-semibold bg-[#f3efff] text-[#7c3aed] transition-colors";
-  const inactiveLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-medium text-gray-500 hover:bg-[#f8f6ff] hover:text-[#7c3aed] transition-colors";
-
-  const renderSidebarLinks = (onItemClick?: () => void) => (
-    <div className="flex flex-col gap-1.5">
-      <Link href="/" className={inactiveLinkStyle} onClick={onItemClick}>
-        <HomeIcon />
-        <span>Home</span>
-      </Link>
-      <Link href="/library" className={activeLinkStyle} onClick={onItemClick}>
-        <LibraryIcon />
-        <span>Library</span>
-      </Link>
-      <Link href={`/profile/${userProfile?.username || user?.id}`} className={inactiveLinkStyle} onClick={onItemClick}>
-        <ProfileIcon />
-        <span>Profile</span>
-      </Link>
-      <Link href="/dashboard?tab=stories" className={inactiveLinkStyle} onClick={onItemClick}>
-        <StoriesIcon />
-        <span>Stories</span>
-      </Link>
-      <Link href="/dashboard?tab=stats" className={inactiveLinkStyle} onClick={onItemClick}>
-        <StatsIcon />
-        <span>Stats</span>
-      </Link>
-    </div>
-  );
-
-  const renderFollowingList = () => (
-    <div className="mt-8 border-t border-gray-100 pt-6">
-      <div className="text-[11px] font-sans font-bold text-gray-400 uppercase tracking-wider mb-3 px-4">
-        Following
-      </div>
-      <div className="flex flex-col gap-2">
-        {followingProfiles.length === 0 ? (
-          <Link
-            href="/profile/admin"
-            className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
-            style={{ textDecoration: "none" }}
-          >
-            <div className="w-5 h-5 rounded-full overflow-hidden bg-violet-600 flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0">
-              UG
-            </div>
-            <span className="truncate font-medium">UGET Staff</span>
-          </Link>
-        ) : (
-          followingProfiles.map((prof) => (
-            <Link
-              key={prof.id}
-              href={`/profile/${prof.username || prof.id}`}
-              className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
-              style={{ textDecoration: "none" }}
-            >
-              <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                {prof.avatar_url ? (
-                  <Image src={prof.avatar_url} alt="" width={20} height={20} className="object-cover w-full h-full" />
-                ) : (
-                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-[8px] flex items-center justify-center">
-                    {getInitials(prof.full_name || "?")}
-                  </div>
-                )}
-              </div>
-              <span className="truncate font-medium">{prof.full_name}</span>
-            </Link>
-          ))
-        )}
-        
-        <Link
-          href="/dashboard?tab=followers"
-          className="px-4 text-xs text-gray-500 hover:underline font-sans mt-2"
-          style={{ textDecoration: "none", display: "block", lineHeight: "1.4" }}
-        >
-          <div className="text-gray-400 font-medium">+ Find writers and publications to follow.</div>
-          <div className="text-violet-600 font-semibold mt-0.5">See suggestions</div>
-        </Link>
-      </div>
-    </div>
   );
 
   return (
@@ -317,17 +213,19 @@ export default function LibraryPage() {
           top: 0;
           left: 0;
           bottom: 0;
-          width: 240px;
+          width: 252px;
           background-color: #ffffff;
-          border-right: 1px solid var(--border);
+          border-right: 1px solid #f0f0f0;
           display: flex;
           flex-direction: column;
-          padding: 24px 16px;
+          padding: 28px 14px 24px;
+          gap: 0;
           z-index: 100;
+          overflow-y: auto;
         }
         .uget-main {
           flex: 1;
-          margin-left: 240px;
+          margin-left: 252px;
           display: flex;
           flex-direction: column;
           min-height: 100vh;
@@ -438,24 +336,42 @@ export default function LibraryPage() {
         </div>
 
         <nav style={{ flex: 1 }}>
-          {renderSidebarLinks()}
-          {renderFollowingList()}
+          <SidebarNav
+            activePage="library"
+            profileHref={`/profile/${userProfile?.username || user?.id}`}
+          />
+          <SidebarFollowingList followingProfiles={followingProfiles} />
         </nav>
 
         {userProfile && (
-          <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
-            <Link href={`/profile/${userProfile?.username || user?.id}`} className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ display: "block" }}>
-              {userProfile.avatar_url ? (
-                <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
-              ) : (
-                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
-                  {getInitials(userProfile.full_name || user?.email || "?")}
+          <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 16, marginTop: "auto" }}>
+            <div className="flex items-center gap-3" style={{ marginBottom: 10 }}>
+              <Link href={`/profile/${userProfile?.username || user?.id}`} style={{ display: "block", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden" }}>
+                  {userProfile.avatar_url ? (
+                    <Image src={userProfile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {getInitials(userProfile.full_name || user?.email || "?")}
+                    </div>
+                  )}
                 </div>
-              )}
-            </Link>
-            <div className="min-w-0" style={{ flex: 1 }}>
-              <div className="font-bold text-sm text-gray-900 truncate">{userProfile.full_name || "Writer"}</div>
-              <div className="text-xs text-gray-500 truncate">@{userProfile.username || "writer"}</div>
+              </Link>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile.full_name || "Writer"}</div>
+                <div style={{ fontSize: 11, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{userProfile.username || "writer"}</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
+              <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{followingProfiles.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Following</span>
+              </Link>
+              <div style={{ width: 1, background: "#f0f0f0", alignSelf: "stretch" }} />
+              <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>—</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Followers</span>
+              </Link>
             </div>
           </div>
         )}
@@ -489,8 +405,12 @@ export default function LibraryPage() {
             </form>
 
             <nav style={{ flex: 1 }}>
-              {renderSidebarLinks(() => setSidebarOpen(false))}
-              {renderFollowingList()}
+              <SidebarNav
+                activePage="library"
+                profileHref={`/profile/${userProfile?.username || user?.id}`}
+                onItemClick={() => setSidebarOpen(false)}
+              />
+              <SidebarFollowingList followingProfiles={followingProfiles} />
             </nav>
 
             {userProfile && (

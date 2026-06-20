@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
+import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, OptionsIcon } from "@/components/SidebarNav";
 
 type TabType = "stories" | "stats" | "followers" | "staff";
 
@@ -254,151 +255,7 @@ export default function DashboardPage() {
 
   const shownStories = storiesSubTab === "published" ? published : (storiesSubTab === "drafts" ? drafts : []);
 
-  // SVG Icons
-  const HomeIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-  );
-
-  const LibraryIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-    </svg>
-  );
-
-  const ProfileIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  );
-
-  const StoriesIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-  );
-
-  const StatsIcon = () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  );
-
-  const WriteIcon = () => (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-    </svg>
-  );
-
-  const BellIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-    </svg>
-  );
-
-  const SearchIcon = () => (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  );
-
-  const HamburgerIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-  );
-
-  const CloseIcon = () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-
-  const OptionsIcon = () => (
-    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-    </svg>
-  );
-
-  const activeLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-semibold bg-[#f3efff] text-[#7c3aed] transition-colors";
-  const inactiveLinkStyle = "flex items-center gap-4 px-4 py-3 rounded-xl font-sans text-sm font-medium text-gray-500 hover:bg-[#f8f6ff] hover:text-[#7c3aed] transition-colors";
-
-  const renderSidebarLinks = (onItemClick?: () => void) => (
-    <div className="flex flex-col gap-1.5">
-      <Link href="/" className={inactiveLinkStyle} onClick={onItemClick}>
-        <HomeIcon />
-        <span>Home</span>
-      </Link>
-      <Link href="/library" className={inactiveLinkStyle} onClick={onItemClick}>
-        <LibraryIcon />
-        <span>Library</span>
-      </Link>
-      <Link href={`/profile/${profile?.username || profile?.id}`} className={inactiveLinkStyle} onClick={onItemClick}>
-        <ProfileIcon />
-        <span>Profile</span>
-      </Link>
-      <button onClick={() => { handleTabChange("stories"); if (onItemClick) onItemClick(); }} className={activeTab === "stories" ? activeLinkStyle : inactiveLinkStyle}>
-        <StoriesIcon />
-        <span>Stories</span>
-      </button>
-      <button onClick={() => { handleTabChange("stats"); if (onItemClick) onItemClick(); }} className={activeTab === "stats" ? activeLinkStyle : inactiveLinkStyle}>
-        <StatsIcon />
-        <span>Stats</span>
-      </button>
-    </div>
-  );
-
-  const renderFollowingList = () => (
-    <div className="mt-8 border-t border-gray-100 pt-6">
-      <div className="text-[11px] font-sans font-bold text-gray-400 uppercase tracking-wider mb-3 px-4">
-        Following
-      </div>
-      <div className="flex flex-col gap-2">
-        {followingProfiles.length === 0 ? (
-          <Link
-            href="/profile/admin"
-            className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
-            style={{ textDecoration: "none" }}
-          >
-            <div className="w-5 h-5 rounded-full overflow-hidden bg-violet-600 flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0">
-              UG
-            </div>
-            <span className="truncate font-medium">UGET Staff</span>
-          </Link>
-        ) : (
-          followingProfiles.map((prof) => (
-            <Link
-              key={prof.id}
-              href={`/profile/${prof.username || prof.id}`}
-              className="flex items-center gap-3 px-4 py-1.5 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-sans"
-              style={{ textDecoration: "none" }}
-            >
-              <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                {prof.avatar_url ? (
-                  <Image src={prof.avatar_url} alt="" width={20} height={20} className="object-cover w-full h-full" />
-                ) : (
-                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-[8px] flex items-center justify-center">
-                    {getInitials(prof.full_name || "?")}
-                  </div>
-                )}
-              </div>
-              <span className="truncate font-medium">{prof.full_name}</span>
-            </Link>
-          ))
-        )}
-        
-        <Link
-          href="/dashboard?tab=followers"
-          className="px-4 text-xs text-gray-500 hover:underline font-sans mt-2"
-          style={{ textDecoration: "none", display: "block", lineHeight: "1.4" }}
-        >
-          <div className="text-gray-400 font-medium">+ Find writers and publications to follow.</div>
-          <div className="text-violet-600 font-semibold mt-0.5">See suggestions</div>
-        </Link>
-      </div>
-    </div>
-  );
+  // (Sidebar icons moved to SidebarNav.tsx)
 
   return (
     <div className="uget-layout">
@@ -421,17 +278,19 @@ export default function DashboardPage() {
           top: 0;
           left: 0;
           bottom: 0;
-          width: 240px;
+          width: 252px;
           background-color: #ffffff;
-          border-right: 1px solid var(--border);
+          border-right: 1px solid #f0f0f0;
           display: flex;
           flex-direction: column;
-          padding: 24px 16px;
+          padding: 28px 14px 24px;
+          gap: 0;
           z-index: 100;
+          overflow-y: auto;
         }
         .uget-main {
           flex: 1;
-          margin-left: 240px;
+          margin-left: 252px;
           display: flex;
           flex-direction: column;
           min-height: 100vh;
@@ -581,24 +440,42 @@ export default function DashboardPage() {
         </div>
 
         <nav style={{ flex: 1 }}>
-          {renderSidebarLinks()}
-          {renderFollowingList()}
+          <SidebarNav
+            activePage={activeTab === "stories" ? "stories" : activeTab === "stats" ? "stats" : "stories"}
+            profileHref={`/profile/${profile?.username || profile?.id}`}
+          />
+          <SidebarFollowingList followingProfiles={followingProfiles} />
         </nav>
 
         {profile && (
-          <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
-            <Link href={`/profile/${profile?.username || profile?.id}`} className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ display: "block" }}>
-              {profile.avatar_url ? (
-                <Image src={profile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
-              ) : (
-                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
-                  {getInitials(profile.full_name || "?")}
+          <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 16, marginTop: "auto" }}>
+            <div className="flex items-center gap-3" style={{ marginBottom: 10 }}>
+              <Link href={`/profile/${profile?.username || profile?.id}`} style={{ display: "block", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden" }}>
+                  {profile.avatar_url ? (
+                    <Image src={profile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {getInitials(profile.full_name || "?")}
+                    </div>
+                  )}
                 </div>
-              )}
-            </Link>
-            <div className="min-w-0" style={{ flex: 1 }}>
-              <div className="font-bold text-sm text-gray-900 truncate">{profile.full_name || "Writer"}</div>
-              <div className="text-xs text-gray-500 truncate">@{profile.username || "writer"}</div>
+              </Link>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.full_name || "Writer"}</div>
+                <div style={{ fontSize: 11, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{profile.username || "writer"}</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
+              <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{following.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Following</span>
+              </Link>
+              <div style={{ width: 1, background: "#f0f0f0", alignSelf: "stretch" }} />
+              <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{followers.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Followers</span>
+              </Link>
             </div>
           </div>
         )}
@@ -632,8 +509,12 @@ export default function DashboardPage() {
             </form>
 
             <nav style={{ flex: 1 }}>
-              {renderSidebarLinks(() => setSidebarOpen(false))}
-              {renderFollowingList()}
+              <SidebarNav
+                activePage={activeTab === "stories" ? "stories" : activeTab === "stats" ? "stats" : "stories"}
+                profileHref={`/profile/${profile?.username || profile?.id}`}
+                onItemClick={() => setSidebarOpen(false)}
+              />
+              <SidebarFollowingList followingProfiles={followingProfiles} />
             </nav>
 
             {profile && (

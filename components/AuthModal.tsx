@@ -523,33 +523,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                 {/* Google Sign In Button */}
                 <button 
                   onClick={() => handleOAuth("google")} 
-                  className="oauth-btn"
+                  className="oauth-btn-modal"
                   disabled={!!oauthLoading}
-                  style={{
-                    width: "100%",
-                    padding: "12px 20px",
-                    borderRadius: 999,
-                    fontSize: 15,
-                    fontWeight: 400,
-                    marginBottom: 12,
-                    border: "1px solid #242424",
-                    backgroundColor: "white",
-                    color: "#242424",
-                    display: "flex",
-                    alignItems: "center",
-                    position: "relative",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f9f9f9";
-                    e.currentTarget.style.borderColor = "#000";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "white";
-                    e.currentTarget.style.borderColor = "#242424";
-                  }}
                 >
                   <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
                     {oauthLoading === "google" ? (
@@ -561,76 +536,26 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   {mode === "login" ? "Sign in with Google" : "Sign up with Google"}
                 </button>
 
-                {/* Facebook Sign In Button */}
+                {/* GitHub Sign In Button */}
                 <button 
-                  onClick={() => handleOAuth("facebook")} 
-                  className="oauth-btn"
+                  onClick={() => handleOAuth("github")} 
+                  className="oauth-btn-modal"
                   disabled={!!oauthLoading}
-                  style={{
-                    width: "100%",
-                    padding: "12px 20px",
-                    borderRadius: 999,
-                    fontSize: 15,
-                    fontWeight: 400,
-                    marginBottom: 12,
-                    border: "1px solid #242424",
-                    backgroundColor: "white",
-                    color: "#242424",
-                    display: "flex",
-                    alignItems: "center",
-                    position: "relative",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f9f9f9";
-                    e.currentTarget.style.borderColor = "#000";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "white";
-                    e.currentTarget.style.borderColor = "#242424";
-                  }}
                 >
                   <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
-                    {oauthLoading === "facebook" ? (
+                    {oauthLoading === "github" ? (
                       <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
                     ) : (
-                      <FacebookIcon />
+                      <GithubIcon />
                     )}
                   </div>
-                  {mode === "login" ? "Sign in with Facebook" : "Sign up with Facebook"}
+                  {mode === "login" ? "Sign in with GitHub" : "Sign up with GitHub"}
                 </button>
 
                 {/* Email Sign In Button */}
                 <button 
                   onClick={() => { setError(""); setSuccess(""); setShowEmailForm(true); }} 
-                  className="oauth-btn"
-                  style={{
-                    width: "100%",
-                    padding: "12px 20px",
-                    borderRadius: 999,
-                    fontSize: 15,
-                    fontWeight: 400,
-                    marginBottom: 12,
-                    border: "1px solid #242424",
-                    backgroundColor: "white",
-                    color: "#242424",
-                    display: "flex",
-                    alignItems: "center",
-                    position: "relative",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f9f9f9";
-                    e.currentTarget.style.borderColor = "#000";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "white";
-                    e.currentTarget.style.borderColor = "#242424";
-                  }}
+                  className="oauth-btn-modal"
                 >
                   <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
                     <EmailIcon />

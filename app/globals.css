@@ -847,3 +847,65 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 .delay-1 { animation-delay: 0.1s; opacity: 0; }
 .delay-2 { animation-delay: 0.2s; opacity: 0; }
 .delay-3 { animation-delay: 0.3s; opacity: 0; }
+
+/* Onboarding Topic Selection Button styles to fix mobile touch click issues */
+.topic-pill-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-family: var(--sans);
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background-color: transparent;
+  color: #242424;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  font-weight: 400;
+  user-select: none;
+}
+
+.topic-pill-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.topic-pill-btn.selected {
+  border-color: var(--brand);
+  background-color: rgba(124, 58, 237, 0.06);
+  color: var(--brand);
+  font-weight: 500;
+}
+
+/* Modal OAuth Button styles to fix mobile touch click issues and standardise design */
+.oauth-btn-modal {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 400;
+  margin-bottom: 12px;
+  border: 1px solid #242424;
+  background-color: white;
+  color: #242424;
+  display: flex;
+  align-items: center;
+  position: relative;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--sans);
+  user-select: none;
+}
+
+.oauth-btn-modal:hover {
+  background-color: #f9f9f9;
+  border-color: #000;
+}
+
+.oauth-btn-modal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

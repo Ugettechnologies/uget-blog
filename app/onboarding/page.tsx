@@ -215,34 +215,7 @@ export default function OnboardingPage() {
                     <button
                       key={topic}
                       onClick={() => toggleTopic(topic)}
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "999px",
-                        fontSize: 14,
-                        fontFamily: "var(--sans)",
-                        cursor: "pointer",
-                        border: "1px solid",
-                        borderColor: isSelected ? "var(--brand)" : "rgba(0, 0, 0, 0.15)",
-                        backgroundColor: isSelected ? "rgba(124, 58, 237, 0.06)" : "transparent",
-                        color: isSelected ? "var(--brand)" : "#242424",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        transition: "all 0.15s ease",
-                        fontWeight: isSelected ? 500 : 400
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor = "var(--brand)";
-                          e.currentTarget.style.color = "var(--brand)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.15)";
-                          e.currentTarget.style.color = "#242424";
-                        }
-                      }}
+                      className={`topic-pill-btn ${isSelected ? "selected" : ""}`}
                     >
                       {isSelected && (
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
