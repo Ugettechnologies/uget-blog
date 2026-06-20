@@ -469,9 +469,9 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 .btn-sm { font-size: 13px; padding: 7px 16px; }
 .btn-md { font-size: 14px; padding: 10px 22px; }
 .btn-lg { font-size: 16px; padding: 13px 28px; }
-.btn-primary { background: var(--brand); color: white; }
-.btn-primary:hover { background: var(--brand-hover); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-primary, a.btn-primary { background: var(--brand); color: white !important; }
+.btn-primary:hover, a.btn-primary:hover { background: var(--brand-hover); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.btn-primary:disabled, a.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-outline { border: 1px solid var(--border) !important; color: var(--ink); background: var(--btn-outline-bg, white); }
 .btn-outline:hover { border-color: var(--ink-3) !important; }
 .btn-green { background: var(--accent); color: white; }
@@ -908,4 +908,75 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Floating Menu (Medium-like plus button) */
+.editor-floating-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 50;
+  pointer-events: auto;
+}
+.floating-menu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-2);
+  background: var(--bg);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  transition: all 0.2s ease-in-out;
+  padding: 0;
+  user-select: none;
+}
+.floating-menu-btn:hover, .floating-menu-btn.active {
+  color: var(--brand);
+  border-color: var(--brand);
+  transform: rotate(45deg);
+}
+.floating-menu-options {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: all 0.2s ease-in-out;
+}
+.floating-menu-options.open {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.floating-option-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 6px;
+}
+.floating-option-btn:hover {
+  background: var(--bg-3);
+  color: var(--brand);
+  border-color: var(--brand);
+}
+.floating-option-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 

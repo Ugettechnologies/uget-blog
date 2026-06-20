@@ -519,7 +519,7 @@ export default function SettingsPage() {
         .uget-layout {
           display: flex;
           min-height: 100vh;
-          background-color: #ffffff;
+          background-color: var(--bg);
         }
         .uget-sidebar {
           position: fixed;
@@ -527,7 +527,7 @@ export default function SettingsPage() {
           left: 0;
           bottom: 0;
           width: 240px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
@@ -546,7 +546,7 @@ export default function SettingsPage() {
           position: sticky;
           top: 0;
           height: 64px;
-          background-color: rgba(255, 255, 255, 0.95);
+          background-color: var(--nav-bg);
           backdrop-filter: blur(8px);
           border-bottom: 1px solid var(--border);
           display: flex;
@@ -559,7 +559,7 @@ export default function SettingsPage() {
           display: flex;
           align-items: center;
           gap: 8px;
-          background-color: #fafafa;
+          background-color: var(--bg-3);
           border-radius: 99px;
           padding: 6px 16px;
           width: 240px;
@@ -567,8 +567,8 @@ export default function SettingsPage() {
           transition: all 0.2s;
         }
         .uget-header-search:focus-within {
-          background-color: #ffffff;
-          border-color: #e2e8f0;
+          background-color: var(--bg);
+          border-color: var(--border);
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .settings-grid {
@@ -579,6 +579,7 @@ export default function SettingsPage() {
           max-width: 1060px;
           width: 100%;
           margin: 0 auto;
+          color: var(--black);
         }
         .settings-content {
           min-width: 0;
@@ -589,7 +590,7 @@ export default function SettingsPage() {
           align-self: start;
         }
         .settings-tabs-wrapper {
-          border-bottom: 1px solid #f2f2f2;
+          border-bottom: 1px solid var(--border-2);
           display: flex;
           gap: 24px;
           margin-bottom: 32px;
@@ -604,7 +605,7 @@ export default function SettingsPage() {
           font-family: var(--sans);
           font-size: 14px;
           font-weight: 400;
-          color: #757575;
+          color: var(--muted);
           padding: 10px 0 12px;
           border-bottom: 1px solid transparent;
           background: none;
@@ -616,15 +617,15 @@ export default function SettingsPage() {
           margin-bottom: -1px;
         }
         .settings-tab.active {
-          color: #242424;
-          border-bottom-color: #242424;
+          color: var(--black);
+          border-bottom-color: var(--black);
           font-weight: 500;
         }
         .settings-section-title {
           font-family: var(--sans);
           font-size: 22px;
           font-weight: 700;
-          color: #242424;
+          color: var(--black);
           margin-bottom: 20px;
           margin-top: 32px;
           border-bottom: none;
@@ -646,29 +647,29 @@ export default function SettingsPage() {
         .medium-checkbox-box {
           width: 16px;
           height: 16px;
-          border: 1px solid #757575;
+          border: 1px solid var(--muted-2);
           border-radius: 3px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           display: inline-flex;
           align-items: center;
           justify-content: center;
           transition: background-color 0.15s, border-color 0.15s;
         }
         .medium-checkbox-box.checked {
-          background-color: #242424;
-          border-color: #242424;
+          background-color: var(--black);
+          border-color: var(--black);
         }
         .medium-checkbox-box svg {
           width: 10px;
           height: 10px;
-          stroke: #ffffff;
+          stroke: var(--bg);
           stroke-width: 2.5px;
           fill: none;
         }
         .medium-checkbox-label {
           font-family: var(--sans);
           font-size: 14px;
-          color: #242424;
+          color: var(--black);
           margin-left: 12px;
         }
 
@@ -682,27 +683,27 @@ export default function SettingsPage() {
         .medium-radio-circle {
           width: 18px;
           height: 18px;
-          border: 1px solid #757575;
+          border: 1px solid var(--muted-2);
           border-radius: 50%;
-          background-color: #ffffff;
+          background-color: var(--bg);
           display: inline-flex;
           align-items: center;
           justify-content: center;
           transition: border-color 0.15s;
         }
         .medium-radio-circle.selected {
-          border-color: #242424;
+          border-color: var(--black);
         }
         .medium-radio-circle-dot {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background-color: #242424;
+          background-color: var(--black);
         }
         .medium-radio-label {
           font-family: var(--sans);
           font-size: 14px;
-          color: #242424;
+          color: var(--black);
           margin-left: 12px;
         }
 
@@ -742,8 +743,8 @@ export default function SettingsPage() {
 
         /* Membership banner styling */
         .membership-promo-banner {
-          background: linear-gradient(135deg, #fdf4ff 0%, #f0fdf4 100%);
-          border: 1px solid #e9d5ff;
+          background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(26, 137, 23, 0.08) 100%);
+          border: 1px solid var(--border);
           border-radius: 12px;
           padding: 16px 20px;
           display: flex;
@@ -755,7 +756,7 @@ export default function SettingsPage() {
         .membership-promo-text {
           font-family: var(--sans);
           font-size: 14px;
-          color: #242424;
+          color: var(--black);
           line-height: 1.5;
         }
         .membership-promo-link {
@@ -778,7 +779,7 @@ export default function SettingsPage() {
 
         /* Diagonal Arrow Link */
         .diagonal-arrow-btn {
-          color: #757575;
+          color: var(--muted);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -789,7 +790,7 @@ export default function SettingsPage() {
           padding: 4px;
         }
         .diagonal-arrow-btn:hover {
-          color: #242424;
+          color: var(--black);
         }
         .settings-row {
           display: flex;
@@ -797,7 +798,7 @@ export default function SettingsPage() {
           align-items: flex-start;
           gap: 24px;
           padding: 20px 0;
-          border-bottom: 1px solid #f9f9f9;
+          border-bottom: 1px solid var(--border-2);
         }
         .settings-row:last-child {
           border-bottom: none;
@@ -841,11 +842,11 @@ export default function SettingsPage() {
           transition: all 0.2s;
         }
         .settings-action-btn:hover {
-          background-color: #f8f6ff;
+          background-color: rgba(124, 58, 237, 0.1);
         }
         .settings-inline-editor {
           margin-top: 12px;
-          background-color: #fafafa;
+          background-color: var(--bg-2);
           border: 1px solid var(--border-2);
           border-radius: 12px;
           padding: 20px;
@@ -857,7 +858,7 @@ export default function SettingsPage() {
           border: 1px solid var(--border-2);
           border-radius: 16px;
           padding: 24px;
-          background-color: #ffffff;
+          background-color: var(--bg-2);
         }
         .settings-help-title {
           font-family: var(--sans);
@@ -894,7 +895,7 @@ export default function SettingsPage() {
           left: 0;
           bottom: 0;
           width: 280px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           z-index: 1001;
           padding: 24px 20px;
           display: flex;
@@ -924,7 +925,7 @@ export default function SettingsPage() {
           position: absolute;
           cursor: pointer;
           inset: 0;
-          background-color: #e2e8f0;
+          background-color: var(--border);
           transition: .3s;
           border-radius: 24px;
         }
@@ -935,7 +936,7 @@ export default function SettingsPage() {
           width: 18px;
           left: 3px;
           bottom: 3px;
-          background-color: white;
+          background-color: var(--bg);
           transition: .3s;
           border-radius: 50%;
         }
@@ -965,6 +966,53 @@ export default function SettingsPage() {
           .uget-header {
             padding: 0 16px;
           }
+        }
+
+        /* ── Dark Mode Overrides for Tailwind classes ── */
+        .dark .border-gray-100 {
+          border-color: var(--border) !important;
+        }
+        .dark .bg-white {
+          background-color: var(--bg-2) !important;
+        }
+        .dark .text-gray-900 {
+          color: var(--black) !important;
+        }
+        .dark .text-gray-700 {
+          color: var(--ink-2) !important;
+        }
+        .dark .text-gray-600 {
+          color: var(--ink-3) !important;
+        }
+        .dark .text-gray-500 {
+          color: var(--muted) !important;
+        }
+        .dark .text-gray-400 {
+          color: var(--muted-2) !important;
+        }
+        .dark .bg-gray-50 {
+          background-color: var(--bg-3) !important;
+        }
+        .dark .bg-gray-50\/50 {
+          background-color: var(--bg-3) !important;
+        }
+        .dark .hover\:bg-gray-50:hover {
+          background-color: var(--bg-3) !important;
+        }
+        .dark .hover\:bg-gray-100:hover {
+          background-color: var(--bg-3) !important;
+        }
+        .dark .bg-gray-100 {
+          background-color: var(--bg-3) !important;
+        }
+        .dark .border-gray-200 {
+          border-color: var(--border) !important;
+        }
+        .dark .bg-\[\#f3efff\] {
+          background-color: rgba(124, 58, 237, 0.15) !important;
+        }
+        .dark .hover\:bg-\[\#f8f6ff\]:hover {
+          background-color: rgba(124, 58, 237, 0.08) !important;
         }
       `}} />
 
@@ -1416,6 +1464,28 @@ export default function SettingsPage() {
                       >
                         Edit
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Theme settings row */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Site Theme</div>
+                      <div className="settings-value" style={{ textTransform: "capitalize" }}>{theme} theme</div>
+                      <div className="settings-desc">
+                        Customize the color scheme of your UGET experience. Choose between Light, Dark, or System themes.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <select 
+                        value={theme} 
+                        onChange={(e) => handleThemeChange(e.target.value)} 
+                        className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm font-medium font-sans text-gray-700 dark:text-gray-300 outline-none focus:border-violet-600 cursor-pointer"
+                      >
+                        <option value="light">☀️ Light</option>
+                        <option value="dark">🌙 Dark</option>
+                        <option value="system">💻 System</option>
+                      </select>
                     </div>
                   </div>
 

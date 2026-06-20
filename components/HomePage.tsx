@@ -8,7 +8,7 @@ import { createClient } from "@/lib/db-client/client";
 import type { Post } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon } from "./SidebarNav";
+import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon } from "./SidebarNav";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -1031,22 +1031,22 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="py-1">
-                    <Link href="/write" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
-                      <span>✍️</span> Write
+                    <Link href="/write" className="flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><WriteIcon /></span> Write
                     </Link>
-                    <button onClick={() => { setUserDropdownOpen(false); setNotifDropdownOpen(true); }} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
-                      <span>🔔</span> Notifications
+                    <button onClick={() => { setUserDropdownOpen(false); setNotifDropdownOpen(true); }} className="w-full text-left flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><BellIcon /></span> Notifications
                     </button>
-                    <Link href="/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
-                      <span>⚙️</span> Settings
+                    <Link href="/settings" className="flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><SettingsIcon /></span> Settings
                     </Link>
-                    <button onClick={() => { setUserDropdownOpen(false); alert("Need help? Please send an email to support@uget.com or check our Help Center."); }} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
-                      <span>💡</span> Help
+                    <button onClick={() => { setUserDropdownOpen(false); alert("Need help? Please send an email to support@uget.com or check our Help Center."); }} className="w-full text-left flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><HelpIcon /></span> Help
                     </button>
                   </div>
                   <div className="border-t border-gray-100 py-1">
-                    <button onClick={handleSignOut} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-sans">
-                      <span>🚪</span> Sign out
+                    <button onClick={handleSignOut} className="w-full text-left flex items-center gap-3.5 px-4 py-2.5 text-sm text-red-650 hover:bg-red-50 font-sans">
+                      <span className="text-red-500" style={{ display: "inline-flex", alignItems: "center" }}><SignOutIcon /></span> Sign out
                     </button>
                   </div>
                 </div>

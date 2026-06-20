@@ -4,6 +4,11 @@
       "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
       "email": "admin@uget.com",
       "password_hash": "$2b$10$YxCTn3ci0DXJZGDaLSuioOyLKVmK/6IAErFa3JPfNj0lWYXY2muNS"
+    },
+    {
+      "id": "hywhk2c6ndo-3n6my1zkxi2",
+      "email": "tester_mode_dark_v1@test.com",
+      "password_hash": "$2b$10$h0pda4dvPAC1/Tx/ta6Y4ORuwfxZiVvKO1bEEQNIlUBdfnGr06/RW"
     }
   ],
   "profiles": [
@@ -23,6 +28,19 @@
         "ai",
         "design"
       ]
+    },
+    {
+      "id": "hywhk2c6ndo-3n6my1zkxi2",
+      "username": "testermodedarkv11162",
+      "full_name": "Test User",
+      "role": "writer",
+      "avatar_url": "",
+      "bio": "",
+      "twitter": "",
+      "website": "",
+      "follower_count": 0,
+      "post_count": 0,
+      "interests": []
     }
   ],
   "notifications": [

@@ -274,7 +274,10 @@ export default function TipTapEditor({ content, onChange }: Props) {
         <div className="editor-floating-menu">
           <button
             type="button"
-            onClick={() => setMenuExpanded(!menuExpanded)}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setMenuExpanded(!menuExpanded);
+            }}
             className={`floating-menu-btn ${menuExpanded ? "active" : ""}`}
             title="More options"
           >
@@ -285,7 +288,10 @@ export default function TipTapEditor({ content, onChange }: Props) {
             {/* Photo Upload */}
             <button 
               type="button" 
-              onClick={() => fileInputRef.current?.click()} 
+              onMouseDown={(e) => {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }}
               className="floating-option-btn" 
               title="Upload Image"
             >
@@ -298,7 +304,11 @@ export default function TipTapEditor({ content, onChange }: Props) {
             {/* Unsplash Search */}
             <button 
               type="button" 
-              onClick={() => { setUnsplashOpen(true); setMenuExpanded(false); }} 
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setUnsplashOpen(true);
+                setMenuExpanded(false);
+              }}
               className="floating-option-btn" 
               title="Search Unsplash"
             >
@@ -311,7 +321,11 @@ export default function TipTapEditor({ content, onChange }: Props) {
             {/* Video Embed */}
             <button 
               type="button" 
-              onClick={() => { setVideoOpen(true); setMenuExpanded(false); }} 
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setVideoOpen(true);
+                setMenuExpanded(false);
+              }}
               className="floating-option-btn" 
               title="Embed Video"
             >
@@ -324,7 +338,10 @@ export default function TipTapEditor({ content, onChange }: Props) {
             {/* Code block */}
             <button 
               type="button" 
-              onClick={insertCodeBlock} 
+              onMouseDown={(e) => {
+                e.preventDefault();
+                insertCodeBlock();
+              }}
               className="floating-option-btn" 
               title="Insert Code Block"
             >
@@ -337,7 +354,10 @@ export default function TipTapEditor({ content, onChange }: Props) {
             {/* Separator */}
             <button 
               type="button" 
-              onClick={insertSeparator} 
+              onMouseDown={(e) => {
+                e.preventDefault();
+                insertSeparator();
+              }}
               className="floating-option-btn" 
               title="Insert Divider"
             >

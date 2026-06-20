@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
-import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon } from "@/components/SidebarNav";
+import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon } from "@/components/SidebarNav";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -326,15 +326,22 @@ export default function ProfilePage() {
           position: sticky;
           top: 88px;
           align-self: start;
+          background-color: var(--bg-2);
+          border: 1px solid var(--border-2);
+          border-radius: 16px;
+          padding: 24px;
         }
         .uget-profile-avatar-lg {
           width: 88px;
           height: 88px;
           border-radius: 50%;
           overflow: hidden;
-          background-color: #fafafa;
-          border: 1px solid #e2e8f0;
+          background-color: var(--bg-3);
+          border: 1px solid var(--border);
           margin-bottom: 16px;
+        }
+        .uget-profile-header-card {
+          display: none;
         }
         .uget-mobile-drawer {
           position: fixed;
@@ -388,13 +395,10 @@ export default function ProfilePage() {
             padding: 24px 16px 60px;
           }
           .uget-profile-sidebar {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-bottom: 1px solid var(--border-2);
-            padding-bottom: 32px;
-            order: -1;
-            position: static;
+            display: none;
+          }
+          .uget-profile-header-card {
+            display: flex !important;
           }
           .uget-header {
             padding: 0 16px;
@@ -672,22 +676,22 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="py-1">
-                    <Link href="/write" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
-                      <span>✍️</span> Write
+                    <Link href="/write" className="flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><WriteIcon /></span> Write
                     </Link>
-                    <button onClick={() => { setUserDropdownOpen(false); setNotifDropdownOpen(true); }} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
-                      <span>🔔</span> Notifications
+                    <button onClick={() => { setUserDropdownOpen(false); setNotifDropdownOpen(true); }} className="w-full text-left flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><BellIcon /></span> Notifications
                     </button>
-                    <Link href="/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
-                      <span>⚙️</span> Settings
+                    <Link href="/settings" className="flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" style={{ textDecoration: "none" }} onClick={() => setUserDropdownOpen(false)}>
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><SettingsIcon /></span> Settings
                     </Link>
-                    <button onClick={() => { setUserDropdownOpen(false); alert("Need help? Please send an email to support@uget.com or check our Help Center."); }} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
-                      <span>💡</span> Help
+                    <button onClick={() => { setUserDropdownOpen(false); alert("Need help? Please send an email to support@uget.com or check our Help Center."); }} className="w-full text-left flex items-center gap-3.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">
+                      <span className="text-gray-400" style={{ display: "inline-flex", alignItems: "center" }}><HelpIcon /></span> Help
                     </button>
                   </div>
                   <div className="border-t border-gray-100 py-1">
-                    <button onClick={handleSignOut} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-sans">
-                      <span>🚪</span> Sign out
+                    <button onClick={handleSignOut} className="w-full text-left flex items-center gap-3.5 px-4 py-2.5 text-sm text-red-650 hover:bg-red-50 font-sans">
+                      <span className="text-red-500" style={{ display: "inline-flex", alignItems: "center" }}><SignOutIcon /></span> Sign out
                     </button>
                   </div>
                 </div>
@@ -710,8 +714,8 @@ export default function ProfilePage() {
               <span className="text-gray-900 font-medium">{profile.full_name}</span>
             </div>
 
-            {/* Profile Card Header */}
-            <div className="border border-gray-100 rounded-2xl p-6 md:p-8 bg-white shadow-sm mb-8 flex flex-col gap-6">
+            {/* Profile Card Header (Mobile only) */}
+            <div className="uget-profile-header-card border border-gray-100 rounded-2xl p-6 md:p-8 bg-white shadow-sm mb-8 flex flex-col gap-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-5">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
