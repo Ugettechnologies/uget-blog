@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
@@ -12,6 +12,7 @@ type TabType = "stories" | "stats" | "followers" | "staff";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -41,24 +42,17 @@ export default function DashboardPage() {
   const [toast, setToast] = useState("");
   const showMsg = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
-  // Read tab parameter from URL search params
+  // Sync activeTab state with URL search params reactively (works for drawer/sidebar links)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const t = params.get("tab") as TabType;
-      if (t && ["stories", "stats", "followers", "staff"].includes(t)) {
-        setActiveTab(t);
-      }
+    const t = searchParams.get("tab") as TabType;
+    if (t && ["stories", "stats", "followers", "staff"].includes(t)) {
+      setActiveTab(t);
     }
-  }, []);
+  }, [searchParams]);
 
   const handleTabChange = (t: TabType) => {
     setActiveTab(t);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("tab", t);
-      window.history.pushState({}, "", url.toString());
-    }
+    router.push(`/dashboard?tab=${t}`);
   };
 
   useEffect(() => {
@@ -482,61 +476,70 @@ export default function DashboardPage() {
       </aside>
 
       {/* ── Mobile Sidebar Drawer overlay ── */}
-      {sidebarOpen && (
-        <>
-          <div className="uget-mobile-drawer-overlay" onClick={() => setSidebarOpen(false)} />
-          <div className="uget-mobile-drawer" style={{ transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}>
-            <div className="flex justify-between items-center mb-8">
-              <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }} onClick={() => setSidebarOpen(false)}>
-                <Image src="/favicon.png" alt="UGET Logo" width={28} height={28} />
-                <span className="font-bold text-xl text-violet-600 font-display">UGET</span>
-              </Link>
-              <button onClick={() => setSidebarOpen(false)} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-                <CloseIcon />
-              </button>
+      <div 
+        className="uget-mobile-drawer-overlay" 
+        style={{ 
+          opacity: sidebarOpen ? 1 : 0, 
+          pointerEvents: sidebarOpen ? "auto" : "none",
+          transition: "opacity 0.3s ease-in-out" 
+        }} 
+        onClick={() => setSidebarOpen(false)} 
+      />
+      <div 
+        className="uget-mobile-drawer" 
+        style={{ 
+          transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" 
+        }}
+      >
+        <div className="flex justify-between items-center mb-8">
+          <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }} onClick={() => setSidebarOpen(false)}>
+            <Image src="/favicon.png" alt="UGET Logo" width={28} height={28} />
+            <span className="font-bold text-xl text-violet-600 font-display">UGET</span>
+          </Link>
+          <button onClick={() => setSidebarOpen(false)} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+            <CloseIcon />
+          </button>
+        </div>
+
+        {/* Mobile search bar in drawer */}
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-100 mb-6">
+          <SearchIcon />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search UGET..."
+            className="bg-transparent border-none outline-none text-sm w-full text-gray-800"
+          />
+        </form>
+
+        <nav style={{ flex: 1 }}>
+          <SidebarNav
+            activePage={activeTab === "stories" ? "stories" : activeTab === "stats" ? "stats" : "stories"}
+            profileHref={`/profile/${profile?.username || profile?.id}`}
+            onItemClick={() => setSidebarOpen(false)}
+          />
+          <SidebarFollowingList followingProfiles={followingProfiles} />
+        </nav>
+
+        {profile && (
+          <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+              {profile.avatar_url ? (
+                <Image src={profile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
+              ) : (
+                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
+                  {getInitials(profile.full_name || "?")}
+                </div>
+              )}
             </div>
-
-            {/* Mobile search bar in drawer */}
-            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-100 mb-6">
-              <SearchIcon />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search UGET..."
-                className="bg-transparent border-none outline-none text-sm w-full text-gray-800"
-              />
-            </form>
-
-            <nav style={{ flex: 1 }}>
-              <SidebarNav
-                activePage={activeTab === "stories" ? "stories" : activeTab === "stats" ? "stats" : "stories"}
-                profileHref={`/profile/${profile?.username || profile?.id}`}
-                onItemClick={() => setSidebarOpen(false)}
-              />
-              <SidebarFollowingList followingProfiles={followingProfiles} />
-            </nav>
-
-            {profile && (
-              <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
-                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                  {profile.avatar_url ? (
-                    <Image src={profile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
-                  ) : (
-                    <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
-                      {getInitials(profile.full_name || "?")}
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0" style={{ flex: 1 }}>
-                  <div className="font-bold text-sm text-gray-900 truncate">{profile.full_name || "Writer"}</div>
-                  <div className="text-xs text-gray-500 truncate">@{profile.username || "writer"}</div>
-                </div>
-              </div>
-            )}
+            <div className="min-w-0" style={{ flex: 1 }}>
+              <div className="font-bold text-sm text-gray-900 truncate">{profile.full_name || "Writer"}</div>
+              <div className="text-xs text-gray-500 truncate">@{profile.username || "writer"}</div>
+            </div>
           </div>
-        </>
-      )}
+        )}
+      </div>
 
       {/* ── Main Area ── */}
       <main className="uget-main">

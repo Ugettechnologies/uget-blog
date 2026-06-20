@@ -8,6 +8,7 @@ import { createClient } from "@/lib/db-client/client";
 import type { Post } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon } from "./SidebarNav";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -594,86 +595,6 @@ export default function HomePage() {
     );
   }
 
-  // ── Premium Sidebar Icons (solid/filled style) ──
-  const HomeIcon = ({ active }: { active?: boolean }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      {active ? (
-        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a3 3 0 003 3h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a3 3 0 003-3v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-      ) : (
-        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      )}
-    </svg>
-  );
-
-  const LibraryIcon = ({ active }: { active?: boolean }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.12 : 0} />
-      {active && <path d="M9 7h6M9 11h4" strokeWidth={1.5} />}
-    </svg>
-  );
-
-  const ProfileIcon = ({ active }: { active?: boolean }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      {active ? (
-        <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm-7 8a7 7 0 1 1 14 0H5z" />
-      ) : (
-        <><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></>
-      )}
-    </svg>
-  );
-
-  const StoriesIcon = ({ active }: { active?: boolean }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.1 : 0} />
-      <path d="M8 10h8M8 14h5" />
-    </svg>
-  );
-
-  const StatsIcon = ({ active }: { active?: boolean }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="12" width="4" height="9" rx="1" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.8 : 0} />
-      <rect x="9" y="7" width="4" height="14" rx="1" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.6 : 0} />
-      <rect x="16" y="3" width="4" height="18" rx="1" fill={active ? "currentColor" : "none"} fillOpacity={active ? 0.9 : 0} />
-      {!active && <><path d="M4 12v9M10 7v14M16 3v18" /></>}
-    </svg>
-  );
-
-  const WriteIcon = () => (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  );
-
-  const BellIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-
-  const SearchIcon = () => (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  );
-
-  const HamburgerIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="18" x2="15" y2="18" />
-    </svg>
-  );
-
-  const CloseIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 6 6 18M6 6l12 12" />
-    </svg>
-  );
-
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
@@ -681,120 +602,6 @@ export default function HomePage() {
     } else {
       router.push("/");
     }
-  };
-
-  // Sidebar link styles — inline for full control (active has violet left border + bg tint)
-  const getSidebarLinkStyle = (active: boolean): React.CSSProperties => ({
-    display: "flex",
-    alignItems: "center",
-    gap: 11,
-    padding: "10px 12px 10px 10px",
-    borderRadius: 10,
-    textDecoration: "none",
-    fontFamily: "var(--sans, 'Inter', sans-serif)",
-    fontSize: 14,
-    fontWeight: active ? 700 : 500,
-    color: active ? "#5b21b6" : "#4b5563",
-    background: active ? "#f5f3ff" : "transparent",
-    borderLeft: active ? "3px solid #7c3aed" : "3px solid transparent",
-    letterSpacing: active ? "-0.01em" : "normal",
-    transition: "all 0.15s ease",
-    cursor: "pointer",
-  });
-
-  const renderFollowingList = () => (
-    <div style={{ marginTop: 24, borderTop: "1px solid #f0f0f0", paddingTop: 20 }}>
-      {/* Clickable Following header → goes to followers page */}
-      <Link
-        href="/dashboard?tab=followers"
-        style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 4px" }}
-      >
-        <span style={{ fontSize: 11, fontFamily: "var(--sans)", fontWeight: 700, color: "#9b9b9b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          Following
-        </span>
-        <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "#7c3aed", fontWeight: 600 }}>
-          View all →
-        </span>
-      </Link>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {followingProfiles.length === 0 ? (
-          <Link
-            href="/profile/admin"
-            style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", borderRadius: 8 }}
-            className="hover:bg-gray-50"
-          >
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
-              UG
-            </div>
-            <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>UGET Staff</span>
-          </Link>
-        ) : (
-          followingProfiles.map((prof) => (
-            <Link
-              key={prof.id}
-              href={`/profile/${prof.username || prof.id}`}
-              style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", borderRadius: 8 }}
-              className="hover:bg-gray-50"
-            >
-              <div style={{ width: 28, height: 28, borderRadius: "50%", overflow: "hidden", background: "#e5e7eb", flexShrink: 0 }}>
-                {prof.avatar_url ? (
-                  <Image src={prof.avatar_url} alt="" width={28} height={28} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {getInitials(prof.full_name || "?")}
-                  </div>
-                )}
-              </div>
-              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prof.full_name}</span>
-            </Link>
-          ))
-        )}
-
-        {/* Discover more link */}
-        <Link
-          href="/dashboard?tab=followers"
-          style={{ textDecoration: "none", marginTop: 8, padding: "6px 4px", display: "flex", alignItems: "center", gap: 8 }}
-        >
-          <div style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#9ca3af", fontSize: 14, fontWeight: 600 }}>+</div>
-          <div>
-            <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "#6b7280", fontWeight: 500, lineHeight: 1.3 }}>Find writers to follow</div>
-            <div style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#7c3aed", fontWeight: 600, marginTop: 1 }}>See suggestions</div>
-          </div>
-        </Link>
-      </div>
-    </div>
-  );
-
-  const renderSidebarLinks = (onItemClick?: () => void) => {
-    const isHome = typeof window !== "undefined" && window.location.pathname === "/" && !window.location.search;
-    const isLibrary = typeof window !== "undefined" && window.location.pathname === "/library";
-    const isProfile = typeof window !== "undefined" && window.location.pathname.startsWith("/profile");
-    const isStories = typeof window !== "undefined" && window.location.search.includes("tab=stories");
-    const isStats = typeof window !== "undefined" && window.location.search.includes("tab=stats");
-
-    return (
-      <nav style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        {[
-          { href: "/", label: "Home", icon: <HomeIcon active={isHome} />, active: isHome, onClick: () => { setActiveCategory("all"); setActiveFeedTab("foryou"); if (onItemClick) onItemClick(); } },
-          { href: "/library", label: "Library", icon: <LibraryIcon active={isLibrary} />, active: isLibrary, onClick: onItemClick },
-          { href: `/profile/${userProfile?.username || user?.id}`, label: "Profile", icon: <ProfileIcon active={isProfile} />, active: isProfile, onClick: onItemClick },
-          { href: "/dashboard?tab=stories", label: "Stories", icon: <StoriesIcon active={isStories} />, active: isStories, onClick: onItemClick },
-          { href: "/dashboard?tab=stats", label: "Stats", icon: <StatsIcon active={isStats} />, active: isStats, onClick: onItemClick },
-        ].map(({ href, label, icon, active, onClick }) => (
-          <Link
-            key={href}
-            href={href}
-            style={getSidebarLinkStyle(active)}
-            onClick={onClick}
-            onMouseEnter={(e) => { if (!active) Object.assign((e.currentTarget as HTMLElement).style, { background: "#f9fafb", color: "#111827" }); }}
-            onMouseLeave={(e) => { if (!active) Object.assign((e.currentTarget as HTMLElement).style, getSidebarLinkStyle(false)); }}
-          >
-            <span style={{ display: "flex", alignItems: "center", color: active ? "#7c3aed" : "#9ca3af", transition: "color 0.15s" }}>{icon}</span>
-            <span>{label}</span>
-          </Link>
-        ))}
-      </nav>
-    );
   };
 
   const feedPosts = activeFeedTab === "foryou" ? posts : (activeFeedTab === "featured" ? posts.filter((p) => p.featured) : posts);
@@ -953,7 +760,6 @@ export default function HomePage() {
           }
         }
       `}} />
-
       {/* ── Persistent Desktop Left Sidebar ── */}
       <aside className="uget-sidebar">
         <div style={{ marginBottom: 32 }}>
@@ -964,8 +770,11 @@ export default function HomePage() {
         </div>
 
         <nav style={{ flex: 1 }}>
-          {renderSidebarLinks()}
-          {renderFollowingList()}
+          <SidebarNav
+            activePage="home"
+            profileHref={`/profile/${userProfile?.username || user?.id}`}
+          />
+          <SidebarFollowingList followingProfiles={followingProfiles} userProfileId={userProfile?.id} />
         </nav>
 
         {userProfile && (
@@ -1004,57 +813,70 @@ export default function HomePage() {
       </aside>
 
       {/* ── Mobile Sidebar Drawer overlay ── */}
-      {sidebarOpen && (
-        <>
-          <div className="uget-mobile-drawer-overlay" onClick={() => setSidebarOpen(false)} />
-          <div className="uget-mobile-drawer" style={{ transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" }}>
-            <div className="flex justify-between items-center mb-8">
-              <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }} onClick={() => { setSidebarOpen(false); setActiveCategory("all"); }}>
-                <Image src="/favicon.png" alt="UGET Logo" width={28} height={28} />
-                <span className="font-bold text-xl text-violet-600 font-display">UGET</span>
-              </Link>
-              <button onClick={() => setSidebarOpen(false)} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-                <CloseIcon />
-              </button>
+      <div 
+        className="uget-mobile-drawer-overlay" 
+        style={{ 
+          opacity: sidebarOpen ? 1 : 0, 
+          pointerEvents: sidebarOpen ? "auto" : "none",
+          transition: "opacity 0.3s ease-in-out" 
+        }} 
+        onClick={() => setSidebarOpen(false)} 
+      />
+      <div 
+        className="uget-mobile-drawer" 
+        style={{ 
+          transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" 
+        }}
+      >
+        <div className="flex justify-between items-center mb-8">
+          <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }} onClick={() => { setSidebarOpen(false); setActiveCategory("all"); }}>
+            <Image src="/favicon.png" alt="UGET Logo" width={28} height={28} />
+            <span className="font-bold text-xl text-violet-600 font-display">UGET</span>
+          </Link>
+          <button onClick={() => setSidebarOpen(false)} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+            <CloseIcon />
+          </button>
+        </div>
+
+        {/* Mobile search bar in drawer */}
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-100 mb-6">
+          <SearchIcon />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search UGET..."
+            className="bg-transparent border-none outline-none text-sm w-full text-gray-800"
+          />
+        </form>
+
+        <nav style={{ flex: 1 }}>
+          <SidebarNav
+            activePage="home"
+            profileHref={`/profile/${userProfile?.username || user?.id}`}
+            onItemClick={() => setSidebarOpen(false)}
+          />
+          <SidebarFollowingList followingProfiles={followingProfiles} userProfileId={userProfile?.id} />
+        </nav>
+
+        {userProfile && (
+          <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+              {userProfile.avatar_url ? (
+                <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
+              ) : (
+                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
+                  {getInitials(userProfile.full_name || user?.email || "?")}
+                </div>
+              )}
             </div>
-
-            {/* Mobile search bar in drawer */}
-            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-100 mb-6">
-              <SearchIcon />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search UGET..."
-                className="bg-transparent border-none outline-none text-sm w-full text-gray-800"
-              />
-            </form>
-
-            <nav style={{ flex: 1 }}>
-              {renderSidebarLinks(() => setSidebarOpen(false))}
-              {renderFollowingList()}
-            </nav>
-
-            {userProfile && (
-              <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
-                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                  {userProfile.avatar_url ? (
-                    <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
-                  ) : (
-                    <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
-                      {getInitials(userProfile.full_name || user?.email || "?")}
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0" style={{ flex: 1 }}>
-                  <div className="font-bold text-sm text-gray-900 truncate">{userProfile.full_name || "Writer"}</div>
-                  <div className="text-xs text-gray-500 truncate">@{userProfile.username || "writer"}</div>
-                </div>
-              </div>
-            )}
+            <div className="min-w-0" style={{ flex: 1 }}>
+              <div className="font-bold text-sm text-gray-900 truncate">{userProfile.full_name || "Writer"}</div>
+              <div className="text-xs text-gray-500 truncate">@{userProfile.username || "writer"}</div>
+            </div>
           </div>
-        </>
-      )}
+        )}
+      </div>
 
       {/* ── Main Area ── */}
       <main className="uget-main">
