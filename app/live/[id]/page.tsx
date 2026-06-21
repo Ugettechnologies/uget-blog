@@ -1,11 +1,19 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { createClient } from "@/lib/db-client/client";
 import { formatDate } from "@/lib/types";
+
+interface LiveUpdate {
+  id: string;
+  event_id: string;
+  content: string;
+  image_url: string | null;
+  created_at: string;
+}
 
 interface LiveEvent {
   id: string;
@@ -22,319 +30,292 @@ interface LiveEvent {
   };
 }
 
-interface LiveUpdate {
-  id: string;
-  event_id: string;
-  content: string;
-  image_url: string | null;
-  created_at: string;
-}
-
-export default function LiveEventPage() {
-  const params = useParams();
+export default function LiveEventRoom({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const id = params?.id as string;
   const supabase = createClient();
+  const eventId = params.id;
 
-  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; role?: string } | null>(null);
   const [event, setEvent] = useState<LiveEvent | null>(null);
   const [updates, setUpdates] = useState<LiveUpdate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Form states
+  // Composer state
   const [newUpdate, setNewUpdate] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [error, setError] = useState("");
-
-  const refreshInterval = useRef<NodeJS.Timeout | null>(null);
+  const [posting, setPosting] = useState(false);
+  const [ending, setEnding] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
+    
+    fetchEventAndUpdates();
 
-    if (id) {
-      loadEventData();
-    }
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel(`live_events_${eventId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "live_updates",
+          filter: `event_id=eq.${eventId}`
+        },
+        (payload) => {
+          // Add new update to the top of the list
+          setUpdates((prev) => [payload.new as LiveUpdate, ...prev]);
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "live_events",
+          filter: `id=eq.${eventId}`
+        },
+        (payload) => {
+          // Update event details (like if it ended)
+          setEvent((prev) => prev ? { ...prev, ...payload.new } : null);
+        }
+      )
+      .subscribe();
 
     return () => {
-      if (refreshInterval.current) clearInterval(refreshInterval.current);
+      supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [eventId]);
 
-  useEffect(() => {
-    if (autoRefresh && event && event.status === "active") {
-      refreshInterval.current = setInterval(() => {
-        loadUpdates();
-      }, 10000); // refresh updates every 10 seconds
-    } else {
-      if (refreshInterval.current) {
-        clearInterval(refreshInterval.current);
-        refreshInterval.current = null;
-      }
-    }
-
-    return () => {
-      if (refreshInterval.current) {
-        clearInterval(refreshInterval.current);
-        refreshInterval.current = null;
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRefresh, event]);
-
-  const loadEventData = async () => {
+  const fetchEventAndUpdates = async () => {
     setLoading(true);
-    // Load event metadata
-    const { data: eventData } = await supabase
+    setError(null);
+
+    // Fetch Event
+    const { data: eventData, error: eventErr } = await supabase
       .from("live_events")
       .select("*, profiles(id, full_name, avatar_url, username)")
-      .eq("id", id)
+      .eq("id", eventId)
       .single();
 
-    if (eventData) {
-      setEvent(eventData as LiveEvent);
-      // Load event updates
-      await loadUpdates();
-    }
-    setLoading(false);
-  };
-
-  const loadUpdates = async () => {
-    const { data } = await supabase
-      .from("live_updates")
-      .select("*")
-      .eq("event_id", id)
-      .order("created_at", { ascending: false });
-
-    if (data) {
-      setUpdates(data as LiveUpdate[]);
-    }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `live/${id}/${Date.now()}.${ext}`;
-
-    const { error, data } = await supabase.storage.from("live-images").upload(path, file);
-
-    if (error) {
-      setError(error.message);
-      setUploading(false);
+    if (eventErr) {
+      setError(eventErr.message || "Failed to load live event.");
+      setLoading(false);
       return;
     }
+    setEvent(eventData as LiveEvent);
 
-    setImageUrl(data.path);
-    setUploading(false);
+    // Fetch Updates
+    const { data: updatesData, error: updatesErr } = await supabase
+      .from("live_updates")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false });
+
+    if (!updatesErr && updatesData) {
+      setUpdates(updatesData as LiveUpdate[]);
+    }
+
+    setLoading(false);
   };
 
   const handlePostUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !newUpdate.trim()) return;
+    if (!newUpdate.trim() || !user || !event) return;
 
     setPosting(true);
-    setError("");
-
     const payload = {
-      event_id: id,
+      event_id: event.id,
       content: newUpdate.trim(),
-      image_url: imageUrl || null,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
-    const { data, error: err } = await supabase
+    const { error: postErr } = await supabase
       .from("live_updates")
       .insert(payload);
 
     setPosting(false);
-    if (err) {
-      setError(err.message || "Failed to post update");
-    } else {
+    if (!postErr) {
       setNewUpdate("");
-      setImageUrl("");
-      loadUpdates();
+    } else {
+      alert("Failed to post update: " + postErr.message);
     }
   };
 
   const handleEndEvent = async () => {
-    if (!confirm("Are you sure you want to end this live reporting event? This will archive the stream.")) return;
-    
-    const { error: err } = await supabase
+    if (!confirm("Are you sure you want to end this live event? You won't be able to post further updates.")) return;
+    if (!user || !event) return;
+
+    setEnding(true);
+    const { error: endErr } = await supabase
       .from("live_events")
       .update({ status: "ended", updated_at: new Date().toISOString() })
-      .eq("id", id);
+      .eq("id", event.id);
 
-    if (err) {
-      alert("Failed to end event: " + err.message);
+    setEnding(false);
+    if (endErr) {
+      alert("Failed to end event: " + endErr.message);
     } else {
-      loadEventData();
+      setEvent({ ...event, status: "ended" });
     }
   };
 
-  const isAuthor = user && event && user.id === event.author_id;
-
   if (loading) {
     return (
-      <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+      <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
         <Navbar />
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "50vh" }}>
-          <div className="spinner" style={{ width: 28, height: 28, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
+          <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} />
         </div>
       </div>
     );
   }
 
-  if (!event) {
+  if (error || !event) {
     return (
-      <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+      <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
         <Navbar />
-        <div style={{ maxWidth: 680, margin: "80px auto", padding: "0 24px", textAlign: "center", color: "var(--ink)" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-          <h1 style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Live Event Not Found</h1>
-          <p style={{ color: "var(--muted)", marginBottom: 20 }}>The live reporting event does not exist or has been removed.</p>
-          <Link href="/live" className="btn btn-primary btn-md" style={{ textDecoration: "none" }}>Back to Live Reports</Link>
-        </div>
+        <main style={{ maxWidth: 640, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+          <h1 style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 700, color: "var(--black)", marginBottom: 8 }}>Event Not Found</h1>
+          <p style={{ fontFamily: "var(--sans)", color: "var(--muted)", marginBottom: 24 }}>{error || "The live event you are looking for does not exist."}</p>
+          <Link href="/live" className="btn btn-outline btn-md" style={{ borderRadius: 999 }}>
+            Back to Live Events
+          </Link>
+        </main>
       </div>
     );
   }
+
+  const isAuthor = user?.id === event.author_id;
+  const isActive = event.status === "active";
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
       <Navbar />
 
-      <main style={{ maxWidth: 680, margin: "0 auto", padding: "60px 24px 100px" }}>
-        {/* Header */}
-        <div style={{ borderBottom: "1px solid var(--border)", paddingBottom: 24, marginBottom: 32 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <span style={{
-              background: event.status === "active" ? "#fef2f2" : "var(--bg-3)",
-              color: event.status === "active" ? "#ef4444" : "var(--muted)",
-              fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 999,
-              fontFamily: "var(--sans)", textTransform: "uppercase", letterSpacing: "0.05em",
-              display: "flex", alignItems: "center", gap: 6
-            }}>
-              {event.status === "active" ? (
-                <><span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#ef4444" }} />LIVE</>
-              ) : "ARCHIVED"}
-            </span>
-            {event.status === "active" && (
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted-2)", fontFamily: "var(--sans)", cursor: "pointer" }}>
-                <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
-                Auto-refresh (10s)
-              </label>
+      {/* Hero Header */}
+      <div style={{ background: "var(--bg-2)", borderBottom: "1px solid var(--border-2)", padding: "48px 24px" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            {isActive ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fef2f2", color: "#ef4444", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, fontFamily: "var(--sans)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <span className="uget-live-dot" style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#ef4444" }} />
+                Live Now
+              </span>
+            ) : (
+              <span style={{ background: "var(--bg-3)", color: "var(--muted)", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, fontFamily: "var(--sans)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Ended
+              </span>
             )}
+            <span style={{ fontSize: 13, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
+              {formatDate(event.created_at)}
+            </span>
           </div>
 
-          <h1 style={{ fontFamily: "var(--display)", fontSize: 32, fontWeight: 700, letterSpacing: "-0.025em", color: "var(--black)", marginBottom: 12 }}>
+          <h1 style={{ fontFamily: "var(--display)", fontSize: 40, fontWeight: 800, color: "var(--black)", letterSpacing: "-0.02em", marginBottom: 16, lineHeight: 1.2 }}>
             {event.title}
           </h1>
-
+          
           {event.description && (
-            <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ fontFamily: "var(--serif)", fontSize: 18, color: "var(--muted)", lineHeight: 1.6, marginBottom: 24, maxWidth: 600 }}>
               {event.description}
             </p>
           )}
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                {event.profiles?.avatar_url ? <Image src={event.profiles.avatar_url} alt="" width={24} height={24} style={{ objectFit: "cover" }} /> : event.profiles?.full_name[0]}
-              </div>
-              <span style={{ fontSize: 13, color: "var(--ink-2)", fontFamily: "var(--sans)" }}>
-                By <strong>{event.profiles?.full_name}</strong> · {formatDate(event.created_at)}
-              </span>
-            </div>
-            {isAuthor && event.status === "active" && (
-              <button onClick={handleEndEvent} className="btn btn-sm btn-outline" style={{ color: "var(--red)", border: "1px solid rgba(192,57,43,0.2)" }}>
-                ⛔ End Live Stream
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Post update (Author-only) */}
-        {isAuthor && event.status === "active" && (
-          <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, padding: 20, marginBottom: 40 }}>
-            <h3 style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-              <span>✍️</span> Post a Live Update
-            </h3>
-            {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
-            
-            <form onSubmit={handlePostUpdate} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <textarea className="form-input" placeholder="Type what's happening now..." value={newUpdate} onChange={(e) => setNewUpdate(e.target.value)} rows={4} style={{ fontFamily: "var(--serif)", fontSize: 15 }} required />
-              
-              {imageUrl && (
-                <div style={{ position: "relative", borderRadius: 8, overflow: "hidden", maxHeight: 200, border: "1px solid var(--border)" }}>
-                  <Image src={imageUrl} alt="Upload preview" width={600} height={200} style={{ objectFit: "cover", width: "100%", height: 200 }} />
-                  <button type="button" onClick={() => setImageUrl("")} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", color: "white", borderRadius: "50%", width: 28, height: 28, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, borderTop: "1px solid var(--border-2)", paddingTop: 24 }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--border)", overflow: "hidden" }}>
+              {event.profiles?.avatar_url ? (
+                <Image src={event.profiles.avatar_url} alt="" width={40} height={40} style={{ objectFit: "cover" }} />
+              ) : (
+                <div style={{ width: "100%", height: "100%", background: "#f5f3ff", color: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontFamily: "var(--sans)" }}>
+                  {event.profiles?.full_name[0]}
                 </div>
               )}
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--sans)", color: "var(--black)" }}>{event.profiles?.full_name}</div>
+              <div style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>@{event.profiles?.username} • Reporter</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <label className="btn btn-outline btn-sm" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                  {uploading ? (
-                    <><div className="spinner" style={{ width: 12, height: 12, borderColor: "var(--border)", borderTopColor: "var(--muted)" }} />Uploading...</>
-                  ) : (
-                    <>🖼️ Add Image</>
-                  )}
-                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} disabled={uploading} />
-                </label>
-                <button type="submit" className="btn btn-primary btn-sm" disabled={posting || !newUpdate.trim()} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  {posting && <div className="spinner" style={{ width: 12, height: 12 }} />}
-                  Post Update
+      <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 24px 120px" }}>
+        
+        {/* Author Composer */}
+        {isAuthor && isActive && (
+          <div style={{ background: "white", border: "1px solid var(--brand)", borderRadius: 16, padding: 24, marginBottom: 48, boxShadow: "0 8px 30px rgba(139, 92, 246, 0.12)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Post Live Update</h3>
+              <button onClick={handleEndEvent} disabled={ending} style={{ background: "none", border: "none", color: "#ef4444", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "var(--sans)" }}>
+                {ending ? "Ending..." : "End Event"}
+              </button>
+            </div>
+            <form onSubmit={handlePostUpdate}>
+              <textarea
+                value={newUpdate}
+                onChange={(e) => setNewUpdate(e.target.value)}
+                placeholder="What's happening right now?"
+                rows={3}
+                style={{ width: "100%", border: "1px solid var(--border-2)", borderRadius: 12, padding: 16, fontSize: 15, fontFamily: "var(--sans)", resize: "vertical", outline: "none", marginBottom: 16, background: "var(--bg)" }}
+                onFocus={(e) => e.currentTarget.style.borderColor = "var(--brand)"}
+                onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-2)"}
+                required
+              />
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button type="submit" disabled={posting || !newUpdate.trim()} className="btn btn-primary" style={{ borderRadius: 999, padding: "10px 24px", fontWeight: 600 }}>
+                  {posting ? "Posting..." : "Post Update"}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Timeline updates */}
-        <div>
-          <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 24 }}>
-            Timeline Updates ({updates.length})
-          </h2>
+        {/* Timeline Feed */}
+        <div style={{ position: "relative" }}>
+          {/* Vertical line for timeline */}
+          <div style={{ position: "absolute", left: 16, top: 20, bottom: 0, width: 2, background: "var(--border-2)", zIndex: 0 }} />
 
           {updates.length === 0 ? (
-            <div style={{ padding: "60px 24px", textAlign: "center", color: "var(--muted-2)", borderTop: "1px solid var(--border)" }}>
-              <p style={{ fontFamily: "var(--serif)", fontSize: 15 }}>No updates posted yet. Timeline is currently empty.</p>
+            <div style={{ padding: "60px 0", textAlign: "center", position: "relative", zIndex: 1 }}>
+              <div style={{ background: "white", display: "inline-block", padding: "0 24px" }}>
+                <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>
+                  {isActive ? "Waiting for the first update..." : "This event ended without any updates."}
+                </p>
+                {isActive && (
+                  <div className="spinner" style={{ width: 24, height: 24, margin: "24px auto 0", borderColor: "var(--border)", borderTopColor: "var(--brand)" }} />
+                )}
+              </div>
             </div>
           ) : (
-            <div style={{ position: "relative", paddingLeft: 24, borderLeft: "2px solid var(--border)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 32, position: "relative", zIndex: 1 }}>
               {updates.map((update, index) => {
-                const updateTime = new Date(update.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                const date = new Date(update.created_at);
+                const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
                 return (
-                  <div key={update.id} style={{ position: "relative", marginBottom: 40 }}>
-                    {/* Circle timeline bullet */}
-                    <div style={{
-                      position: "absolute", left: -31, top: 4, width: 12, height: 12, borderRadius: "50%",
-                      background: index === 0 && event.status === "active" ? "#ef4444" : "var(--border)",
-                      border: index === 0 && event.status === "active" ? "3px solid #fef2f2" : "3px solid var(--bg)"
-                    }} />
+                  <div key={update.id} style={{ display: "flex", gap: 20 }}>
+                    {/* Timeline Node */}
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: index === 0 && isActive ? "var(--brand)" : "var(--bg-3)", border: "4px solid var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 4, zIndex: 2, boxShadow: index === 0 && isActive ? "0 0 0 4px rgba(139, 92, 246, 0.1)" : "none" }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: index === 0 && isActive ? "white" : "var(--border)" }} />
+                    </div>
                     
-                    {/* Timestamp */}
-                    <div style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: index === 0 && event.status === "active" ? "#ef4444" : "var(--muted)", marginBottom: 6 }}>
-                      {updateTime}
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ fontFamily: "var(--serif)", fontSize: 16, lineHeight: 1.6, color: "var(--ink-2)", whiteSpace: "pre-wrap" }}>
-                      {update.content}
-                    </div>
-
-                    {/* Image if any */}
-                    {update.image_url && (
-                      <div style={{ marginTop: 16, borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)", background: "var(--bg-3)" }}>
-                        <Image src={update.image_url} alt="" width={600} height={350} style={{ objectFit: "cover", width: "100%", height: "auto", maxHeight: 400 }} />
+                    {/* Content Card */}
+                    <div style={{ flex: 1, background: "white", border: "1px solid var(--border-2)", borderRadius: 16, padding: "20px 24px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--sans)", color: "var(--black)" }}>{timeString}</span>
+                        {index === 0 && isActive && (
+                          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--sans)", color: "var(--brand)", background: "var(--bg-brand)", padding: "2px 8px", borderRadius: 999 }}>Latest</span>
+                        )}
                       </div>
-                    )}
+                      <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--ink)", lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>
+                        {update.content}
+                      </p>
+                    </div>
                   </div>
                 );
               })}
@@ -342,6 +323,17 @@ export default function LiveEventPage() {
           )}
         </div>
       </main>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes pulse-red {
+          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .uget-live-dot {
+          animation: pulse-red 2s infinite;
+        }
+      `}} />
     </div>
   );
 }
