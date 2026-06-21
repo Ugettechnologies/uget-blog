@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
+import { UserDropdown } from "@/components/UserDropdown";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { SidebarNav, SidebarFollowingList, HamburgerIcon, CloseIcon, SearchIcon, WriteIcon, BellIcon } from "@/components/SidebarNav";
 
@@ -471,33 +472,14 @@ export default function RefineRecommendationsPage() {
                   </div>
                 )}
               </button>
-              {userDropdownOpen && (
-                <div className="avatar-dropdown absolute right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1" style={{ right: 0, minWidth: 240 }}>
-                  <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
-                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                      {userProfile?.avatar_url ? (
-                        <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
-                      ) : (
-                        <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center font-sans">
-                          {getInitials(userProfile?.full_name || user?.email || "?")}
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0" style={{ flex: 1 }}>
-                      <div className="font-bold text-sm text-gray-900 truncate font-sans">{userProfile?.full_name || "Writer"}</div>
-                      <div className="text-xs text-gray-500 truncate font-sans">{user?.email}</div>
-                    </div>
-                  </div>
-                  <div className="py-1">
-                    <Link href="/write" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" onClick={() => setUserDropdownOpen(false)}>✍️ Write</Link>
-                    <button onClick={() => { setUserDropdownOpen(false); setNotifDropdownOpen(true); }} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans">🔔 Notifications</button>
-                    <Link href="/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans" onClick={() => setUserDropdownOpen(false)}>⚙️ Settings</Link>
-                  </div>
-                  <div className="border-t border-gray-100 py-1">
-                    <button onClick={handleSignOut} className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-sans">🚪 Sign out</button>
-                  </div>
-                </div>
-              )}
+              <UserDropdown
+                isOpen={userDropdownOpen}
+                user={user}
+                userProfile={userProfile}
+                onClose={() => setUserDropdownOpen(false)}
+                onOpenNotifs={() => { setUserDropdownOpen(false); setNotifDropdownOpen(true); }}
+                onSignOut={handleSignOut}
+              />
             </div>
           </div>
         </header>
