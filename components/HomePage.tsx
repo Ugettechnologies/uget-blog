@@ -834,25 +834,25 @@ export default function HomePage() {
           transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)" 
         }}
       >
-        <div className="flex justify-between items-center mb-8">
-          <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }} onClick={() => { setSidebarOpen(false); setActiveCategory("all"); }}>
-            <Image src="/favicon.png" alt="UGET Logo" width={28} height={28} />
-            <span className="font-bold text-xl text-violet-600 font-display">UGET</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }} onClick={() => { setSidebarOpen(false); setActiveCategory("all"); }}>
+            <Image src="/favicon.png" alt="UGET Logo" width={32} height={32} style={{ borderRadius: 6 }} />
+            <span style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 800, color: "var(--brand)", letterSpacing: "-0.02em" }}>UGET</span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+          <button onClick={() => setSidebarOpen(false)} style={{ padding: 8, background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-3)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
             <CloseIcon />
           </button>
         </div>
 
         {/* Mobile search bar in drawer */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2 border border-gray-100 mb-6">
-          <SearchIcon />
+        <form onSubmit={handleSearchSubmit} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--bg-2)", borderRadius: 999, padding: "12px 16px", border: "1px solid var(--border-2)", marginBottom: 32 }}>
+          <span style={{ color: "var(--muted)", display: "flex" }}><SearchIcon /></span>
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search UGET..."
-            className="bg-transparent border-none outline-none text-sm w-full text-gray-800"
+            style={{ background: "transparent", border: "none", outline: "none", fontSize: 15, width: "100%", color: "var(--ink)", fontFamily: "var(--sans)" }}
           />
         </form>
 
