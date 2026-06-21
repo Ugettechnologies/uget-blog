@@ -62,7 +62,7 @@ const getLinkStyle = (active: boolean): React.CSSProperties => ({
   fontFamily: "var(--sans, 'Inter', sans-serif)",
   fontSize: 14,
   fontWeight: active ? 700 : 500,
-  color: active ? "#5b21b6" : "#4b5563",
+  color: active ? "#5b21b6" : "#111827",
   background: active ? "#f5f3ff" : "transparent",
   borderLeft: active ? "3px solid #7c3aed" : "3px solid transparent",
   letterSpacing: active ? "-0.01em" : "normal",

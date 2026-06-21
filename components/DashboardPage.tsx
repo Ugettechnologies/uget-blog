@@ -559,18 +559,6 @@ export default function DashboardPage() {
               <Image src="/favicon.png" alt="UGET" width={24} height={24} />
               <span className="font-bold text-lg text-violet-600 font-display">UGET</span>
             </Link>
-
-            {/* Search Input on Desktop */}
-            <form onSubmit={handleSearchSubmit} className="hidden sm:flex uget-header-search">
-              <SearchIcon />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search..."
-                className="bg-transparent border-none outline-none text-sm w-full text-black placeholder-gray-400 font-sans"
-              />
-            </form>
           </div>
 
           <div className="flex items-center gap-4">
