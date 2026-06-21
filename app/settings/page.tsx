@@ -1248,7 +1248,7 @@ export default function SettingsPage() {
                       <select 
                         value={theme} 
                         onChange={(e) => handleThemeChange(e.target.value)} 
-                        className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm font-medium font-sans text-gray-700 dark:text-gray-300 outline-none focus:border-violet-600 cursor-pointer"
+                        style={{ appearance: "none", WebkitAppearance: "none", background: "var(--bg-2)", backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center", backgroundSize: "16px", border: "1px solid var(--border-2)", borderRadius: 999, padding: "10px 40px 10px 16px", fontSize: 14, fontFamily: "var(--sans)", fontWeight: 600, color: "var(--ink)", cursor: "pointer", outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
                       >
                         <option value="light">☀️ Light</option>
                         <option value="dark">🌙 Dark</option>
@@ -2548,28 +2548,35 @@ export default function SettingsPage() {
                   <div className="settings-row">
                     <div className="settings-row-main flex flex-col gap-3">
                       <div className="settings-label">Change Password</div>
-                      <div className="flex flex-col gap-2.5 max-w-sm">
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 320 }}>
                         <input
                           type="password"
                           placeholder="Current Password"
-                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-sans focus:outline-none"
+                          style={{ border: "1px solid var(--border-2)", borderRadius: 12, padding: "12px 16px", fontSize: 14, fontFamily: "var(--sans)", color: "var(--ink)", outline: "none", background: "var(--bg)", transition: "border-color 0.2s" }}
+                          onFocus={(e) => e.currentTarget.style.borderColor = "var(--brand)"}
+                          onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-2)"}
                         />
                         <input
                           type="password"
                           placeholder="New Password"
-                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-sans focus:outline-none"
+                          style={{ border: "1px solid var(--border-2)", borderRadius: 12, padding: "12px 16px", fontSize: 14, fontFamily: "var(--sans)", color: "var(--ink)", outline: "none", background: "var(--bg)", transition: "border-color 0.2s" }}
+                          onFocus={(e) => e.currentTarget.style.borderColor = "var(--brand)"}
+                          onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-2)"}
                         />
                         <input
                           type="password"
                           placeholder="Confirm New Password"
-                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-sans focus:outline-none"
+                          style={{ border: "1px solid var(--border-2)", borderRadius: 12, padding: "12px 16px", fontSize: 14, fontFamily: "var(--sans)", color: "var(--ink)", outline: "none", background: "var(--bg)", transition: "border-color 0.2s" }}
+                          onFocus={(e) => e.currentTarget.style.borderColor = "var(--brand)"}
+                          onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-2)"}
                         />
                       </div>
                     </div>
                     <div className="settings-row-action">
                       <button
                         onClick={() => showMsg("Password changed (simulated)!", "ok")}
-                        className="btn btn-primary btn-sm"
+                        className="btn btn-primary"
+                        style={{ borderRadius: 999, padding: "10px 24px", fontSize: 14, fontWeight: 600 }}
                       >
                         Update
                       </button>
@@ -2584,17 +2591,20 @@ export default function SettingsPage() {
                         Add an extra layer of security to your UGET account by requiring a code from your phone upon sign in.
                       </div>
                     </div>
-                    <div className="settings-row-action">
-                      <label className="toggle-switch">
+                    <div className="settings-row-action" style={{ display: "flex", alignItems: "center" }}>
+                      <label className="toggle-switch" style={{ position: "relative", display: "inline-block", width: 44, height: 24 }}>
                         <input
                           type="checkbox"
+                          style={{ opacity: 0, width: 0, height: 0 }}
                           onChange={(e) => {
                             if (e.target.checked) {
                               alert("Please set up Google Authenticator or an equivalent TOTP app (simulation).");
                             }
                           }}
                         />
-                        <span className="toggle-slider" />
+                        <span className="toggle-slider" style={{ position: "absolute", cursor: "pointer", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "var(--border-2)", transition: "0.4s", borderRadius: 34 }}>
+                          <span style={{ position: "absolute", height: 18, width: 18, left: 3, bottom: 3, backgroundColor: "white", transition: "0.4s", borderRadius: "50%", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }} />
+                        </span>
                       </label>
                     </div>
                   </div>

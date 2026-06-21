@@ -662,57 +662,58 @@ export default function ProfilePage() {
           {/* Feed Column */}
           <div className="uget-profile-feed">
             {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-sm font-sans text-gray-500 mb-6">
-              <Link href="/me/following" className="hover:text-gray-900 transition-colors">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginBottom: 24 }}>
+              <Link href="/me/following" style={{ textDecoration: "none", color: "var(--muted)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "var(--ink)"} onMouseLeave={(e) => e.currentTarget.style.color = "var(--muted)"}>
                 Following
               </Link>
-              <span>&gt;</span>
-              <span className="text-gray-900 font-medium">{profile.full_name}</span>
+              <span style={{ fontSize: 12, opacity: 0.5 }}>❯</span>
+              <span style={{ color: "var(--ink)", fontWeight: 500 }}>{profile.full_name}</span>
             </div>
 
             {/* Profile Card Header (Mobile only) */}
-            <div className="uget-profile-header-card border border-gray-100 rounded-2xl p-6 md:p-8 bg-white shadow-sm mb-8 flex flex-col gap-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-5">
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+            <div className="uget-profile-header-card" style={{ border: "1px solid var(--border-2)", borderRadius: 20, padding: 32, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", marginBottom: 32, display: "flex", flexDirection: "column", gap: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                  <div style={{ width: 80, height: 80, borderRadius: "50%", overflow: "hidden", background: "var(--bg-2)", border: "1px solid var(--border-2)", flexShrink: 0 }}>
                     {profile.avatar_url ? (
-                      <Image src={profile.avatar_url} alt="" width={80} height={80} className="object-cover w-full h-full" />
+                      <Image src={profile.avatar_url} alt="" width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                     ) : (
-                      <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-2xl flex items-center justify-center font-sans">
+                      <div style={{ width: "100%", height: "100%", background: "#f5f3ff", color: "var(--brand)", fontWeight: 700, fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--sans)" }}>
                         {getInitials(profile.full_name)}
                       </div>
                     )}
                   </div>
                   <div>
-                    <h1 className="font-sans font-bold text-2xl md:text-3xl text-gray-900 leading-tight">
+                    <h1 style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 28, color: "var(--black)", margin: "0 0 4px 0", letterSpacing: "-0.01em" }}>
                       {profile.full_name}
                     </h1>
-                    <div className="text-sm text-gray-500 font-sans mt-1">
+                    <div style={{ fontSize: 15, color: "var(--muted)", fontFamily: "var(--sans)" }}>
                       {profile.follower_count ? profile.follower_count.toLocaleString() : 0} followers
                     </div>
                   </div>
                 </div>
 
                 {/* Follow/Following trigger button */}
-                <div className="relative following-dropdown-trigger flex-shrink-0">
+                <div className="relative following-dropdown-trigger flex-shrink-0" style={{ marginTop: 8 }}>
                   {currentUser && currentUser.id === profile.id ? (
                     <Link
                       href="/settings"
-                      className="inline-flex items-center px-4 py-2 border border-gray-200 text-sm font-sans font-semibold rounded-full hover:bg-gray-50 transition-colors text-gray-700"
-                      style={{ textDecoration: "none" }}
+                      className="btn btn-outline btn-sm"
+                      style={{ textDecoration: "none", borderRadius: 999, padding: "8px 20px" }}
                     >
                       Edit profile
                     </Link>
                   ) : (
                     <>
                       {isFollowing ? (
-                        <div className="flex items-center gap-2">
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <button
                             onClick={() => setFollowingDropdownOpen(!followingDropdownOpen)}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-sm font-sans font-semibold rounded-full hover:bg-gray-50 transition-colors text-gray-700"
+                            className="btn btn-outline btn-sm"
+                            style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 999 }}
                           >
                             <span>Following</span>
-                            <svg className="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ opacity: 0.5 }}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
@@ -720,7 +721,8 @@ export default function ProfilePage() {
                       ) : (
                         <button
                           onClick={handleFollow}
-                          className="inline-flex items-center px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-sans font-semibold rounded-full transition-colors shadow-sm"
+                          className="btn btn-primary btn-sm"
+                          style={{ borderRadius: 999, padding: "8px 24px" }}
                         >
                           Follow
                         </button>

@@ -688,49 +688,56 @@ export default function DashboardPage() {
               {/* ── STORIES TAB ── */}
               {activeTab === "stories" && (
                 <div>
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="font-display text-3xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em" }}>
-                      Stories
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 32, fontWeight: 800, color: "var(--black)", letterSpacing: "-0.02em", margin: 0 }}>
+                      Your stories
                     </h2>
-                    <Link href="/write" className="btn btn-primary btn-sm" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, borderRadius: 999 }}>
+                    <Link href="/write" className="btn btn-primary btn-sm" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, borderRadius: 999, padding: "8px 20px" }}>
                       <WriteIcon />
-                      <span>Write a story</span>
+                      <span style={{ fontWeight: 600 }}>Write a story</span>
                     </Link>
                   </div>
 
                   {/* Sub-tabs row matching Screenshot 4 */}
-                  <div style={{ borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, marginBottom: 20 }}>
+                  <div style={{ display: "flex", gap: 16, marginBottom: 32, overflowX: "auto", paddingBottom: 4 }}>
                     <button
                       onClick={() => setStoriesSubTab("published")}
-                      className={`dash-stories-subtab ${storiesSubTab === "published" ? "active" : ""}`}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "published" ? "var(--ink)" : "#f9fafb", color: storiesSubTab === "published" ? "white" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "published" ? "var(--ink)" : "var(--border-2)", cursor: "pointer" }}
                     >
-                      Published ({published.length})
+                      Published <span style={{ opacity: 0.7, marginLeft: 4 }}>{published.length}</span>
                     </button>
                     <button
                       onClick={() => setStoriesSubTab("drafts")}
-                      className={`dash-stories-subtab ${storiesSubTab === "drafts" ? "active" : ""}`}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "drafts" ? "var(--ink)" : "#f9fafb", color: storiesSubTab === "drafts" ? "white" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "drafts" ? "var(--ink)" : "var(--border-2)", cursor: "pointer" }}
                     >
-                      Drafts ({drafts.length})
+                      Drafts <span style={{ opacity: 0.7, marginLeft: 4 }}>{drafts.length}</span>
                     </button>
                     <button
                       onClick={() => setStoriesSubTab("scheduled")}
-                      className={`dash-stories-subtab ${storiesSubTab === "scheduled" ? "active" : ""}`}
-                      style={{ opacity: 0.5, cursor: "not-allowed" }}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "scheduled" ? "var(--ink)" : "#f9fafb", color: storiesSubTab === "scheduled" ? "white" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "scheduled" ? "var(--ink)" : "var(--border-2)", cursor: "not-allowed", opacity: 0.6 }}
                     >
-                      Scheduled (0)
+                      Scheduled <span style={{ opacity: 0.7, marginLeft: 4 }}>0</span>
                     </button>
                   </div>
 
                   {shownStories.length === 0 ? (
-                    <div className="empty-state">
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>{storiesSubTab === "published" ? "📢" : "📝"}</div>
-                      <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>
-                        {storiesSubTab === "published" ? "Nothing published yet" : "No drafts"}
+                    <div style={{ background: "white", border: "1px solid var(--border-2)", borderRadius: 24, padding: "64px 24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+                      <div style={{ width: 80, height: 80, background: "#f5f3ff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, color: "var(--brand)" }}>
+                        {storiesSubTab === "published" ? (
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        ) : (
+                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        )}
+                      </div>
+                      <h4 style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 700, color: "var(--black)", margin: "0 0 12px 0" }}>
+                        {storiesSubTab === "published" ? "Nothing published yet" : "No drafts in progress"}
                       </h4>
-                      <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>
-                        {storiesSubTab === "published" ? "Share your thoughts and tutorials with the community." : "Begin writing a new story and save your progress."}
+                      <p style={{ fontFamily: "var(--sans)", fontSize: 16, color: "var(--muted)", margin: "0 0 32px 0", maxWidth: 400, lineHeight: 1.5 }}>
+                        {storiesSubTab === "published" ? "Ready to share your ideas? Start writing your first story today and publish it to the community." : "Every great story starts with a draft. Begin writing and your progress will be saved here."}
                       </p>
-                      <Link href="/write" className="btn btn-primary btn-sm" style={{ textDecoration: "none" }}>Write a story</Link>
+                      <Link href="/write" className="btn btn-primary" style={{ textDecoration: "none", padding: "14px 32px", fontSize: 16, borderRadius: 999, fontWeight: 600, display: "inline-block" }}>
+                        Start writing
+                      </Link>
                     </div>
                   ) : (
                     <div className="flex flex-col">
@@ -932,11 +939,11 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Lifetime Story Table */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                        <h4 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", margin: 0 }}>
-                          Lifetime
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 24, borderBottom: "2px solid var(--border-2)", paddingBottom: 16 }}>
+                        <h4 style={{ fontFamily: "var(--sans)", fontSize: 24, fontWeight: 800, color: "var(--black)", margin: 0, letterSpacing: "-0.02em" }}>
+                          Lifetime performance
                         </h4>
-                        <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>Latest</span>
+                        <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)", fontWeight: 500, background: "var(--bg-2)", padding: "4px 12px", borderRadius: 999 }}>Latest to oldest</span>
                       </div>
 
                       {published.length === 0 ? (
