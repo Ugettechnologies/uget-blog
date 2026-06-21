@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -32,10 +32,11 @@ interface LiveEvent {
   };
 }
 
-export default function LiveEventRoom({ params }: { params: { id: string } }) {
+export default function LiveEventRoom() {
   const router = useRouter();
+  const params = useParams();
+  const eventId = params?.id as string;
   const supabase = createClient();
-  const eventId = params.id;
 
   const [user, setUser] = useState<{ id: string; role?: string } | null>(null);
   const [event, setEvent] = useState<LiveEvent | null>(null);
@@ -47,6 +48,7 @@ export default function LiveEventRoom({ params }: { params: { id: string } }) {
   const [newUpdate, setNewUpdate] = useState("");
   const [posting, setPosting] = useState(false);
   const [ending, setEnding] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -139,6 +141,25 @@ export default function LiveEventRoom({ params }: { params: { id: string } }) {
     }
   };
 
+  const handleDeleteEvent = async () => {
+    if (!confirm("Are you sure you want to permanently delete this live event and all its updates? This cannot be undone.")) return;
+    if (!user || !event) return;
+
+    setDeleting(true);
+    const { error: deleteErr } = await supabase
+      .from("live_events")
+      .delete()
+      .eq("id", event.id);
+
+    setDeleting(false);
+    if (deleteErr) {
+      alert("Failed to delete event: " + deleteErr.message);
+    } else {
+      router.push("/live");
+      router.refresh();
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
@@ -176,20 +197,43 @@ export default function LiveEventRoom({ params }: { params: { id: string } }) {
       {/* Hero Header */}
       <div style={{ background: "var(--bg-2)", borderBottom: "1px solid var(--border-2)", padding: "48px 24px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            {isActive ? (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fef2f2", color: "#ef4444", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, fontFamily: "var(--sans)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                <span className="uget-live-dot" style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#ef4444" }} />
-                Live Now
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {isActive ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fef2f2", color: "#ef4444", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, fontFamily: "var(--sans)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  <span className="uget-live-dot" style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#ef4444" }} />
+                  Live Now
+                </span>
+              ) : (
+                <span style={{ background: "var(--bg-3)", color: "var(--muted)", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, fontFamily: "var(--sans)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Ended
+                </span>
+              )}
+              <span style={{ fontSize: 13, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
+                {formatDate(event.created_at)}
               </span>
-            ) : (
-              <span style={{ background: "var(--bg-3)", color: "var(--muted)", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999, fontFamily: "var(--sans)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Ended
-              </span>
+            </div>
+
+            {isAuthor && (
+              <button
+                onClick={handleDeleteEvent}
+                disabled={deleting}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#ef4444",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "var(--sans)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4
+                }}
+              >
+                {deleting ? "Deleting..." : "🗑️ Delete Event"}
+              </button>
             )}
-            <span style={{ fontSize: 13, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
-              {formatDate(event.created_at)}
-            </span>
           </div>
 
           <h1 style={{ fontFamily: "var(--display)", fontSize: 40, fontWeight: 800, color: "var(--black)", letterSpacing: "-0.02em", marginBottom: 16, lineHeight: 1.2 }}>
