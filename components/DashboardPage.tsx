@@ -678,7 +678,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Content Area */}
-        <div className="w-full max-w-full overflow-hidden px-4 sm:px-8 md:px-12 py-6 box-border">
+        <div className="w-full max-w-full overflow-hidden py-6 box-border" style={{ paddingLeft: "max(24px, 5vw)", paddingRight: "max(24px, 5vw)", boxSizing: "border-box" }}>
           {loading ? (
             <div style={{ padding: "100px 0", textAlign: "center" }}>
               <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)", margin: "0 auto" }} />

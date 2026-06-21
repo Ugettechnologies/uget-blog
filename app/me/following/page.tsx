@@ -509,7 +509,7 @@ export default function RefineRecommendationsPage() {
         </header>
 
         {/* Console Container */}
-        <div className="uget-content-container">
+        <div className="uget-content-container" style={{ boxSizing: "border-box", paddingLeft: "max(24px, 5vw)", paddingRight: "max(24px, 5vw)" }}>
           <h1 style={{ fontFamily: "var(--display)", fontSize: 36, fontWeight: 700, color: "#1a1a1a", marginBottom: 8, letterSpacing: "-0.02em" }}>
             Refine recommendations
           </h1>

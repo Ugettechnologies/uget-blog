@@ -6,6 +6,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import ImageExtension from "@tiptap/extension-image";
 import FloatingMenuExtension from "@tiptap/extension-floating-menu";
+import Youtube from "@tiptap/extension-youtube";
 import { useState, useRef } from "react";
 import { createClient } from "@/lib/db-client/client";
 
@@ -45,6 +46,14 @@ export default function TipTapEditor({ content, onChange }: Props) {
         inline: false,
         HTMLAttributes: {
           style: "max-width: 100%; border-radius: 8px; margin: 24px 0; display: block;",
+        },
+      }),
+      Youtube.configure({
+        inline: false,
+        width: 640,
+        height: 480,
+        HTMLAttributes: {
+          style: "width: 100%; aspect-ratio: 16/9; height: auto; border-radius: 12px; margin: 28px 0;",
         },
       }),
       FloatingMenuExtension,
@@ -152,40 +161,10 @@ export default function TipTapEditor({ content, onChange }: Props) {
     e.preventDefault();
     if (!videoUrl.trim()) return;
 
-    // Parse YouTube ID
-    const getYouTubeId = (url: string) => {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      return (match && match[2].length === 11) ? match[2] : null;
-    };
+    editor.commands.setYoutubeVideo({
+      src: videoUrl.trim(),
+    });
 
-    const ytid = getYouTubeId(videoUrl.trim());
-    if (ytid) {
-      editor
-        .chain()
-        .focus()
-        .insertContent(`
-          <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 12px; margin: 28px 0; background: #000;">
-            <iframe 
-              src="https://www.youtube.com/embed/${ytid}" 
-              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
-              allowfullscreen
-            ></iframe>
-          </div>
-          <p></p>
-        `)
-        .run();
-    } else {
-      // General video tag as fallback
-      editor
-        .chain()
-        .focus()
-        .insertContent(`
-          <video src="${videoUrl.trim()}" controls style="max-width: 100%; border-radius: 8px; margin: 28px 0; display: block;"></video>
-          <p></p>
-        `)
-        .run();
-    }
     setVideoOpen(false);
     setVideoUrl("");
   };
