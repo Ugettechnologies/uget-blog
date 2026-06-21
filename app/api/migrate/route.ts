@@ -55,6 +55,17 @@ export async function GET() {
       console.warn("Could not alter profiles table directly for interests:", colErr.message);
     }
 
+    // 3.6 Add role column to profiles table
+    try {
+      await sql`
+        ALTER TABLE public.profiles 
+        ADD COLUMN IF NOT EXISTS role text DEFAULT 'user'
+      `;
+      console.log("✓ Profiles role column added/checked");
+    } catch (colErr: any) {
+      console.warn("Could not alter profiles table directly for role:", colErr.message);
+    }
+
     // 4. Create follows table
     await sql`
       CREATE TABLE IF NOT EXISTS public.follows (
