@@ -170,7 +170,7 @@ function NavbarInner() {
   }
 
   return (
-    <nav className="nav" style={{ background: navBg, borderBottom: navBorder }}>
+    <nav className="nav" style={{ background: navBg, borderBottom: navBorder, zIndex: authModalOpen ? 9999 : undefined }}>
       <div className="nav-inner">
         <Link href="/" className="nav-logo">
           <Image src="/favicon.png" alt="UGET" width={28} height={28} className="object-contain" />

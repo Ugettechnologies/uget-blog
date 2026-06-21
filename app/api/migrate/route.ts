@@ -21,6 +21,17 @@ export async function GET() {
     `;
     console.log("✓ Live events table created/checked");
 
+    // 1.5 Add video_active column to live_events table
+    try {
+      await sql`
+        ALTER TABLE public.live_events 
+        ADD COLUMN IF NOT EXISTS video_active boolean DEFAULT false
+      `;
+      console.log("✓ Live events video_active column added/checked");
+    } catch (colErr: any) {
+      console.warn("Could not alter live_events table for video_active:", colErr.message);
+    }
+
     // 2. Create live_updates table
     await sql`
       CREATE TABLE IF NOT EXISTS public.live_updates (

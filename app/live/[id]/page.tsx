@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { createClient } from "@/lib/db-client/client";
 import { formatDate } from "@/lib/types";
+import LiveVideoStream from "@/components/LiveVideoStream";
 
 interface LiveUpdate {
   id: string;
@@ -22,6 +23,7 @@ interface LiveEvent {
   status: "active" | "ended";
   author_id: string;
   created_at: string;
+  video_active?: boolean;
   profiles?: {
     id: string;
     full_name: string;
@@ -220,6 +222,16 @@ export default function LiveEventRoom({ params }: { params: { id: string } }) {
 
       <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 24px 120px" }}>
         
+        {/* Live Video Broadcast Component */}
+        <LiveVideoStream
+          eventId={event.id}
+          isAuthor={isAuthor}
+          videoActiveInitial={event.video_active || false}
+          onStatusChange={(isActive) => {
+            setEvent((prev) => prev ? { ...prev, video_active: isActive } : null);
+          }}
+        />
+
         {/* Author Composer */}
         {isAuthor && isActive && (
           <div style={{ background: "white", border: "1px solid var(--brand)", borderRadius: 16, padding: 24, marginBottom: 48, boxShadow: "0 8px 30px rgba(139, 92, 246, 0.12)" }}>

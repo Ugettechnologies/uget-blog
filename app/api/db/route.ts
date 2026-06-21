@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSql } from "@/lib/db";
 import { getUserFromSession } from "@/lib/auth-server";
+import { randomUUID } from "crypto";
 
 export async function POST(request: Request) {
   try {
@@ -235,6 +236,12 @@ export async function POST(request: Request) {
     else if (method === "insert") {
       if (!user) {
         return NextResponse.json({ data: null, error: { message: "Unauthorized" } }, { status: 401 });
+      }
+
+      if (payload && typeof payload === "object") {
+        if (table !== "profiles" && (!payload.id || payload.id === "")) {
+          payload.id = randomUUID();
+        }
       }
 
       const fields = Object.keys(payload);
