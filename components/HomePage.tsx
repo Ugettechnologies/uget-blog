@@ -201,19 +201,8 @@ function EmptyState({ showWriteButton = false }: EmptyStateProps) {
       {showWriteButton && (
         <Link 
           href="/write" 
-          className="btn-premium-action font-sans"
-          style={{ 
-            display: "inline-flex", 
-            textDecoration: "none",
-            backgroundColor: "#0d0d0d",
-            color: "#ffffff",
-            fontSize: 14,
-            fontWeight: 600,
-            padding: "10px 24px",
-            borderRadius: "999px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            transition: "all 0.2s"
-          }}
+          className="btn btn-primary font-sans"
+          style={{ padding: "10px 24px", fontSize: 14 }}
         >
           Write a story
         </Link>
@@ -865,7 +854,7 @@ export default function HomePage() {
               {userProfile.avatar_url ? (
                 <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
               ) : (
-                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
+                <div className="w-full h-full font-bold text-sm flex items-center justify-center" style={{ backgroundColor: "var(--brand-light)", color: "var(--brand)" }}>
                   {getInitials(userProfile.full_name || user?.email || "?")}
                 </div>
               )}
@@ -1006,7 +995,7 @@ export default function HomePage() {
                 {userProfile?.avatar_url ? (
                   <Image src={userProfile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
                 ) : (
-                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center font-sans">
+                  <div className="w-full h-full font-bold text-xs flex items-center justify-center font-sans" style={{ backgroundColor: "var(--brand-light)", color: "var(--brand)" }}>
                     {getInitials(userProfile?.full_name || user?.email || "?")}
                   </div>
                 )}
@@ -1020,7 +1009,7 @@ export default function HomePage() {
                       {userProfile?.avatar_url ? (
                         <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
                       ) : (
-                        <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center font-sans">
+                        <div className="w-full h-full font-bold text-sm flex items-center justify-center font-sans" style={{ backgroundColor: "var(--brand-light)", color: "var(--brand)" }}>
                           {getInitials(userProfile?.full_name || user?.email || "?")}
                         </div>
                       )}
@@ -1177,7 +1166,7 @@ export default function HomePage() {
                               {writer.avatar_url ? (
                                 <Image src={writer.avatar_url} alt="" width={44} height={44} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                               ) : (
-                                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center font-sans">
+                                <div className="w-full h-full font-bold text-sm flex items-center justify-center font-sans" style={{ backgroundColor: "var(--brand-light)", color: "var(--brand)" }}>
                                   {getInitials(writer.full_name || "?")}
                                 </div>
                               )}

@@ -458,6 +458,16 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 .tag-chip:hover { background: var(--bg-2); border-color: var(--border); color: var(--ink); }
 .tag-chip.active { background: var(--brand); color: white; }
 
+.topic-pill-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--bg-2); color: var(--ink-2);
+  font-family: var(--sans); font-size: 14px; font-weight: 500;
+  padding: 10px 20px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--border); transition: all 0.2s;
+}
+.topic-pill-btn:hover { background: var(--bg-3); border-color: var(--ink-3); }
+.topic-pill-btn.selected { background: var(--brand); color: white; border-color: var(--brand); box-shadow: var(--shadow-sm); }
+
 /* ══════════════════════════════════════
    BUTTONS
 ══════════════════════════════════════ */

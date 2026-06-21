@@ -94,9 +94,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     setError("");
     localStorage.setItem("uget_remember_me", rememberMe ? "true" : "false");
     localStorage.setItem("uget_pending_provider", provider);
+    
+    await supabase.auth.signOut();
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { 
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { prompt: "select_account" }
+      },
     }) as any;
     if (error) {
       setError(error.message);
@@ -140,6 +146,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         router.push("/onboarding");
         router.refresh();
       } else {
+        await supabase.auth.signOut();
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         
@@ -297,17 +304,18 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
               Welcome back.
             </h2>
 
-            {/* Profile Chooser grid */}
+            {/* Profile Chooser row */}
             <div 
+              className="feed-nav-scroll"
               style={{ 
                 display: "flex", 
-                flexWrap: "wrap",
-                justifyContent: "center", 
-                gap: "20px 24px",
+                flexWrap: "nowrap",
+                justifyContent: savedUsers.length > 2 ? "flex-start" : "center", 
+                gap: "24px",
                 marginBottom: 32,
-                maxHeight: 280,
-                overflowY: "auto",
-                padding: "8px"
+                overflowX: "auto",
+                WebkitOverflowScrolling: "touch",
+                padding: "8px 4px"
               }}
             >
               {savedUsers.map((su) => (
@@ -316,10 +324,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   style={{
                     position: "relative",
                     width: 110,
+                    minWidth: 110,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    cursor: "pointer"
+                    cursor: "pointer",
+                    flexShrink: 0
                   }}
                   onClick={() => {
                     if (su.provider === "email") {
