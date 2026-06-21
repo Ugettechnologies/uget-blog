@@ -250,6 +250,7 @@ export default function HomePage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [followingProfiles, setFollowingProfiles] = useState<any[]>([]);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const loadNotifications = async (userId: string) => {
     try {
@@ -360,9 +361,13 @@ export default function HomePage() {
         const hasInterests = (profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0) || localInterests.length > 0;
         if (profile && !hasInterests) {
           router.push("/onboarding");
+          return;
         }
         loadNotifications(user.id);
         loadFollowingProfiles(user.id);
+        setIsCheckingAuth(false);
+      } else {
+        setIsCheckingAuth(false);
       }
       loadSuggestedWriters();
     });
@@ -377,14 +382,17 @@ export default function HomePage() {
         const hasInterestsAuth = (profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0) || localInterestsAuth.length > 0;
         if (profile && !hasInterestsAuth) {
           router.push("/onboarding");
+          return;
         }
         loadNotifications(u.id);
         loadFollowingProfiles(u.id);
+        setIsCheckingAuth(false);
       } else {
         setUserProfile(null);
         setNotifications([]);
         setUnreadNotifCount(0);
         setFollowingProfiles([]);
+        setIsCheckingAuth(false);
       }
       loadSuggestedWriters();
     });
@@ -594,6 +602,15 @@ export default function HomePage() {
   };
 
   const feedPosts = activeFeedTab === "foryou" ? posts : (activeFeedTab === "featured" ? posts.filter((p) => p.featured) : posts);
+
+  if (isCheckingAuth) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}>
+        <div style={{ width: 32, height: 32, borderTopColor: "var(--brand)", borderColor: "var(--border)", borderRadius: "50%", borderWidth: 2, borderStyle: "solid", animation: "spin 1s linear infinite" }} />
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }` }} />
+      </div>
+    );
+  }
 
   // ── Logged-in feed layout ──
   return (
@@ -1183,9 +1200,9 @@ export default function HomePage() {
                           <button
                             onClick={() => handleFollowSuggestedWriter(writer.id)}
                             style={{
-                              border: isF ? "1px solid var(--border)" : "1px solid var(--brand)",
-                              color: isF ? "var(--muted)" : "var(--brand)",
-                              backgroundColor: "transparent",
+                              border: "1px solid var(--brand)",
+                              color: isF ? "white" : "var(--brand)",
+                              backgroundColor: isF ? "var(--brand)" : "transparent",
                               borderRadius: 999,
                               padding: "6px 16px",
                               fontSize: 13,

@@ -150,17 +150,22 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         
-        // Cache user details to localStorage for future quick sign-in if rememberMe is enabled
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
           if (rememberMe) {
-            const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
             saveUserToSavedList(user, profile, "email");
           }
+          const hasInterests = profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0;
+          onClose();
+          if (!hasInterests) {
+            router.push("/onboarding");
+          } else {
+            router.push("/dashboard");
+          }
+        } else {
+          onClose();
         }
-
-        onClose();
-        router.refresh();
       }
     } catch (e: any) {
       setError(e.message || "Something went wrong");

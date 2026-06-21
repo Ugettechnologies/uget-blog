@@ -137,12 +137,12 @@ export default function OnboardingPage() {
       }
 
       // Always redirect — interests are saved in localStorage as fallback
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (err: any) {
       console.error("Unexpected error saving interests:", err);
       // Save to localStorage already done above, still redirect gracefully
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } finally {
       setSaving(false);

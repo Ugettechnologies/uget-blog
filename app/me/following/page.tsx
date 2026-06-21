@@ -718,9 +718,9 @@ export default function RefineRecommendationsPage() {
                             <button
                               onClick={() => handleFollowToggle(writer.id, isF)}
                               style={{
-                                border: isF ? "1px solid var(--border)" : "1px solid var(--brand)",
-                                color: isF ? "var(--muted)" : "var(--brand)",
-                                backgroundColor: "transparent",
+                                border: "1px solid var(--brand)",
+                                color: isF ? "white" : "var(--brand)",
+                                backgroundColor: isF ? "var(--brand)" : "transparent",
                                 borderRadius: 999,
                                 padding: "6px 16px",
                                 fontSize: 13,
@@ -775,9 +775,9 @@ export default function RefineRecommendationsPage() {
                           <button
                             onClick={() => handleFollowToggle(writer.id, true)}
                             style={{
-                              border: "1px solid var(--border)",
-                              color: "var(--muted)",
-                              backgroundColor: "transparent",
+                              border: "1px solid var(--brand)",
+                              color: "white",
+                              backgroundColor: "var(--brand)",
                               borderRadius: 999,
                               padding: "6px 16px",
                               fontSize: 13,
