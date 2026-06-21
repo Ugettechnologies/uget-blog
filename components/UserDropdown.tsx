@@ -17,44 +17,47 @@ export function UserDropdown({ isOpen, user, userProfile, onClose, onOpenNotifs,
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="absolute mt-2 bg-white border border-gray-100 rounded-xl z-50 overflow-hidden" 
-      style={{ right: 0, width: 260, boxShadow: "0 10px 40px -10px rgba(0,0,0,0.15)" }}
-    >
-      <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-gray-50/30">
-        <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 border border-gray-200 bg-white">
-          {userProfile?.avatar_url ? (
-            <Image src={userProfile.avatar_url} alt="" width={44} height={44} className="object-cover w-full h-full" />
-          ) : (
-            <div className="w-full h-full font-bold text-[15px] flex items-center justify-center font-sans bg-violet-100 text-violet-700">
-              {getInitials(userProfile?.full_name || user?.email || "?")}
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-bold text-[15px] text-gray-900 truncate font-sans leading-tight mb-0.5">{userProfile?.full_name || "Writer"}</div>
-          <div className="text-[13px] text-gray-500 truncate font-sans leading-tight">{user?.email}</div>
-        </div>
+    <div style={{
+      position: "absolute", right: 0, top: "calc(100% + 8px)", background: "var(--bg-2)",
+      border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-lg)",
+      minWidth: 220, zIndex: 200, overflow: "hidden", animation: "fadeIn 0.15s ease",
+    }}>
+      <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border-2)" }}>
+        <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{userProfile?.full_name || "Writer"}</div>
+        <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", marginTop: 2 }}>{user?.email}</div>
       </div>
-      <div className="p-2">
-        <Link href="/write" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors font-sans" style={{ textDecoration: "none" }} onClick={onClose}>
-          <span className="text-gray-400 flex items-center justify-center w-5 h-5"><WriteIcon /></span> Write
+      {[
+        { href: "/dashboard", label: "Dashboard", icon: "📊" },
+        { href: "/write", label: "New story", icon: "✍️" },
+        { href: `/profile/${userProfile?.username || user?.id || ""}`, label: "Profile", icon: "👤" },
+        { href: "/settings", label: "Settings", icon: "⚙️" },
+      ].map((item) => (
+        <Link key={item.href} href={item.href} onClick={onClose}
+          style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 16px",
+            fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-3)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "")}>
+          <span>{item.icon}</span>{item.label}
         </Link>
-        <button onClick={() => { onClose(); onOpenNotifs(); }} className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors font-sans">
-          <span className="text-gray-400 flex items-center justify-center w-5 h-5"><BellIcon /></span> Notifications
-        </button>
-        <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors font-sans" style={{ textDecoration: "none" }} onClick={onClose}>
-          <span className="text-gray-400 flex items-center justify-center w-5 h-5"><SettingsIcon /></span> Settings
+      ))}
+      {userProfile?.role === "admin" && (
+        <Link href="/admin" onClick={onClose}
+          style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 16px",
+            fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-3)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "")}>
+          <span>🛠️</span>Admin panel
         </Link>
-        <button onClick={() => { onClose(); alert("Need help? Please send an email to support@uget.com or check our Help Center."); }} className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors font-sans">
-          <span className="text-gray-400 flex items-center justify-center w-5 h-5"><HelpIcon /></span> Help
-        </button>
-      </div>
-      <div className="p-2 border-t border-gray-100 bg-gray-50/30">
-        <button onClick={() => { onClose(); onSignOut(); }} className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-semibold text-red-600 hover:bg-red-50 transition-colors font-sans">
-          <span className="text-red-500 flex items-center justify-center w-5 h-5"><SignOutIcon /></span> Sign out
-        </button>
-      </div>
+      )}
+      <div style={{ borderTop: "1px solid var(--border-2)" }} />
+      <button onClick={() => { onClose(); onSignOut(); }}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 16px",
+          fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", cursor: "pointer",
+          border: "none", background: "none", textAlign: "left" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-3)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = ""; }}>
+        <span>🚪</span>Sign out
+      </button>
     </div>
   );
 }

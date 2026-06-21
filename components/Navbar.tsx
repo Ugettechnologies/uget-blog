@@ -3,10 +3,11 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import AuthModal from "./AuthModal";
+import { UserDropdown } from "./UserDropdown";
 import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
 import { getInitials, saveUserToSavedList } from "@/lib/types";
-import AuthModal from "./AuthModal";
 
 function NavbarInner() {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -309,50 +310,14 @@ function NavbarInner() {
                     <span>{getInitials(profile?.full_name || user.email || "?")}</span>
                   )}
                 </button>
-                {menuOpen && (
-                  <div style={{
-                    position: "absolute", right: 0, top: "calc(100% + 8px)", background: "var(--bg-2)",
-                    border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-lg)",
-                    minWidth: 220, zIndex: 200, overflow: "hidden", animation: "fadeIn 0.15s ease",
-                  }}>
-                    <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border-2)" }}>
-                      <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{profile?.full_name || "Writer"}</div>
-                      <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", marginTop: 2 }}>{user.email}</div>
-                    </div>
-                    {[
-                      { href: "/dashboard", label: "Dashboard", icon: "📊" },
-                      { href: "/write", label: "New story", icon: "✍️" },
-                      { href: `/profile/${profile?.username || user.id}`, label: "Profile", icon: "👤" },
-                      { href: "/settings", label: "Settings", icon: "⚙️" },
-                    ].map((item) => (
-                      <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
-                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 16px",
-                          fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-3)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "")}>
-                        <span>{item.icon}</span>{item.label}
-                      </Link>
-                    ))}
-                    {profile?.role === "admin" && (
-                      <Link href="/admin" onClick={() => setMenuOpen(false)}
-                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 16px",
-                          fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-3)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "")}>
-                        <span>🛠️</span>Admin panel
-                      </Link>
-                    )}
-                    <div style={{ borderTop: "1px solid var(--border-2)" }} />
-                    <button onClick={handleSignOut}
-                      style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 16px",
-                        fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", cursor: "pointer",
-                        border: "none", background: "none", textAlign: "left" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-3)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = ""; }}>
-                      <span>🚪</span>Sign out
-                    </button>
-                  </div>
-                )}
+                <UserDropdown
+                  isOpen={menuOpen}
+                  user={user}
+                  userProfile={profile}
+                  onClose={() => setMenuOpen(false)}
+                  onOpenNotifs={() => { setMenuOpen(false); /* Navbar doesn't have internal notifs yet, but handled */ }}
+                  onSignOut={handleSignOut}
+                />
               </div>
             </>
           ) : (

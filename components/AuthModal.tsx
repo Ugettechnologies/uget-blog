@@ -101,7 +101,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       provider,
       options: { 
         redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: { prompt: "select_account" }
+        queryParams: { prompt: "consent" }
       },
     }) as any;
     if (error) {

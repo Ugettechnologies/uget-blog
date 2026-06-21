@@ -215,6 +215,7 @@ export default function OnboardingPage() {
                   return (
                     <button
                       key={topic}
+                      type="button"
                       onClick={() => toggleTopic(topic)}
                       className={`topic-pill-btn ${isSelected ? "selected" : ""}`}
                     >
@@ -253,6 +254,7 @@ export default function OnboardingPage() {
         }}
       >
         <button
+          type="button"
           onClick={handleContinue}
           disabled={selected.length < 3 || saving}
           style={{

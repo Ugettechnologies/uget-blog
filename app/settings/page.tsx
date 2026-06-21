@@ -1131,20 +1131,12 @@ export default function SettingsPage() {
             <div className="relative avatar-dropdown-trigger">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 cursor-pointer flex items-center justify-center relative focus:outline-none"
+                className="nav-avatar"
               >
                 {profile?.avatar_url ? (
-                  <Image
-                    src={profile.avatar_url}
-                    alt=""
-                    width={36}
-                    height={36}
-                    className="object-cover w-full h-full"
-                  />
+                  <Image src={profile.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} />
                 ) : (
-                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center font-sans">
-                    {getInitials(profile?.full_name || user?.email || "?")}
-                  </div>
+                  <span>{getInitials(profile?.full_name || user?.email || "?")}</span>
                 )}
               </button>
 

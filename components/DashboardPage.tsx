@@ -654,14 +654,12 @@ export default function DashboardPage() {
             <div className="relative avatar-dropdown-trigger">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 cursor-pointer flex items-center justify-center relative focus:outline-none"
+                className="nav-avatar"
               >
                 {profile?.avatar_url ? (
-                  <Image src={profile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
+                  <Image src={profile.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} />
                 ) : (
-                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center font-sans">
-                    {getInitials(profile?.full_name || "?")}
-                  </div>
+                  <span>{getInitials(profile?.full_name || currentUser?.email || "?")}</span>
                 )}
               </button>
 
@@ -680,7 +678,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Content Area */}
-        <div className="uget-dashboard-grid px-4 sm:px-8 md:px-12 py-6 max-w-[100vw] overflow-hidden">
+        <div className="w-full max-w-full overflow-hidden px-4 sm:px-8 md:px-12 py-6 box-border">
           {loading ? (
             <div style={{ padding: "100px 0", textAlign: "center" }}>
               <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)", margin: "0 auto" }} />
@@ -820,16 +818,16 @@ export default function DashboardPage() {
                   {statsSubTab === "stories" ? (
                     <div>
                       {/* Monthly header */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                          <h3 style={{ fontFamily: "var(--sans)", fontSize: 24, fontWeight: 700, color: "var(--black)", margin: 0 }}>
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-5">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
+                          <h3 className="font-sans text-2xl font-bold text-gray-900 m-0">
                             Monthly
                           </h3>
-                          <span style={{ fontSize: 13, color: "var(--muted)" }}>
+                          <span className="text-sm text-gray-500 break-words whitespace-normal">
                             June 1, 2026 - Today (UTC) · Updated hourly
                           </span>
                         </div>
-                        <select style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--ink)", padding: "6px 12px", border: "1px solid var(--border)", borderRadius: 6, backgroundColor: "white", outline: "none", cursor: "pointer" }}>
+                        <select className="font-sans text-sm font-semibold text-gray-900 px-3 py-1.5 border border-gray-200 rounded-lg bg-white outline-none cursor-pointer self-start sm:self-auto">
                           <option>June 2026</option>
                           <option>May 2026</option>
                           <option>April 2026</option>
@@ -936,7 +934,7 @@ export default function DashboardPage() {
                       </div>
 
                       {published.length === 0 ? (
-                        <div style={{ padding: "60px 0", textAlign: "center", background: "#fdfcff", border: "1px solid var(--border)", borderRadius: 16 }}>
+                        <div style={{ padding: "60px 20px", textAlign: "center", background: "#fdfcff", border: "1px solid var(--border)", borderRadius: 16 }}>
                           <div style={{ fontSize: 44, marginBottom: 12 }}>✍️</div>
                           <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>You haven't published any stories yet.</h4>
                           <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>Share your ideas with the UGET community.</p>
