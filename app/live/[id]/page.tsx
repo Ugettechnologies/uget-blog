@@ -53,45 +53,19 @@ export default function LiveEventRoom({ params }: { params: { id: string } }) {
     
     fetchEventAndUpdates();
 
-    // Subscribe to real-time changes
-    const channel = supabase
-      .channel(`live_events_${eventId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "live_updates",
-          filter: `event_id=eq.${eventId}`
-        },
-        (payload: any) => {
-          // Add new update to the top of the list
-          setUpdates((prev) => [payload.new as LiveUpdate, ...prev]);
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "live_events",
-          filter: `id=eq.${eventId}`
-        },
-        (payload: any) => {
-          // Update event details (like if it ended)
-          setEvent((prev) => prev ? { ...prev, ...payload.new } : null);
-        }
-      )
-      .subscribe();
+    // Poll for updates every 5 seconds since custom client doesn't support Realtime WebSockets
+    const interval = setInterval(() => {
+      fetchEventAndUpdates(false);
+    }, 5000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
-  const fetchEventAndUpdates = async () => {
-    setLoading(true);
+  const fetchEventAndUpdates = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError(null);
 
     // Fetch Event
