@@ -316,10 +316,10 @@ export default function RefineRecommendationsPage() {
         }
         @media (max-width: 960px) {
           .uget-header {
-            padding: 0 16px;
+            padding: 0 24px;
           }
           .uget-content-container {
-            padding: 24px 16px 60px;
+            padding: 40px 24px 60px;
           }
         }
       `}} />
@@ -447,17 +447,27 @@ export default function RefineRecommendationsPage() {
                 )}
               </button>
               {notifDropdownOpen && (
-                <div className="notif-dropdown absolute right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1" style={{ right: 0, width: 320 }}>
-                  <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <span className="font-bold text-sm text-gray-900 font-sans">Notifications</span>
-                    <div className="flex gap-2.5">
-                      {unreadNotifCount > 0 && <button onClick={markAllAsRead} className="text-xs text-violet-600 font-semibold font-sans">Mark read</button>}
-                      {notifications.length > 0 && <button onClick={clearAllNotifications} className="text-xs text-gray-500 font-medium font-sans">Clear</button>}
+                <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "white", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fcfcfc" }}>
+                    <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      {unreadNotifCount > 0 && (
+                        <button onClick={markAllAsRead} style={{ fontSize: 13, color: "var(--brand)", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)" }}>
+                          Mark read
+                        </button>
+                      )}
+                      {notifications.length > 0 && (
+                        <button onClick={clearAllNotifications} style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)" }}>
+                          Clear
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div style={{ maxHeight: 320, overflowY: "auto" }}>
+                  <div style={{ maxHeight: 360, overflowY: "auto", background: "white" }}>
                     {notifications.length === 0 ? (
-                      <div className="px-4 py-8 text-center text-sm text-gray-400 font-sans">No notifications yet</div>
+                      <div style={{ padding: "48px 20px", textAlign: "center", fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)" }}>
+                        No notifications yet
+                      </div>
                     ) : (
                       notifications.map((item) => (
                         <div key={item.id} onClick={() => handleNotificationClick(item.id)} className={`flex gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer ${item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"}`}>

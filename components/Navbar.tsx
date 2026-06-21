@@ -244,29 +244,25 @@ function NavbarInner() {
 
                 {/* Notifications dropdown menu */}
                 {notifOpen && (
-                  <div style={{
-                    position: "absolute", right: 0, top: "calc(100% + 8px)", background: "var(--bg-2)",
-                    border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-lg)",
-                    width: 320, zIndex: 200, overflow: "hidden", animation: "fadeIn 0.15s ease",
-                  }}>
-                    <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
-                      <div style={{ display: "flex", gap: 8 }}>
+                  <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "white", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fcfcfc" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
+                      <div style={{ display: "flex", gap: 12 }}>
                         {unreadNotifCount > 0 && (
-                          <button onClick={markAllAsRead} style={{ background: "none", border: "none", color: "var(--primary)", fontSize: 12, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500, padding: 0 }}>
-                            Mark all read
+                          <button onClick={markAllAsRead} style={{ fontSize: 13, color: "var(--brand)", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)", padding: 0 }}>
+                            Mark read
                           </button>
                         )}
                         {notifications.length > 0 && (
-                          <button onClick={clearAllNotifications} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, cursor: "pointer", fontFamily: "var(--sans)", fontWeight: 500, padding: 0 }}>
+                          <button onClick={clearAllNotifications} style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)", padding: 0 }}>
                             Clear
                           </button>
                         )}
                       </div>
                     </div>
-                    <div style={{ maxHeight: 280, overflowY: "auto" }}>
+                    <div style={{ maxHeight: 360, overflowY: "auto", background: "white" }}>
                       {notifications.length === 0 ? (
-                        <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--muted)", fontFamily: "var(--sans)", fontSize: 14 }}>
+                        <div style={{ padding: "48px 20px", textAlign: "center", fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)" }}>
                           No notifications yet
                         </div>
                       ) : (
