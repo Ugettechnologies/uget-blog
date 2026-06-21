@@ -55,6 +55,8 @@ export async function POST(request: Request) {
           fieldName = `follows.${filter.field}`;
         } else if (table === "notifications" && selectFields.includes("profiles")) {
           fieldName = `notifications.${filter.field}`;
+        } else if (table === "live_events" && selectFields.includes("profiles")) {
+          fieldName = `live_events.${filter.field}`;
         }
 
         if (filter.type === "eq") {
@@ -84,6 +86,8 @@ export async function POST(request: Request) {
           fieldName = `follows.${o.field}`;
         } else if (table === "notifications" && selectFields.includes("profiles")) {
           fieldName = `notifications.${o.field}`;
+        } else if (table === "live_events" && selectFields.includes("profiles")) {
+          fieldName = `live_events.${o.field}`;
         }
         return `${fieldName} ${o.ascending ? "ASC" : "DESC"}`;
       });
