@@ -806,11 +806,17 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Stats Sub-tabs */}
-                  <div className="dash-tabs" style={{ maxWidth: "none", padding: 0, marginBottom: 32, borderBottom: "1px solid var(--border-2)" }}>
-                    <button className={`dash-tab ${statsSubTab === "stories" ? "active" : ""}`} onClick={() => setStatsSubTab("stories")} style={{ padding: "12px 0", marginRight: 32 }}>
+                  <div className="flex gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
+                    <button 
+                      className={`px-5 py-2.5 rounded-full font-sans text-sm font-semibold whitespace-nowrap transition-colors ${statsSubTab === "stories" ? "bg-gray-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                      onClick={() => setStatsSubTab("stories")}
+                    >
                       Stories
                     </button>
-                    <button className={`dash-tab ${statsSubTab === "audience" ? "active" : ""}`} onClick={() => setStatsSubTab("audience")} style={{ padding: "12px 0", marginRight: 32 }}>
+                    <button 
+                      className={`px-5 py-2.5 rounded-full font-sans text-sm font-semibold whitespace-nowrap transition-colors ${statsSubTab === "audience" ? "bg-gray-900 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                      onClick={() => setStatsSubTab("audience")}
+                    >
                       Audience
                     </button>
                   </div>
@@ -818,42 +824,37 @@ export default function DashboardPage() {
                   {statsSubTab === "stories" ? (
                     <div>
                       {/* Monthly header */}
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-5">
-                        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                        <div className="flex flex-col gap-1">
                           <h3 className="font-sans text-2xl font-bold text-gray-900 m-0">
                             Monthly
                           </h3>
-                          <span className="text-sm text-gray-500 break-words whitespace-normal">
+                          <span className="text-sm text-gray-500">
                             June 1, 2026 - Today (UTC) · Updated hourly
                           </span>
                         </div>
-                        <select className="font-sans text-sm font-semibold text-gray-900 px-3 py-1.5 border border-gray-200 rounded-lg bg-white outline-none cursor-pointer self-start sm:self-auto">
+                        <select className="font-sans text-sm font-semibold text-gray-900 px-4 py-2 border border-gray-200 rounded-xl bg-white shadow-sm outline-none cursor-pointer self-start sm:self-auto w-full sm:w-auto">
                           <option>June 2026</option>
                           <option>May 2026</option>
                           <option>April 2026</option>
                         </select>
                       </div>
 
-                      {/* Metrics Summary Row */}
-                      <div className="flex items-center gap-4 sm:gap-6 pb-6 mb-8 overflow-x-auto w-full no-scrollbar" style={{ borderBottom: "1px solid var(--border)" }}>
+                      {/* Metrics Summary Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-10">
                         {[
                           { label: "Presentations", value: Math.floor(totalViews * 1.4), tooltip: "How many times your stories were shown to readers." },
                           { label: "Views", value: totalViews, tooltip: "How many times your stories were opened." },
                           { label: "Reads", value: Math.floor(totalViews * 0.75), tooltip: "How many times readers finished your stories." },
                           { label: "Followers", value: followers.length, tooltip: "How many users follow you." },
                           { label: "Subscribers", value: Math.floor(followers.length * 0.2), tooltip: "How many users subscribe to your updates." }
-                        ].map((m, idx, arr) => (
-                          <div key={m.label} style={{
-                            flex: "0 0 auto",
-                            minWidth: 100,
-                            borderRight: idx < arr.length - 1 ? "1px solid var(--border-2)" : "none",
-                            paddingRight: 16
-                          }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", fontWeight: 700, marginBottom: 8, fontFamily: "var(--sans)", whiteSpace: "nowrap" }}>
+                        ].map((m, idx) => (
+                          <div key={m.label} className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 uppercase tracking-wider font-bold mb-3 font-sans">
                               {m.label}
-                              <span style={{ cursor: "help", color: "var(--muted-2)" }} title={m.tooltip}>ⓘ</span>
+                              <span className="cursor-help text-gray-300 hover:text-gray-500 transition-colors" title={m.tooltip}>ⓘ</span>
                             </div>
-                            <div style={{ fontFamily: "var(--display)", fontSize: 32, fontWeight: 800, color: "var(--black)" }}>
+                            <div className="font-display text-3xl font-extrabold text-gray-900">
                               {m.value.toLocaleString()}
                             </div>
                           </div>
@@ -861,21 +862,26 @@ export default function DashboardPage() {
                       </div>
 
                       {/* SVG Line Chart */}
-                      <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 md:p-8 mb-10 shadow-sm w-full overflow-hidden">
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                          <h4 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", margin: 0 }}>Views &amp; Reads Trend</h4>
-                          <div style={{ display: "flex", gap: 16, fontSize: 12, fontFamily: "var(--sans)" }}>
-                            <span style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--muted)" }}>
-                              <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#7c3aed" }} /> Views
+                      <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-8 mb-10 shadow-sm w-full overflow-hidden">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                          <h4 className="font-display text-lg font-bold text-gray-900 m-0">Views &amp; Reads Trend</h4>
+                          <div className="flex flex-wrap gap-4 text-xs font-sans">
+                            <span className="flex items-center gap-2 text-gray-600 font-medium">
+                              <span className="w-2.5 h-2.5 rounded-full bg-purple-600" /> Views
                             </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--muted)" }}>
-                              <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#d946ef" }} /> Reads
+                            <span className="flex items-center gap-2 text-gray-600 font-medium">
+                              <span className="w-2.5 h-2.5 rounded-full bg-fuchsia-500" /> Reads
                             </span>
                           </div>
                         </div>
 
                         {totalViews === 0 ? (
-                          <p style={{ textAlign: "center", color: "var(--muted)", padding: "40px 0", fontFamily: "var(--serif)" }} className="whitespace-normal break-words">No activity trend data available for this period.</p>
+                          <div className="py-12 sm:py-20 flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                            </div>
+                            <p className="text-gray-500 font-serif text-[15px] max-w-[250px]">No activity trend data available for this period.</p>
+                          </div>
                         ) : (
                           <div style={{ position: "relative", width: "100%", height: 200 }}>
                             <svg viewBox="0 0 800 200" width="100%" height="200" style={{ overflow: "visible" }}>
@@ -934,11 +940,11 @@ export default function DashboardPage() {
                       </div>
 
                       {published.length === 0 ? (
-                        <div style={{ padding: "60px 20px", textAlign: "center", background: "#fdfcff", border: "1px solid var(--border)", borderRadius: 16 }}>
-                          <div style={{ fontSize: 44, marginBottom: 12 }}>✍️</div>
-                          <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>You haven't published any stories yet.</h4>
-                          <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>Share your ideas with the UGET community.</p>
-                          <Link href="/write" className="btn btn-primary btn-md" style={{ textDecoration: "none" }}>
+                        <div className="bg-gradient-to-b from-gray-50 to-white border border-gray-200 rounded-2xl p-10 sm:p-16 flex flex-col items-center justify-center text-center shadow-sm mb-10">
+                          <div className="text-5xl mb-5 drop-shadow-sm">✍️</div>
+                          <h4 className="font-display text-xl sm:text-2xl font-bold text-gray-900 mb-2">You haven't published any stories yet</h4>
+                          <p className="font-serif text-[15px] sm:text-[17px] text-gray-500 mb-8 max-w-[400px]">Share your ideas, tutorials, and stories with the growing UGET community.</p>
+                          <Link href="/write" className="bg-purple-600 hover:bg-purple-700 text-white font-sans font-semibold text-[15px] py-3 px-8 rounded-full transition-colors shadow-sm" style={{ textDecoration: "none" }}>
                             Start writing
                           </Link>
                         </div>
