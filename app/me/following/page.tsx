@@ -373,7 +373,6 @@ export default function RefineRecommendationsPage() {
           z-index: 90;
         }
         .uget-header-search {
-          display: flex;
           align-items: center;
           gap: 8px;
           background-color: #fafafa;

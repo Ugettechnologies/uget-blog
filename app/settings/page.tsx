@@ -556,7 +556,6 @@ export default function SettingsPage() {
           z-index: 90;
         }
         .uget-header-search {
-          display: flex;
           align-items: center;
           gap: 8px;
           background-color: var(--bg-3);
