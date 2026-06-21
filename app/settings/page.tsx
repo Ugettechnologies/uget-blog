@@ -1026,7 +1026,7 @@ export default function SettingsPage() {
             {/* Write button */}
             <Link
               href="/write"
-              className="flex items-center justify-center gap-2 text-white bg-violet-600 hover:bg-violet-700 w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm"
+              className="nav-write-btn"
               style={{ textDecoration: "none" }}
             >
               <span className="flex items-center justify-center"><WriteIcon /></span>
@@ -1287,7 +1287,7 @@ export default function SettingsPage() {
                                 setIsEditingUsername(false);
                               }}
                               disabled={saving}
-                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                              className="btn btn-primary btn-sm"
                             >
                               Save
                             </button>
@@ -1429,7 +1429,7 @@ export default function SettingsPage() {
                                 setIsEditingProfileInfo(false);
                               }}
                               disabled={saving}
-                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                              className="btn btn-primary btn-sm"
                             >
                               Save
                             </button>
@@ -1513,7 +1513,7 @@ export default function SettingsPage() {
                                 showMsg("Upgrade page simulated!", "ok");
                                 setIsEditingDomain(false);
                               }}
-                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                              className="btn btn-primary btn-sm"
                             >
                               Upgrade to Member
                             </button>
@@ -1821,7 +1821,7 @@ export default function SettingsPage() {
                                 handleToggleSimulated("uget_settings_tipping_url", tippingUrl);
                                 setIsEditingTipping(false);
                               }}
-                              className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans"
+                              className="btn btn-primary btn-sm"
                             >
                               Save
                             </button>
@@ -2568,7 +2568,7 @@ export default function SettingsPage() {
                     <div className="settings-row-action">
                       <button
                         onClick={() => showMsg("Password changed (simulated)!", "ok")}
-                        className="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-full text-xs font-semibold font-sans transition-colors"
+                        className="btn btn-primary btn-sm"
                       >
                         Update
                       </button>

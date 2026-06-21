@@ -572,9 +572,9 @@ export default function DashboardPage() {
             </Link>
 
             {/* Write button */}
-            <Link href="/write" className="flex items-center justify-center gap-2 text-white bg-violet-600 hover:bg-violet-700 w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm" style={{ textDecoration: "none" }}>
-              <span className="flex items-center justify-center"><WriteIcon /></span>
-              <span className="hidden sm:inline">Write</span>
+            <Link href="/write" className="nav-write-btn">
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}><WriteIcon /></span>
+              <span className="nav-write-btn-text">Write</span>
             </Link>
 
             {/* Notification bell trigger */}
@@ -692,7 +692,7 @@ export default function DashboardPage() {
                     <h2 className="font-display text-3xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em" }}>
                       Stories
                     </h2>
-                    <Link href="/write" className="flex items-center gap-2 text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-sm font-sans" style={{ textDecoration: "none" }}>
+                    <Link href="/write" className="btn btn-primary btn-sm" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, borderRadius: 999 }}>
                       <WriteIcon />
                       <span>Write a story</span>
                     </Link>
