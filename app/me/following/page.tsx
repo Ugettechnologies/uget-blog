@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
-import { SidebarNav, SidebarFollowingList } from "@/components/SidebarNav";
+import { SidebarNav, SidebarFollowingList, HamburgerIcon, CloseIcon, SearchIcon, WriteIcon, BellIcon } from "@/components/SidebarNav";
 
 export default function RefineRecommendationsPage() {
   const [activeTab, setActiveTab] = useState<"following" | "history" | "muted" | "suggestions">("suggestions");

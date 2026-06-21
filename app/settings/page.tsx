@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
 import { getInitials } from "@/lib/types";
-import { SidebarNav, SidebarFollowingList } from "@/components/SidebarNav";
+import { SidebarNav, SidebarFollowingList, HamburgerIcon, CloseIcon, SearchIcon, WriteIcon, BellIcon } from "@/components/SidebarNav";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -334,6 +334,12 @@ export default function SettingsPage() {
     localStorage.setItem(key, String(value));
     showMsg("Setting updated successfully!");
   };
+
+  const ArrowRightIcon = () => (
+    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+    </svg>
+  );
 
   if (loading) {
     return (
