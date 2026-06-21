@@ -58,7 +58,7 @@ export default function LibraryPage() {
       loadFollowingProfiles(user.id);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, supabase]);
+  }, [router]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {

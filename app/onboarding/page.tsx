@@ -89,7 +89,8 @@ export default function OnboardingPage() {
       }
       setLoading(false);
     });
-  }, [router, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 
   const toggleTopic = (topic: string) => {
     setSelected((prev) =>
