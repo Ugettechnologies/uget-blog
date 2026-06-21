@@ -572,8 +572,8 @@ export default function DashboardPage() {
             </Link>
 
             {/* Write button */}
-            <Link href="/write" className="flex items-center gap-2 text-white bg-violet-600 hover:bg-violet-700 px-4 py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm" style={{ textDecoration: "none" }}>
-              <WriteIcon />
+            <Link href="/write" className="flex items-center justify-center gap-2 text-white bg-violet-600 hover:bg-violet-700 w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm" style={{ textDecoration: "none" }}>
+              <span className="flex items-center justify-center"><WriteIcon /></span>
               <span className="hidden sm:inline">Write</span>
             </Link>
 
@@ -680,7 +680,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Content Area */}
-        <div className="uget-dashboard-grid">
+        <div className="uget-dashboard-grid px-4 sm:px-8 md:px-12 py-6 max-w-[100vw] overflow-hidden">
           {loading ? (
             <div style={{ padding: "100px 0", textAlign: "center" }}>
               <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)", margin: "0 auto" }} />
@@ -837,15 +837,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Metrics Summary Row */}
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        borderBottom: "1px solid var(--border)",
-                        paddingBottom: 24,
-                        marginBottom: 32,
-                        gap: 24,
-                        overflowX: "auto"
-                      }} className="flex-nowrap">
+                      <div className="flex items-center gap-4 sm:gap-6 pb-6 mb-8 overflow-x-auto w-full no-scrollbar" style={{ borderBottom: "1px solid var(--border)" }}>
                         {[
                           { label: "Presentations", value: Math.floor(totalViews * 1.4), tooltip: "How many times your stories were shown to readers." },
                           { label: "Views", value: totalViews, tooltip: "How many times your stories were opened." },
@@ -854,8 +846,8 @@ export default function DashboardPage() {
                           { label: "Subscribers", value: Math.floor(followers.length * 0.2), tooltip: "How many users subscribe to your updates." }
                         ].map((m, idx, arr) => (
                           <div key={m.label} style={{
-                            flex: 1,
-                            minWidth: 120,
+                            flex: "0 0 auto",
+                            minWidth: 100,
                             borderRight: idx < arr.length - 1 ? "1px solid var(--border-2)" : "none",
                             paddingRight: 16
                           }}>
@@ -871,7 +863,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* SVG Line Chart */}
-                      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, padding: "24px 32px", marginBottom: 40, boxShadow: "var(--shadow-sm)" }}>
+                      <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 md:p-8 mb-10 shadow-sm w-full overflow-hidden">
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                           <h4 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", margin: 0 }}>Views &amp; Reads Trend</h4>
                           <div style={{ display: "flex", gap: 16, fontSize: 12, fontFamily: "var(--sans)" }}>
@@ -885,7 +877,7 @@ export default function DashboardPage() {
                         </div>
 
                         {totalViews === 0 ? (
-                          <p style={{ textAlign: "center", color: "var(--muted)", padding: "40px 0", fontFamily: "var(--serif)" }}>No activity trend data available for this period.</p>
+                          <p style={{ textAlign: "center", color: "var(--muted)", padding: "40px 0", fontFamily: "var(--serif)" }} className="whitespace-normal break-words">No activity trend data available for this period.</p>
                         ) : (
                           <div style={{ position: "relative", width: "100%", height: 200 }}>
                             <svg viewBox="0 0 800 200" width="100%" height="200" style={{ overflow: "visible" }}>
@@ -936,11 +928,11 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Lifetime Story Table */}
-                      <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <h4 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", margin: 0 }}>
+                      <div className="flex justify-between items-center mb-5">
+                        <h4 className="font-display text-xl font-bold text-gray-900 m-0">
                           Lifetime
                         </h4>
-                        <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>Latest</span>
+                        <span className="text-xs text-gray-500 font-sans">Latest</span>
                       </div>
 
                       {published.length === 0 ? (
@@ -953,8 +945,8 @@ export default function DashboardPage() {
                           </Link>
                         </div>
                       ) : (
-                        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "var(--shadow-sm)" }}>
-                          <table className="admin-table">
+                        <div className="bg-white border border-gray-200 rounded-2xl overflow-x-auto shadow-sm w-full no-scrollbar">
+                          <table className="admin-table w-full min-w-[600px]">
                             <thead>
                               <tr>
                                 <th style={{ textAlign: "left", paddingLeft: 24 }}>Story</th>

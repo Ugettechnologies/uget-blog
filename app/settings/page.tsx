@@ -1026,10 +1026,10 @@ export default function SettingsPage() {
             {/* Write button */}
             <Link
               href="/write"
-              className="flex items-center gap-2 text-white bg-violet-600 hover:bg-violet-700 px-4 py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm"
+              className="flex items-center justify-center gap-2 text-white bg-violet-600 hover:bg-violet-700 w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-1.5 rounded-full text-sm font-semibold transition-all shadow-sm"
               style={{ textDecoration: "none" }}
             >
-              <WriteIcon />
+              <span className="flex items-center justify-center"><WriteIcon /></span>
               <span className="hidden sm:inline">Write</span>
             </Link>
 
