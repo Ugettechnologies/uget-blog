@@ -64,7 +64,7 @@ export default function LiveEventRoom({ params }: { params: { id: string } }) {
           table: "live_updates",
           filter: `event_id=eq.${eventId}`
         },
-        (payload) => {
+        (payload: any) => {
           // Add new update to the top of the list
           setUpdates((prev) => [payload.new as LiveUpdate, ...prev]);
         }
@@ -77,7 +77,7 @@ export default function LiveEventRoom({ params }: { params: { id: string } }) {
           table: "live_events",
           filter: `id=eq.${eventId}`
         },
-        (payload) => {
+        (payload: any) => {
           // Update event details (like if it ended)
           setEvent((prev) => prev ? { ...prev, ...payload.new } : null);
         }
