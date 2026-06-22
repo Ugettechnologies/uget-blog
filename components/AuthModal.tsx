@@ -597,7 +597,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                     style={{ 
                       fontFamily: "var(--sans)", 
                       fontSize: 14, 
-                      color: "#242424", 
+                      color: "var(--ink)", 
                       cursor: "pointer", 
                       userSelect: "none" 
                     }}
@@ -608,7 +608,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
                 {/* Mode Toggles */}
                 {mode === "login" ? (
-                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "#242424", margin: "16px 0 24px" }}>
+                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink)", margin: "16px 0 24px" }}>
                     No account?{" "}
                     <button 
                       onClick={() => { setMode("signup"); setError(""); setSuccess(""); }}
@@ -618,7 +618,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                     </button>
                   </p>
                 ) : (
-                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "#242424", margin: "16px 0 24px" }}>
+                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink)", margin: "16px 0 24px" }}>
                     Already have an account?{" "}
                     <button 
                       onClick={() => { setMode("login"); setError(""); setSuccess(""); }}

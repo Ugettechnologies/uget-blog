@@ -151,7 +151,7 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "white" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "var(--bg)" }}>
         <div className="spinner" style={{ borderTopColor: "var(--brand)", width: 40, height: 40 }} />
         <p style={{ fontFamily: "var(--sans)", color: "var(--muted)", marginTop: 16 }}>Loading preferences…</p>
       </div>
@@ -161,9 +161,9 @@ export default function OnboardingPage() {
   const remaining = 3 - selected.length;
 
   return (
-    <div style={{ background: "white", minHeight: "100vh", paddingBottom: 120 }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", paddingBottom: 120 }}>
       {/* Mini Navbar */}
-      <header style={{ borderBottom: "1px solid var(--border)", padding: "16px 24px", position: "sticky", top: 0, background: "rgba(255, 255, 255, 0.95)", zIndex: 100, backdropFilter: "blur(8px)" }}>
+      <header style={{ borderBottom: "1px solid var(--border)", padding: "16px 24px", position: "sticky", top: 0, background: "var(--nav-bg)", zIndex: 100, backdropFilter: "blur(8px)" }}>
         <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
             <Image src="/favicon.png" alt="UGET" width={24} height={24} />
@@ -195,7 +195,7 @@ export default function OnboardingPage() {
           </svg>
         </div>
 
-        <h1 style={{ fontFamily: "var(--serif)", fontSize: 36, fontWeight: 400, color: "#191919", textAlign: "center", marginBottom: 12, letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontFamily: "var(--serif)", fontSize: 36, fontWeight: 400, color: "var(--black)", textAlign: "center", marginBottom: 12, letterSpacing: "-0.02em" }}>
           What would you like to read?
         </h1>
         <p style={{ fontFamily: "var(--sans)", fontSize: 16, color: "var(--muted)", textAlign: "center", marginBottom: 48 }}>
@@ -206,7 +206,7 @@ export default function OnboardingPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
           {TOPIC_CATEGORIES.map((category) => (
             <section key={category.name}>
-              <h2 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "#191919", marginBottom: 16, borderBottom: "1px solid #f1f1f1", paddingBottom: 8 }}>
+              <h2 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)", marginBottom: 16, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>
                 {category.name}
               </h2>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 8px" }}>
@@ -241,7 +241,7 @@ export default function OnboardingPage() {
           bottom: 0,
           left: 0,
           right: 0,
-          background: "rgba(255, 255, 255, 0.85)",
+          background: "var(--nav-bg)",
           borderTop: "1px solid var(--border)",
           padding: "16px 24px",
           backdropFilter: "blur(12px)",
@@ -265,19 +265,21 @@ export default function OnboardingPage() {
             fontSize: 15,
             fontWeight: 600,
             cursor: selected.length >= 3 ? "pointer" : "default",
-            backgroundColor: selected.length >= 3 ? "#191919" : "#e6e6e6",
-            color: selected.length >= 3 ? "white" : "#a8a8a8",
+            backgroundColor: selected.length >= 3 ? "var(--black)" : "var(--bg-3)",
+            color: selected.length >= 3 ? "var(--bg)" : "var(--muted-2)",
             border: "none",
             transition: "all 0.2s ease"
           }}
           onMouseEnter={(e) => {
             if (selected.length >= 3) {
               e.currentTarget.style.backgroundColor = "var(--brand)";
+              e.currentTarget.style.color = "white";
             }
           }}
           onMouseLeave={(e) => {
             if (selected.length >= 3) {
-              e.currentTarget.style.backgroundColor = "#191919";
+              e.currentTarget.style.backgroundColor = "var(--black)";
+              e.currentTarget.style.color = "var(--bg)";
             }
           }}
         >

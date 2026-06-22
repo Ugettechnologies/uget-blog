@@ -896,9 +896,9 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   font-size: 14px;
   font-family: var(--sans);
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
   background-color: transparent;
-  color: #242424;
+  color: var(--ink);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -927,9 +927,9 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   font-size: 15px;
   font-weight: 400;
   margin-bottom: 12px;
-  border: 1px solid #242424;
-  background-color: white;
-  color: #242424;
+  border: 1px solid var(--border);
+  background-color: var(--btn-outline-bg, white);
+  color: var(--ink);
   display: flex;
   align-items: center;
   position: relative;
@@ -941,8 +941,8 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 }
 
 .oauth-btn-modal:hover {
-  background-color: #f9f9f9;
-  border-color: #000;
+  background-color: var(--bg-3);
+  border-color: var(--ink-3);
 }
 
 .oauth-btn-modal:disabled {

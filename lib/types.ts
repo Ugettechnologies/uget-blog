@@ -133,10 +133,12 @@ export function saveUserToSavedList(
   const email = user.email || "";
   if (!email) return;
 
-  const resolvedProvider = provider || (localStorage.getItem("uget_pending_provider") as any) || "email";
+  const existingIndex = list.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
+  const existingUser = existingIndex > -1 ? list[existingIndex] : null;
+
+  const resolvedProvider = provider || (localStorage.getItem("uget_pending_provider") as any) || existingUser?.provider || "email";
   localStorage.removeItem("uget_pending_provider");
 
-  const existingIndex = list.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
   const updatedUser: SavedUser = {
     id: user.id,
     full_name: profile?.full_name || email.split("@")[0] || "User",
