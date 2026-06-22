@@ -109,7 +109,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
     >
       <div 
         style={{
-          background: "white",
+          background: "var(--bg-2)",
           borderRadius: 20,
           padding: 36,
           maxWidth: 460,
@@ -160,9 +160,8 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Manual Bank Instructions */}
-              <div style={{ backgroundColor: "#fdf8f2", border: "1px solid #fce8d5", borderRadius: 12, padding: 16 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#d97706", display: "block", marginBottom: 8, fontFamily: "var(--sans)" }}>
+              <div style={{ backgroundColor: "var(--bg-3)", border: "1px solid var(--border)", borderRadius: 12, padding: 16 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--brand)", display: "block", marginBottom: 8, fontFamily: "var(--sans)" }}>
                   Manual Bank Details
                 </span>
                 <div style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--black)", lineHeight: 1.6 }}>
@@ -303,8 +302,8 @@ export default function MembershipPage() {
       {/* Header Banner (Screenshot 4) */}
       <div 
         style={{ 
-          background: "#f5f3ff", 
-          borderBottom: "1px solid #ddd6fe", 
+          background: "var(--brand-light)", 
+          borderBottom: "1px solid var(--border)", 
           padding: "80px 24px" 
         }}
       >
@@ -326,7 +325,7 @@ export default function MembershipPage() {
                 fontSize: "clamp(36px, 6vw, 68px)", 
                 fontWeight: 400, 
                 lineHeight: 1.05, 
-                color: "#1a1a1a", 
+                color: "var(--ink)", 
                 letterSpacing: "-0.04em",
                 marginBottom: 24
               }}
@@ -338,7 +337,7 @@ export default function MembershipPage() {
                 fontFamily: "var(--serif)", 
                 fontSize: 19, 
                 lineHeight: 1.5, 
-                color: "#292929", 
+                color: "var(--ink-2)", 
                 marginBottom: 36,
                 maxWidth: 480
               }}
@@ -375,9 +374,9 @@ export default function MembershipPage() {
               style={{ 
                 width: "100%",
                 maxWidth: 380,
-                border: "1px solid rgba(0,0,0,0.1)", 
+                border: "1px solid var(--border)", 
                 borderRadius: 16,
-                background: "white",
+                background: "var(--bg-2)",
                 overflow: "hidden",
                 boxShadow: "0 10px 30px rgba(0,0,0,0.06)"
               }}
@@ -410,7 +409,7 @@ export default function MembershipPage() {
                 >
                   ✦ Member-only story
                 </span>
-                <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.3, marginBottom: 16 }}>
+                <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)", lineHeight: 1.3, marginBottom: 16 }}>
                   How to Sleep on Hot Summer Nights: Science vs. Myth
                 </h4>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -418,7 +417,7 @@ export default function MembershipPage() {
                     RB
                   </div>
                   <div>
-                    <div style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>Robert Roy Britt</div>
+                    <div style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>Robert Roy Britt</div>
                     <div style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Author of Make Sleep Your Superpower</div>
                   </div>
                 </div>
@@ -439,7 +438,7 @@ export default function MembershipPage() {
                 fontSize: 48, 
                 fontWeight: 400, 
                 lineHeight: 1.1, 
-                color: "#1a1a1a", 
+                color: "var(--black)", 
                 letterSpacing: "-0.025em" 
               }}
             >

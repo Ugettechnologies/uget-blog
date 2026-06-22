@@ -160,8 +160,8 @@ function NavbarInner() {
     writeBtnColor = "#ffffff";
     writeBtnBorder = "1px solid rgba(255, 255, 255, 0.6)";
   } else if (isLoggedOutHome) {
-    navBg = "#f5f3ff";
-    navBorder = "1px solid #ddd6fe";
+    navBg = "var(--brand-light)";
+    navBorder = "1px solid var(--border)";
     logoColor = "var(--brand)";
     linkColor = "var(--ink)";
     writeBtnBg = "var(--brand)";
@@ -244,8 +244,8 @@ function NavbarInner() {
 
                 {/* Notifications dropdown menu */}
                 {notifOpen && (
-                  <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "white", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
-                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fcfcfc" }}>
+                  <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-3)" }}>
                       <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
                       <div style={{ display: "flex", gap: 12 }}>
                         {unreadNotifCount > 0 && (
@@ -260,7 +260,7 @@ function NavbarInner() {
                         )}
                       </div>
                     </div>
-                    <div style={{ maxHeight: 360, overflowY: "auto", background: "white" }}>
+                    <div style={{ maxHeight: 360, overflowY: "auto", background: "var(--bg-2)" }}>
                       {notifications.length === 0 ? (
                         <div style={{ padding: "48px 20px", textAlign: "center", fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)" }}>
                           No notifications yet

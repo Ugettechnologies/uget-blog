@@ -55,7 +55,36 @@
   --btn-outline-bg: #16161a;
   --modal-bg: #16161a;
   --input-bg: #0f0f11;
+  --brand-light: rgba(124, 58, 237, 0.15);
 }
+
+/* Global Dark Mode overrides for inline background colors */
+.dark [style*="background: white"],
+.dark [style*="background:white"],
+.dark [style*="background-color: white"],
+.dark [style*="background-color:white"],
+.dark [style*="background: #ffffff"],
+.dark [style*="background:#ffffff"],
+.dark [style*="background-color: #ffffff"],
+.dark [style*="background-color:#ffffff"],
+.dark [style*="background: #fff"],
+.dark [style*="background:#fff"],
+.dark [style*="background-color: #fff"],
+.dark [style*="background-color:#fff"],
+.dark [style*="background: rgb(255, 255, 255)"],
+.dark [style*="background-color: rgb(255, 255, 255)"] {
+  background: var(--bg) !important;
+  background-color: var(--bg) !important;
+}
+
+/* Dropdowns, cards, and modals should use the elevated dark color */
+.dark [class*="dropdown"],
+.dark [class*="modal"],
+.dark [class*="card"] {
+  background: var(--bg-2) !important;
+  background-color: var(--bg-2) !important;
+}
+
 
 /* ══════════════════════════════════════
    RESET & BASE

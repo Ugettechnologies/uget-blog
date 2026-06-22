@@ -424,33 +424,33 @@ export default function ProfilePage() {
         </nav>
 
         {currentUserProfile && (
-          <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 16, marginTop: "auto" }}>
+          <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 16, marginTop: "auto" }}>
             <div className="flex items-center gap-3" style={{ marginBottom: 10 }}>
               <Link href={`/profile/${currentUserProfile?.username || currentUser?.id}`} style={{ display: "block", flexShrink: 0 }}>
                 <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden" }}>
                   {currentUserProfile.avatar_url ? (
                     <Image src={currentUserProfile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
                   ) : (
-                    <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {getInitials(currentUserProfile.full_name || currentUser?.email || "?")}
                     </div>
                   )}
                 </div>
               </Link>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentUserProfile.full_name || "Writer"}</div>
-                <div style={{ fontSize: 11, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{currentUserProfile.username || "writer"}</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentUserProfile.full_name || "Writer"}</div>
+                <div style={{ fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{currentUserProfile.username || "writer"}</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{followingProfiles.length}</span>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Following</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{followingProfiles.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Following</span>
               </Link>
-              <div style={{ width: 1, background: "#f0f0f0", alignSelf: "stretch" }} />
+              <div style={{ width: 1, background: "var(--border-2)", alignSelf: "stretch" }} />
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>—</span>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Followers</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>—</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Followers</span>
               </Link>
             </div>
           </div>
@@ -589,8 +589,8 @@ export default function ProfilePage() {
 
               {/* Bell dropdown */}
               {notifDropdownOpen && (
-                <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "white", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
-                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fcfcfc" }}>
+                <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-3)" }}>
                     <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
                     <div style={{ display: "flex", gap: 12 }}>
                       {unreadNotifCount > 0 && (
@@ -605,7 +605,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                   </div>
-                  <div style={{ maxHeight: 360, overflowY: "auto", background: "white" }}>
+                  <div style={{ maxHeight: 360, overflowY: "auto", background: "var(--bg-2)" }}>
                     {notifications.length === 0 ? (
                       <div style={{ padding: "48px 20px", textAlign: "center", fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)" }}>
                         No notifications yet
@@ -671,14 +671,14 @@ export default function ProfilePage() {
             </div>
 
             {/* Profile Card Header (Mobile only) */}
-            <div className="uget-profile-header-card" style={{ border: "1px solid var(--border-2)", borderRadius: 20, padding: 32, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", marginBottom: 32, display: "flex", flexDirection: "column", gap: 24 }}>
+            <div className="uget-profile-header-card" style={{ border: "1px solid var(--border-2)", borderRadius: 20, padding: 32, background: "var(--bg-2)", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", marginBottom: 32, display: "flex", flexDirection: "column", gap: 24 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
                   <div style={{ width: 80, height: 80, borderRadius: "50%", overflow: "hidden", background: "var(--bg-2)", border: "1px solid var(--border-2)", flexShrink: 0 }}>
                     {profile.avatar_url ? (
                       <Image src={profile.avatar_url} alt="" width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                     ) : (
-                      <div style={{ width: "100%", height: "100%", background: "#f5f3ff", color: "var(--brand)", fontWeight: 700, fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--sans)" }}>
+                      <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--sans)" }}>
                         {getInitials(profile.full_name)}
                       </div>
                     )}
@@ -797,7 +797,7 @@ export default function ProfilePage() {
             {activeTab === "home" && (
               <div>
                 {posts.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "60px 0", background: "#fafafa", borderRadius: 12, border: "1px dashed var(--border)" }}>
+                  <div style={{ textAlign: "center", padding: "60px 0", background: "var(--bg-2)", borderRadius: 12, border: "1px dashed var(--border)" }}>
                     <div style={{ fontSize: 40, marginBottom: 12 }}>✍️</div>
                     <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No stories published yet.</p>
                   </div>
@@ -852,7 +852,7 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                <div style={{ textAlign: "center", padding: "60px 0", background: "#fafafa", borderRadius: 12, border: "1px dashed var(--border)" }}>
+                <div style={{ textAlign: "center", padding: "60px 0", background: "var(--bg-2)", borderRadius: 12, border: "1px dashed var(--border)" }}>
                   <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }} className="font-sans">No recent activities</h3>
                   <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)" }}>Actions like published posts, follows, or comments will appear here.</p>
@@ -906,7 +906,7 @@ export default function ProfilePage() {
                             </button>
                           </div>
                         ) : (
-                          <div style={{ background: "#fafafa", borderRadius: 12, padding: 32, textAlign: "center", border: "1px dashed var(--border)" }}>
+                          <div style={{ background: "var(--bg-2)", borderRadius: 12, padding: 32, textAlign: "center", border: "1px dashed var(--border)" }}>
                             <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }} className="font-sans">Tell the world about yourself</h3>
                             <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", maxWidth: 440, margin: "0 auto 20px", lineHeight: 1.5 }}>
                               Here's where you can share more about yourself: your history, work experience, accomplishments, interests, dreams, and more. You can even add images and use rich text to personalize your bio.

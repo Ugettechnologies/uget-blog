@@ -140,7 +140,7 @@ export default function PostPage() {
   };
 
   if (loading) return (
-    <div style={{ background: "white", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: 16 }}>
         <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)", borderWidth: 3 }} />
@@ -156,7 +156,7 @@ export default function PostPage() {
   const isAuthor = user?.id === post.author_id;
 
   return (
-    <div style={{ background: "white", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar />
 
       {/* Article header */}
@@ -359,7 +359,7 @@ export default function PostPage() {
               {related.map((r) => {
                 const rAuthor = r.profiles as any;
                 return (
-                  <Link key={r.id} href={`/post/${r.slug}`} style={{ textDecoration: "none", background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", display: "block", transition: "box-shadow 0.2s" }}
+                  <Link key={r.id} href={`/post/${r.slug}`} style={{ textDecoration: "none", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", display: "block", transition: "box-shadow 0.2s" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "var(--shadow-md)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none"; }}>
                     {r.cover_image && (

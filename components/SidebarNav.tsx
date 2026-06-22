@@ -62,9 +62,9 @@ const getLinkStyle = (active: boolean): React.CSSProperties => ({
   fontFamily: "var(--sans, 'Inter', sans-serif)",
   fontSize: 14,
   fontWeight: active ? 700 : 500,
-  color: active ? "#5b21b6" : "#111827",
-  background: active ? "#f5f3ff" : "transparent",
-  borderLeft: active ? "3px solid #7c3aed" : "3px solid transparent",
+  color: active ? "var(--brand)" : "var(--ink-2)",
+  background: active ? "var(--brand-light)" : "transparent",
+  borderLeft: active ? "3px solid var(--brand)" : "3px solid transparent",
   letterSpacing: active ? "-0.01em" : "normal",
   transition: "all 0.15s ease",
   cursor: "pointer",
@@ -81,15 +81,15 @@ export function SidebarFollowingList({ followingProfiles, userProfileId }: Follo
     name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div style={{ marginTop: 24, borderTop: "1px solid #f0f0f0", paddingTop: 20 }}>
+    <div style={{ marginTop: 24, borderTop: "1px solid var(--border-2)", paddingTop: 20 }}>
       <Link
         href="/dashboard?tab=followers"
         style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 4px" }}
       >
-        <span style={{ fontSize: 11, fontFamily: "var(--sans)", fontWeight: 700, color: "#9b9b9b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        <span style={{ fontSize: 11, fontFamily: "var(--sans)", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
           Following
         </span>
-        <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "#7c3aed", fontWeight: 600 }}>
+        <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--brand)", fontWeight: 600 }}>
           View all →
         </span>
       </Link>
@@ -98,13 +98,13 @@ export function SidebarFollowingList({ followingProfiles, userProfileId }: Follo
           <Link
             href="/profile/admin"
             style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", borderRadius: 8, transition: "background 0.15s" }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "#f9fafb")}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg-3)")}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
           >
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
               UG
             </div>
-            <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>UGET Staff</span>
+            <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "var(--ink-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>UGET Staff</span>
           </Link>
         ) : (
           followingProfiles.map((prof) => (
@@ -112,19 +112,19 @@ export function SidebarFollowingList({ followingProfiles, userProfileId }: Follo
               key={prof.id}
               href={`/profile/${prof.username || prof.id}`}
               style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", borderRadius: 8, transition: "background 0.15s" }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "#f9fafb")}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg-3)")}
               onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
             >
-              <div style={{ width: 28, height: 28, borderRadius: "50%", overflow: "hidden", background: "#e5e7eb", flexShrink: 0 }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", overflow: "hidden", background: "var(--border)", flexShrink: 0 }}>
                 {prof.avatar_url ? (
                   <Image src={prof.avatar_url} alt="" width={28} height={28} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                 ) : (
-                  <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {getInitials(prof.full_name || "?")}
                   </div>
                 )}
               </div>
-              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prof.full_name}</span>
+              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 500, color: "var(--ink-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prof.full_name}</span>
             </Link>
           ))
         )}
@@ -133,10 +133,10 @@ export function SidebarFollowingList({ followingProfiles, userProfileId }: Follo
           href="/dashboard?tab=followers"
           style={{ textDecoration: "none", marginTop: 8, padding: "6px 4px", display: "flex", alignItems: "center", gap: 8 }}
         >
-          <div style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#9ca3af", fontSize: 14, fontWeight: 600 }}>+</div>
+          <div style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px dashed var(--border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--muted)", fontSize: 14, fontWeight: 600 }}>+</div>
           <div>
-            <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "#6b7280", fontWeight: 500, lineHeight: 1.3 }}>Find writers to follow</div>
-            <div style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#7c3aed", fontWeight: 600, marginTop: 1 }}>See suggestions</div>
+            <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", fontWeight: 500, lineHeight: 1.3 }}>Find writers to follow</div>
+            <div style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--brand)", fontWeight: 600, marginTop: 1 }}>See suggestions</div>
           </div>
         </Link>
       </div>
@@ -172,13 +172,13 @@ export function SidebarNav({ activePage, profileHref = "/profile", onItemClick }
             style={getLinkStyle(active)}
             onClick={onItemClick}
             onMouseEnter={(e) => {
-              if (!active) Object.assign((e.currentTarget as HTMLElement).style, { background: "#f9fafb", color: "#111827" });
+              if (!active) Object.assign((e.currentTarget as HTMLElement).style, { background: "var(--bg-3)", color: "var(--ink)" });
             }}
             onMouseLeave={(e) => {
               if (!active) Object.assign((e.currentTarget as HTMLElement).style, getLinkStyle(false));
             }}
           >
-            <span style={{ display: "flex", alignItems: "center", color: active ? "#7c3aed" : "#9ca3af", transition: "color 0.15s" }}>
+            <span style={{ display: "flex", alignItems: "center", color: active ? "var(--brand)" : "var(--muted)", transition: "color 0.15s" }}>
               <Icon active={active} />
             </span>
             <span>{label}</span>
