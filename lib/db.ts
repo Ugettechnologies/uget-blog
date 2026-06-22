@@ -72,7 +72,8 @@ function getMockDb() {
       posts: [],
       follows: [],
       bookmarks: [],
-      comments: []
+      comments: [],
+      subscriptions: []
     };
     fs.writeFileSync(mockDbPath, JSON.stringify(initialData, null, 2));
     return initialData;
@@ -80,7 +81,7 @@ function getMockDb() {
   try {
     return JSON.parse(fs.readFileSync(mockDbPath, "utf-8"));
   } catch {
-    return { users: [], profiles: [], notifications: [], posts: [], follows: [], bookmarks: [], comments: [] };
+    return { users: [], profiles: [], notifications: [], posts: [], follows: [], bookmarks: [], comments: [], subscriptions: [] };
   }
 }
 
@@ -245,6 +246,31 @@ export function getSql() {
         db.notifications.push(newNotif);
         saveMockDb(db);
         return [newNotif];
+      }
+
+      // 9. SELECT * FROM subscriptions
+      if (query.includes("FROM subscriptions")) {
+        const userId = params[0];
+        const userSubs = db.subscriptions.filter((s: any) => s.user_id === userId);
+        return userSubs;
+      }
+
+      // 10. INSERT INTO subscriptions
+      if (query.startsWith("INSERT INTO subscriptions")) {
+        const newSub = {
+          id: Math.random().toString(36).substring(7),
+          user_id: params[0],
+          plan_name: params[1],
+          amount: params[2],
+          status: params[3],
+          payment_method: params[4],
+          payment_proof_url: params[5] || "",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        db.subscriptions.push(newSub);
+        saveMockDb(db);
+        return [newSub];
       }
 
       return [];

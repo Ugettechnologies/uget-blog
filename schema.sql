@@ -98,6 +98,19 @@ create table if not exists public.notifications (
   created_at timestamptz default now()
 );
 
+-- subscriptions table
+create table if not exists public.subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  plan_name text not null,
+  amount text not null,
+  status text not null default 'active' check (status in ('active', 'pending_approval', 'expired')),
+  payment_method text not null check (payment_method in ('stripe', 'bank_transfer')),
+  payment_proof_url text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 create index if not exists notifications_user_idx on public.notifications(user_id, created_at desc);
 create index if not exists follows_follower_idx on public.follows(follower_id);
 create index if not exists follows_following_idx on public.follows(following_id);
@@ -111,6 +124,7 @@ $$;
 create or replace trigger posts_updated_at before update on public.posts for each row execute procedure public.update_updated_at();
 create or replace trigger profiles_updated_at before update on public.profiles for each row execute procedure public.update_updated_at();
 create or replace trigger users_updated_at before update on public.users for each row execute procedure public.update_updated_at();
+create or replace trigger subscriptions_updated_at before update on public.subscriptions for each row execute procedure public.update_updated_at();
 
 -- ── Indexes ───────────────────────────────────────────────────────────────────
 create index if not exists posts_author_idx on public.posts(author_id);

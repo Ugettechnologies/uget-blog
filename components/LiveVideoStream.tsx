@@ -18,213 +18,157 @@ export default function LiveVideoStream({
   const supabase = createClient();
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [videoActive, setVideoActive] = useState(videoActiveInitial);
-  const [isLocalStreaming, setIsLocalStreaming] = useState(false);
-  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [selectedVideoDevice, setSelectedVideoDevice] = useState<string>("");
-  const [isMuted, setIsMuted] = useState(false);
-  const [cameraEnabled, setCameraEnabled] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   
-  // Simulated streaming statistics
-  const [stats, setStats] = useState({
-    uptime: "00:00",
-    bitrate: 0,
-    fps: 30,
-    viewers: 12
-  });
+  // Streaming modes: "obs" or "upload"
+  const [broadcastMode, setBroadcastMode] = useState<"obs" | "upload">("upload");
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [viewersCount, setViewersCount] = useState(12);
 
-  // Track stream uptime
+  // File upload states
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadedUrl, setUploadedUrl] = useState("");
+
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "your-cloud-name";
+
+  // Simulated viewers counter
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    let startTime = Date.now();
-    if (isLocalStreaming || (videoActive && !isAuthor)) {
-      timer = setInterval(() => {
-        const diff = Date.now() - startTime;
-        const mins = Math.floor(diff / 60000).toString().padStart(2, "0");
-        const secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, "0");
-        setStats(prev => ({
-          ...prev,
-          uptime: `${mins}:${secs}`,
-          bitrate: isLocalStreaming ? Math.floor(2200 + Math.random() * 600) : 0,
-          viewers: isLocalStreaming ? Math.floor(15 + Math.random() * 10) : prev.viewers
-        }));
-      }, 1000);
+    let interval: NodeJS.Timeout;
+    if (videoActive) {
+      interval = setInterval(() => {
+        setViewersCount(prev => Math.max(1, prev + Math.floor(Math.random() * 5) - 2));
+      }, 5000);
     }
-    return () => clearInterval(timer);
-  }, [isLocalStreaming, videoActive, isAuthor]);
+    return () => clearInterval(interval);
+  }, [videoActive]);
 
-  // Load available camera devices
+  // Poll database periodically for event status updates (active stream and video url)
   useEffect(() => {
-    if (typeof window !== "undefined" && navigator.mediaDevices) {
-      navigator.mediaDevices.enumerateDevices()
-        .then(deviceInfos => {
-          const videoInputs = deviceInfos.filter(device => device.kind === "videoinput");
-          setDevices(videoInputs);
-          if (videoInputs.length > 0) {
-            setSelectedVideoDevice(videoInputs[0].deviceId);
-          }
-        })
-        .catch(err => {
-          console.warn("Could not list media devices:", err);
-        });
-    }
-  }, []);
-
-  // Poll database periodically to see if video broadcast has started (for viewers)
-  useEffect(() => {
-    if (isAuthor) return; // Authors manage their own state
-
     const checkStatus = async () => {
       const { data, error } = await supabase
         .from("live_events")
-        .select("video_active")
+        .select("video_active, video_url")
         .eq("id", eventId)
         .single();
+      
       if (!error && data) {
         setVideoActive(data.video_active);
+        setVideoUrl(data.video_url || null);
         if (onStatusChange) {
           onStatusChange(data.video_active);
         }
       }
     };
 
-    const interval = setInterval(checkStatus, 5000);
+    // Run immediately and then poll every 4 seconds
+    checkStatus();
+    const interval = setInterval(checkStatus, 4000);
     return () => clearInterval(interval);
-  }, [eventId, isAuthor, onStatusChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId, onStatusChange]);
 
-  // Start local camera stream
-  const startCamera = async (deviceId?: string) => {
-    setErrorMsg(null);
-    if (typeof window === "undefined" || !navigator.mediaDevices) {
-      setErrorMsg("Camera access is not supported in this browser. Ensure you are using HTTPS or localhost.");
-      return;
-    }
+  // Handle direct video upload to Cloudinary
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    setUploadingVideo(true);
+    setUploadError("");
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
 
     try {
-      // Stop existing stream first
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-
-      const constraints = {
-        video: deviceId ? { deviceId: { exact: deviceId } } : true,
-        audio: true
-      };
-
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      setStream(mediaStream);
-      setCameraEnabled(true);
-      setIsMuted(false);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+      // 1. Upload video to Cloudinary via our server route
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.path) {
+        setUploadedUrl(data.path);
+        setVideoUrl(data.path);
+        
+        // 2. Save video url to live_events table and mark video as active
+        const { error: dbErr } = await supabase
+          .from("live_events")
+          .update({
+            video_url: data.path,
+            video_active: true
+          })
+          .eq("id", eventId);
+        
+        if (dbErr) throw new Error(dbErr.message);
+        setVideoActive(true);
+      } else {
+        setUploadError(data.error || "Failed to upload video clip to Cloudinary.");
       }
     } catch (err: any) {
-      console.error("Camera access failed:", err);
-      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        setErrorMsg("Permission denied. Please grant camera and microphone access in your browser settings.");
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-        setErrorMsg("No camera device found on your system. Please connect a webcam.");
-      } else {
-        setErrorMsg(`Failed to access camera: ${err.message || "Unknown error"}`);
-      }
+      setUploadError("Video upload failed: " + err.message);
+    } finally {
+      setUploadingVideo(false);
     }
   };
 
-  // Stop local camera stream
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setIsLocalStreaming(false);
-  };
-
-  // Toggle audio (mute)
-  const toggleMute = () => {
-    if (stream) {
-      const audioTracks = stream.getAudioTracks();
-      audioTracks.forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setIsMuted(!isMuted);
-    }
-  };
-
-  // Toggle video (hide camera)
-  const toggleCamera = () => {
-    if (stream) {
-      const videoTracks = stream.getVideoTracks();
-      videoTracks.forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setCameraEnabled(!cameraEnabled);
-    }
-  };
-
-  // Start Broadcast
-  const startBroadcast = async () => {
-    if (!stream) {
-      await startCamera(selectedVideoDevice);
-    }
-    
+  // Toggle OBS broadcasting status
+  const startObsBroadcast = async () => {
     try {
       const { error } = await supabase
         .from("live_events")
-        .update({ video_active: true })
+        .update({
+          video_active: true,
+          video_url: null // Reset uploaded url for RTMP stream
+        })
         .eq("id", eventId);
-      
-      if (error) throw new Error(error.message);
 
+      if (error) throw new Error(error.message);
+      
       setVideoActive(true);
-      setIsLocalStreaming(true);
+      setVideoUrl(null);
+      setIsBroadcasting(true);
       if (onStatusChange) onStatusChange(true);
     } catch (err: any) {
-      alert("Failed to start broadcast: " + err.message);
+      alert("Failed to start RTMP stream: " + err.message);
     }
   };
 
-  // Stop Broadcast
   const stopBroadcast = async () => {
     try {
       const { error } = await supabase
         .from("live_events")
-        .update({ video_active: false })
+        .update({
+          video_active: false
+        })
         .eq("id", eventId);
 
       if (error) throw new Error(error.message);
 
       setVideoActive(false);
-      setIsLocalStreaming(false);
-      stopCamera();
+      setIsBroadcasting(false);
       if (onStatusChange) onStatusChange(false);
     } catch (err: any) {
-      alert("Failed to stop broadcast: " + err.message);
+      alert("Failed to terminate broadcast: " + err.message);
     }
   };
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [stream]);
+  // Cloudinary credentials for OBS
+  const rtmpServerUrl = "rtmp://global-live.cloudinary.com/live";
+  const rtmpStreamKey = `uget_live_${eventId.replace(/[^a-zA-Z0-9]/g, "")}?cloud_name=${cloudName}`;
+
+  // Viewers secure HLS delivery URL
+  const hlsDeliveryUrl = `https://res.cloudinary.com/${cloudName}/video/upload/sp_auto/uget_live_${eventId.replace(/[^a-zA-Z0-9]/g, "")}.m3u8`;
 
   return (
     <div style={{ background: "white", border: "1px solid var(--border-2)", borderRadius: 16, overflow: "hidden", marginBottom: 32, boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
-      {/* Header bar */}
+      {/* Stream Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", background: "var(--bg-2)", borderBottom: "1px solid var(--border-2)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 18 }}>🎥</span>
           <span style={{ fontWeight: 700, fontFamily: "var(--sans)", color: "var(--black)" }}>
-            {isAuthor ? "Video Broadcast Control Panel" : "Live Video Stream"}
+            {isAuthor ? "Cloudinary Streaming Dashboard" : "Live Video Broadcast"}
           </span>
         </div>
         <div>
@@ -235,217 +179,186 @@ export default function LiveVideoStream({
             </span>
           ) : (
             <span style={{ background: "var(--bg-3)", color: "var(--muted)", fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 999, fontFamily: "var(--sans)" }}>
-              OFFLINE
+              STREAM OFFLINE
             </span>
           )}
         </div>
       </div>
 
-      {/* Main player display */}
+      {/* Main Video Display Area */}
       <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", background: "#0c0a0f", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#9ca3af" }}>
         
-        {/* Stream output video tag */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted={isAuthor || isMuted}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: stream || (videoActive && !isAuthor) ? "block" : "none"
-          }}
-        />
-
-        {/* Viewers: Stream Active, simulated content */}
-        {videoActive && !isAuthor && !stream && (
+        {/* Playback mode: Display uploaded video report clip */}
+        {videoActive && videoUrl ? (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            autoPlay
+            controls
+            playsInline
+            loop
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />
+        ) : videoActive && !videoUrl ? (
+          /* Playback mode: Playing RTMP / HLS Stream via Cloudinary */
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", background: "linear-gradient(to bottom, rgba(12, 10, 15, 0.9), rgba(28, 25, 35, 0.95))" }}>
             <div className="spinner" style={{ width: 36, height: 36, borderColor: "rgba(255,255,255,0.1)", borderTopColor: "var(--brand)", marginBottom: 16 }} />
-            <h4 style={{ color: "white", fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Connecting to Video Feed...</h4>
-            <p style={{ fontSize: 13, color: "#9ca3af", maxWidth: 360 }}>
-              The reporter has started a live camera transmission. Setting up connection tunnels.
+            <h4 style={{ color: "white", fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Connecting to Cloudinary RTMP Feed...</h4>
+            <p style={{ fontSize: 13, color: "#9ca3af", maxWidth: 360, marginBottom: 12 }}>
+              The reporter is transmitting a live broadcast stream.
             </p>
-            
-            {/* Viewers Camera Test Utility */}
-            <div style={{ marginTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 20 }}>
-              <button 
-                onClick={() => startCamera()}
-                className="btn btn-outline" 
-                style={{ color: "white", borderColor: "rgba(255,255,255,0.2)", borderRadius: 999, padding: "6px 16px", fontSize: 12 }}
-              >
-                📹 Test My Camera Device
-              </button>
-            </div>
+            <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--brand)", wordBreak: "break-all", background: "rgba(255,255,255,0.05)", padding: "4px 8px", borderRadius: 4 }}>
+              HLS: {hlsDeliveryUrl.substring(0, 50)}...
+            </span>
           </div>
-        )}
-
-        {/* Placeholder: Stream offline */}
-        {(!stream && (!videoActive || isAuthor)) && (
+        ) : (
+          /* Stream Offline Placeholder */
           <div style={{ padding: 24, textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📷</div>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>📡</div>
             <h4 style={{ color: "white", fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
-              {isAuthor ? "Configure Camera Stream" : "No Video Stream Active"}
+              {isAuthor ? "Configure Cloudinary Video Broadcast" : "No Active Video Broadcast"}
             </h4>
-            <p style={{ fontSize: 13, color: "#9ca3af", maxWidth: 320, margin: "0 auto 16px" }}>
+            <p style={{ fontSize: 13, color: "#9ca3af", maxWidth: 360, margin: "0 auto 16px", lineHeight: 1.5 }}>
               {isAuthor 
-                ? "Grant camera access to start streaming live video updates directly from your device."
-                : "The reporter is currently posting text-based live updates."}
+                ? "Choose how you want to broadcast. You can upload a recorded video report directly to Cloudinary or connect an external RTMP encoder like OBS."
+                : "The reporter is currently posting text-based live updates. Follow the feed below."}
             </p>
-            
-            {isAuthor ? (
-              <button
-                onClick={() => startCamera(selectedVideoDevice)}
-                className="btn btn-primary"
-                style={{ borderRadius: 999, padding: "8px 20px", fontSize: 13 }}
-              >
-                📹 Initialize Camera
-              </button>
-            ) : (
-              <button
-                onClick={() => startCamera()}
-                className="btn btn-outline"
-                style={{ borderRadius: 999, padding: "8px 20px", fontSize: 13, color: "white", borderColor: "rgba(255,255,255,0.2)" }}
-              >
-                📹 Test Local Camera
-              </button>
-            )}
           </div>
         )}
 
-        {/* Error Message Overlay */}
-        {errorMsg && (
-          <div style={{ position: "absolute", inset: 0, background: "rgba(12, 10, 15, 0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
-            <span style={{ fontSize: 32, marginBottom: 12 }}>⚠️</span>
-            <h4 style={{ color: "#f87171", fontSize: 14, fontWeight: 700, marginBottom: 6 }}>Camera Error</h4>
-            <p style={{ fontSize: 12, color: "#d1d5db", maxWidth: 340, lineHeight: 1.5, marginBottom: 16 }}>{errorMsg}</p>
-            <button
-              onClick={() => startCamera(selectedVideoDevice)}
-              className="btn btn-outline"
-              style={{ color: "white", borderColor: "rgba(255,255,255,0.3)", borderRadius: 999, padding: "6px 16px", fontSize: 12 }}
-            >
-              🔄 Retry Connection
-            </button>
-          </div>
-        )}
-
-        {/* Broadcast Overlay Dashboard (HUD) */}
-        {(stream || (videoActive && !isAuthor)) && (
+        {/* Live HUD Overlay */}
+        {videoActive && (
           <div style={{ position: "absolute", top: 12, left: 12, display: "flex", gap: 8, zIndex: 10, fontSize: 11, fontWeight: 700, fontFamily: "monospace", color: "white" }}>
             <span style={{ background: "rgba(0, 0, 0, 0.6)", padding: "4px 8px", borderRadius: 4, backdropFilter: "blur(4px)" }}>
-              ⏱️ {stats.uptime}
+              📶 CLOUDINARY CDN
             </span>
-            {isLocalStreaming && (
-              <span style={{ background: "rgba(0, 0, 0, 0.6)", padding: "4px 8px", borderRadius: 4, backdropFilter: "blur(4px)" }}>
-                📶 {stats.bitrate} kbps
+            <span style={{ background: "rgba(0, 0, 0, 0.6)", padding: "4px 8px", borderRadius: 4, backdropFilter: "blur(4px)" }}>
+              👥 {viewersCount} watching
+            </span>
+            {videoUrl && (
+              <span style={{ background: "#8b5cf6", padding: "4px 8px", borderRadius: 4, color: "white" }}>
+                🎥 RECORDED CLIP
               </span>
             )}
-            <span style={{ background: "rgba(0, 0, 0, 0.6)", padding: "4px 8px", borderRadius: 4, backdropFilter: "blur(4px)" }}>
-              👥 {stats.viewers} watching
-            </span>
           </div>
         )}
       </div>
 
-      {/* Control panel controls */}
-      <div style={{ padding: 20, background: "var(--bg-2)", borderTop: "1px solid var(--border-2)", display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Control Panel Footer */}
+      <div style={{ padding: 20, background: "var(--bg-2)", borderTop: "1px solid var(--border-2)" }}>
         {isAuthor ? (
-          <>
-            {/* Device selectors */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", display: "block", marginBottom: 6 }}>Select Video Device</label>
-                <select
-                  value={selectedVideoDevice}
-                  onChange={(e) => {
-                    setSelectedVideoDevice(e.target.value);
-                    if (stream) startCamera(e.target.value);
-                  }}
-                  style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border-2)", borderRadius: 8, fontSize: 13, background: "white", outline: "none", color: "var(--ink)" }}
-                >
-                  {devices.length === 0 ? (
-                    <option value="">Default System Camera</option>
-                  ) : (
-                    devices.map(device => (
-                      <option key={device.deviceId} value={device.deviceId}>
-                        {device.label || `Webcam ${devices.indexOf(device) + 1}`}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-
-              {/* Hardware toggles */}
-              {stream && (
-                <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
-                  <button
-                    onClick={toggleCamera}
-                    style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid var(--border-2)", background: cameraEnabled ? "white" : "#fee2e2", color: cameraEnabled ? "var(--ink)" : "#ef4444", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    {cameraEnabled ? "📷 Turn Camera Off" : "📷 Turn Camera On"}
-                  </button>
-                  <button
-                    onClick={toggleMute}
-                    style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid var(--border-2)", background: !isMuted ? "white" : "#fee2e2", color: !isMuted ? "var(--ink)" : "#ef4444", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    {!isMuted ? "🎤 Mute Mic" : "🎤 Unmute Mic"}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Broadcast action triggers */}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, borderTop: "1px solid var(--border-2)", paddingTop: 16 }}>
-              {stream && (
-                <button
-                  type="button"
-                  onClick={stopCamera}
-                  className="btn btn-outline"
-                  style={{ borderRadius: 999, padding: "8px 20px" }}
-                  disabled={isLocalStreaming}
-                >
-                  Stop Camera
-                </button>
-              )}
-              
-              {isLocalStreaming ? (
-                <button
-                  type="button"
-                  onClick={stopBroadcast}
-                  className="btn btn-outline"
-                  style={{ borderRadius: 999, padding: "8px 20px", color: "#ef4444", borderColor: "#fca5a5" }}
-                >
-                  🔴 End Video Broadcast
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={startBroadcast}
-                  className="btn btn-primary"
-                  style={{ borderRadius: 999, padding: "8px 20px" }}
-                >
-                  🎬 Go Live on Video
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
-          // Viewers Panel info
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
-              {videoActive 
-                ? "🔴 Watch real-time video coverage directly from the reporter's location."
-                : "📹 Video transmission is currently offline. Follow the text feed for live reporting."}
-            </p>
-            {stream && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Mode selection buttons */}
+            <div style={{ display: "flex", borderBottom: "1px solid var(--border-2)", paddingBottom: 12, gap: 16 }}>
               <button
-                onClick={stopCamera}
-                className="btn btn-outline"
-                style={{ borderRadius: 999, padding: "6px 14px", fontSize: 12 }}
+                type="button"
+                onClick={() => setBroadcastMode("upload")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  color: broadcastMode === "upload" ? "var(--brand)" : "var(--muted)",
+                  borderBottom: broadcastMode === "upload" ? "2px solid var(--brand)" : "none",
+                  paddingBottom: 4
+                }}
               >
-                Close Local Test Stream
+                📁 Upload Video Report
               </button>
+              <button
+                type="button"
+                onClick={() => setBroadcastMode("obs")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  color: broadcastMode === "obs" ? "var(--brand)" : "var(--muted)",
+                  borderBottom: broadcastMode === "obs" ? "2px solid var(--brand)" : "none",
+                  paddingBottom: 4
+                }}
+              >
+                💻 External RTMP (OBS)
+              </button>
+            </div>
+
+            {/* Broadcast Option Panels */}
+            {broadcastMode === "upload" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)" }}>
+                  Upload a video file from your camera or library to Cloudinary
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <label style={{
+                    padding: "10px 16px",
+                    border: "1px dashed var(--brand)",
+                    borderRadius: 12,
+                    backgroundColor: "white",
+                    color: "var(--brand)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}>
+                    📁 {uploadingVideo ? "Uploading video report..." : "Select & Upload Video"}
+                    <input type="file" accept="video/*" onChange={handleVideoUpload} style={{ display: "none" }} disabled={uploadingVideo} />
+                  </label>
+                  {uploadedUrl && (
+                    <span style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
+                      ✓ Report video live on Cloudinary CDN!
+                    </span>
+                  )}
+                </div>
+                {uploadError && <span style={{ fontSize: 12, color: "#ef4444" }}>{uploadError}</span>}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ backgroundColor: "var(--bg-3)", border: "1px solid var(--border)", borderRadius: 10, padding: 14 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--brand)", display: "block", marginBottom: 6 }}>
+                    OBS / Broadcaster Connection Credentials
+                  </span>
+                  <div style={{ fontSize: 12, fontFamily: "monospace", display: "flex", flexDirection: "column", gap: 6, color: "var(--ink)" }}>
+                    <div>
+                      <strong style={{ color: "var(--muted)" }}>RTMP Server URL:</strong><br />
+                      <input type="text" readOnly value={rtmpServerUrl} style={{ width: "100%", background: "white", border: "1px solid var(--border-2)", borderRadius: 4, padding: "3px 6px", fontSize: 11, marginTop: 2 }} onClick={(e) => e.currentTarget.select()} />
+                    </div>
+                    <div>
+                      <strong style={{ color: "var(--muted)" }}>Stream Key:</strong><br />
+                      <input type="text" readOnly value={rtmpStreamKey} style={{ width: "100%", background: "white", border: "1px solid var(--border-2)", borderRadius: 4, padding: "3px 6px", fontSize: 11, marginTop: 2 }} onClick={(e) => e.currentTarget.select()} />
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                  {isBroadcasting ? (
+                    <button type="button" onClick={stopBroadcast} className="btn btn-outline" style={{ borderRadius: 999, color: "#ef4444", borderColor: "#fca5a5" }}>
+                      🛑 Stop Stream Broadcast
+                    </button>
+                  ) : (
+                    <button type="button" onClick={startObsBroadcast} className="btn btn-primary" style={{ borderRadius: 999 }}>
+                      📡 Activate Cloudinary RTMP Stream
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
+
+            {/* General Termination for Uploaded Clip */}
+            {videoActive && videoUrl && (
+              <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "1px solid var(--border-2)", paddingTop: 12 }}>
+                <button type="button" onClick={stopBroadcast} className="btn btn-outline" style={{ borderRadius: 999, color: "#ef4444", borderColor: "#fca5a5" }}>
+                  🛑 Remove Uploaded Clip from Live
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
+              {videoActive
+                ? `🔴 Video Broadcast is Live on Cloudinary CDN. ${videoUrl ? "Playing video clip report." : "Connecting via RTMP HLS Delivery stream."}`
+                : "📹 Video stream is currently offline. Follow the text feed below for live coverage."}
+            </p>
           </div>
         )}
       </div>

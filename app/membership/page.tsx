@@ -12,22 +12,83 @@ interface CheckoutModalProps {
 }
 
 function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps) {
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
   const [name, setName] = useState("");
+  
+  // Bank transfer receipt upload states
+  const [paymentProofUrl, setPaymentProofUrl] = useState("");
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [fileName, setFileName] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   if (!isOpen) return null;
 
-  const handlePay = (e: React.FormEvent) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    setFileName(selectedFile.name);
+    setUploadingProof(true);
+    setUploadError("");
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.path) {
+        setPaymentProofUrl(data.path);
+      } else {
+        setUploadError(data.error || "File upload failed.");
+      }
+    } catch (err: any) {
+      setUploadError("Upload failed: " + err.message);
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
+  const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!paymentProofUrl) {
+      setErrorMessage("Please upload bank transfer receipt proof.");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/membership/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planName,
+          price,
+          paymentMethod: "bank_transfer",
+          paymentProofUrl,
+          name,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSuccess(true);
+      } else {
+        setErrorMessage(data.error || "Failed to process subscription.");
+      }
+    } catch (err: any) {
+      setErrorMessage("Network error: " + err.message);
+    } finally {
       setLoading(false);
-      setSuccess(true);
-    }, 2000);
+    }
   };
 
   return (
@@ -51,13 +112,15 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
           background: "white",
           borderRadius: 20,
           padding: 36,
-          maxWidth: 420,
+          maxWidth: 460,
           width: "100%",
           boxShadow: "var(--shadow-xl)",
           position: "relative",
           animation: "modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
           border: "1px solid var(--border)",
-          color: "var(--ink-2)"
+          color: "var(--ink-2)",
+          maxHeight: "90vh",
+          overflowY: "auto"
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -72,7 +135,8 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
             cursor: "pointer",
             color: "var(--muted)",
             padding: 8,
-            borderRadius: "50%"
+            borderRadius: "50%",
+            zIndex: 10
           }}
         >
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -85,13 +149,31 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
             <h3 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, marginBottom: 4, color: "var(--black)" }}>
               Complete subscription
             </h3>
-            <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", marginBottom: 24 }}>
+            <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", marginBottom: 20 }}>
               You are subscribing to <strong style={{ color: "var(--brand)" }}>{planName}</strong> for <strong>{price}</strong>
             </p>
 
+            {errorMessage && (
+              <div style={{ padding: "10px 14px", backgroundColor: "#fef2f2", border: "1px solid #fee2e2", borderRadius: 8, color: "#ef4444", fontSize: 13, marginBottom: 16, fontFamily: "var(--sans)" }}>
+                ⚠️ {errorMessage}
+              </div>
+            )}
+
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Manual Bank Instructions */}
+              <div style={{ backgroundColor: "#fdf8f2", border: "1px solid #fce8d5", borderRadius: 12, padding: 16 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#d97706", display: "block", marginBottom: 8, fontFamily: "var(--sans)" }}>
+                  Manual Bank Details
+                </span>
+                <div style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--black)", lineHeight: 1.6 }}>
+                  <div style={{ marginBottom: 4 }}>Bank: <strong>Moniepoint</strong></div>
+                  <div style={{ marginBottom: 4 }}>Account Number: <strong style={{ letterSpacing: 0.5 }}>674 362 0799</strong></div>
+                  <div>Account Name: <strong>uget technologies</strong></div>
+                </div>
+              </div>
+
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600 }}>Name on card</label>
+                <label style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600 }}>Sender Full Name</label>
                 <input 
                   type="text" 
                   className="form-input" 
@@ -105,80 +187,40 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                 />
               </div>
 
+              {/* Upload Receipt Proof Button */}
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600 }}>Card number</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="4111 2222 3333 4444" 
-                  value={cardNumber}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/\s+/g, "").replace(/[^0-9\d]/g, "");
-                    const matches = v.match(/\d{4,16}/g);
-                    const match = (matches && matches[0]) || "";
-                    const parts = [];
-                    for (let i = 0, len = match.length; i < len; i += 4) {
-                      parts.push(match.substring(i, i + 4));
-                    }
-                    if (parts.length > 0) {
-                      setCardNumber(parts.join(" "));
-                    } else {
-                      setCardNumber(v);
-                    }
-                  }}
-                  style={{
-                    width: "100%", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "12px", fontSize: 15, background: "none"
-                  }}
-                  maxLength={19}
-                  required 
-                />
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  <label style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600 }}>Expiry date</label>
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    placeholder="MM/YY" 
-                    value={expiry}
-                    onChange={(e) => {
-                      const v = e.target.value.replace(/\s+/g, "").replace(/[^0-9\d]/g, "");
-                      if (v.length >= 2) {
-                        setExpiry(v.substring(0, 2) + "/" + v.substring(2, 4));
-                      } else {
-                        setExpiry(v);
-                      }
-                    }}
-                    style={{
-                      width: "100%", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "12px", fontSize: 15, background: "none"
-                    }}
-                    maxLength={5}
-                    required 
-                  />
+                <label style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600 }}>Upload Payment Proof (Receipt Screenshot/Video)</label>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <label style={{
+                    padding: "10px 16px",
+                    border: "1px dashed var(--brand)",
+                    borderRadius: 12,
+                    backgroundColor: "var(--bg-2)",
+                    color: "var(--brand)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-block",
+                    fontFamily: "var(--sans)"
+                  }}>
+                    📁 {uploadingProof ? "Uploading to Cloudinary..." : "Choose File"}
+                    <input type="file" accept="image/*,video/*" onChange={handleFileChange} style={{ display: "none" }} disabled={uploadingProof} />
+                  </label>
+                  {fileName && <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", maxWidth: 180 }}>{fileName}</span>}
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  <label style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600 }}>CVC</label>
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    placeholder="123" 
-                    value={cvc}
-                    onChange={(e) => setCvc(e.target.value.replace(/[^0-9\d]/g, ""))}
-                    style={{
-                      width: "100%", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "12px", fontSize: 15, background: "none"
-                    }}
-                    maxLength={4}
-                    required 
-                  />
-                </div>
+                {uploadError && <span style={{ fontSize: 12, color: "#ef4444", fontFamily: "var(--sans)" }}>{uploadError}</span>}
+                {paymentProofUrl && (
+                  <div style={{ marginTop: 8, fontSize: 12, color: "#10b981", fontWeight: 600, fontFamily: "var(--sans)", display: "flex", alignItems: "center", gap: 4 }}>
+                    ✓ Proof uploaded successfully to Cloudinary!
+                  </div>
+                )}
               </div>
             </div>
 
             <button 
               type="submit" 
               className="auth-submit" 
-              disabled={loading}
+              disabled={loading || uploadingProof}
               style={{
                 width: "100%",
                 padding: "12px",
@@ -187,32 +229,34 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                 fontSize: 15,
                 cursor: "pointer",
                 marginTop: 24,
-                backgroundColor: "var(--brand)",
-                color: "white"
+                backgroundColor: (loading || uploadingProof) ? "var(--muted)" : "var(--brand)",
+                color: "white",
+                border: "none",
+                transition: "background-color 0.2s"
               }}
             >
               {loading ? (
-                <div className="spinner" style={{ width: 16, height: 16 }} />
+                <div className="spinner" style={{ width: 16, height: 16, margin: "0 auto" }} />
               ) : (
-                `Pay ${price}`
+                "Submit Transfer Proof"
               )}
             </button>
           </form>
         ) : (
           <div style={{ textAlign: "center", padding: "12px 0" }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>⏳</div>
             <h3 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, marginBottom: 8, color: "var(--black)" }}>
-              Subscription Active!
+              Transfer Verification Pending!
             </h3>
             <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
-              Thank you for supporting human stories on UGET. Your membership account is now fully activated.
+              Thank you! We've received your Moniepoint transaction proof. Our administrators will verify the transfer, and you'll receive a confirmation email at ugettechnologies@gmail.com once activated.
             </p>
             <button 
               onClick={onClose} 
               className="btn btn-primary"
-              style={{ padding: "10px 32px" }}
+              style={{ padding: "10px 32px", borderRadius: 999 }}
             >
-              Start reading
+              Close Panel
             </button>
           </div>
         )}

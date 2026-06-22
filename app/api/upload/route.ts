@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getUserFromSession } from "@/lib/auth-server";
-import { put } from "@vercel/blob";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configure Cloudinary from environment variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request: Request) {
   try {
@@ -17,20 +24,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Clean up filename to prevent directory traversal or bad characters
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `uploads/${user.id}/${Date.now()}-${safeName}`;
+    // Convert next.js File object to a Node.js Buffer for stream upload
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    const blob = await put(filename, file, {
-      access: "public",
-      contentType: file.type,
+    // Upload stream to Cloudinary with automatic resource type detection (image, video, etc.)
+    const uploadResult = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: `uget-blog/${user.id}`,
+          resource_type: "auto",
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+      uploadStream.end(buffer);
     });
 
-    return NextResponse.json({ path: blob.url });
+    // Return secure_url matching the previous upload schema ({ path: string })
+    return NextResponse.json({ path: uploadResult.secure_url });
   } catch (err: any) {
-    console.error("Upload error:", err);
+    console.error("Cloudinary upload error:", err);
     return NextResponse.json(
-      { error: err.message || "Failed to upload file" },
+      { error: err.message || "Failed to upload file to Cloudinary" },
       { status: 500 }
     );
   }

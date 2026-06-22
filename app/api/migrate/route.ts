@@ -32,6 +32,17 @@ export async function GET() {
       console.warn("Could not alter live_events table for video_active:", colErr.message);
     }
 
+    // 1.6 Add video_url column to live_events table
+    try {
+      await sql`
+        ALTER TABLE public.live_events 
+        ADD COLUMN IF NOT EXISTS video_url text
+      `;
+      console.log("✓ Live events video_url column added/checked");
+    } catch (colErr: any) {
+      console.warn("Could not alter live_events table for video_url:", colErr.message);
+    }
+
     // 2. Create live_updates table
     await sql`
       CREATE TABLE IF NOT EXISTS public.live_updates (
@@ -104,6 +115,33 @@ export async function GET() {
     `;
     console.log("✓ Notifications table created/checked");
 
+    // 6. Create subscriptions table
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.subscriptions (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+        plan_name text NOT NULL,
+        amount text NOT NULL,
+        status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'pending_approval', 'expired')),
+        payment_method text NOT NULL CHECK (payment_method IN ('stripe', 'bank_transfer')),
+        payment_proof_url text,
+        created_at timestamptz DEFAULT now(),
+        updated_at timestamptz DEFAULT now()
+      )
+    `;
+    console.log("✓ Subscriptions table created/checked");
+
+    try {
+      await sql`
+        CREATE OR REPLACE TRIGGER subscriptions_updated_at 
+        BEFORE UPDATE ON public.subscriptions 
+        FOR EACH ROW EXECUTE PROCEDURE public.update_updated_at()
+      `;
+      console.log("✓ Subscriptions trigger created/checked");
+    } catch (trigErr: any) {
+      console.warn("Could not create subscriptions trigger:", trigErr.message);
+    }
+
     // Create indexes
     try {
       await sql`CREATE INDEX IF NOT EXISTS follows_follower_idx ON public.follows(follower_id)`;
@@ -117,7 +155,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       message: "Database migrations completed successfully!",
-      tables: ["live_events", "live_updates", "follows", "notifications"],
+      tables: ["live_events", "live_updates", "follows", "notifications", "subscriptions"],
       columns: ["profiles.theme"]
     });
   } catch (err: any) {
