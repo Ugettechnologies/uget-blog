@@ -185,11 +185,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         backdropFilter: "blur(6px)",
         WebkitBackdropFilter: "blur(6px)",
         zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-        overflow: "hidden"
+        display: "grid",
+        placeItems: "center",
+        padding: "40px 16px",
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch"
       }}
     >
       {/* Drifting background animation blobs */}
@@ -247,7 +247,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         style={{
           background: "var(--modal-bg, white)",
           borderRadius: "20px",
-          padding: "48px 36px 40px",
+          padding: "40px 24px 32px",
           maxWidth: 480,
           width: "100%",
           boxShadow: "var(--shadow-xl)",
@@ -255,7 +255,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
           zIndex: 1010,
           animation: "modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
           border: "1px solid var(--border)",
-          textAlign: "center"
+          textAlign: "center",
+          margin: "auto"
         }}
       >
         {/* Close [X] Button */}
