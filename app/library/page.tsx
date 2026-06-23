@@ -207,7 +207,7 @@ export default function LibraryPage() {
         .uget-layout {
           display: flex;
           min-height: 100vh;
-          background-color: #ffffff;
+          background-color: var(--bg);
         }
         .uget-sidebar {
           position: fixed;
@@ -215,8 +215,8 @@ export default function LibraryPage() {
           left: 0;
           bottom: 0;
           width: 252px;
-          background-color: #ffffff;
-          border-right: 1px solid #f0f0f0;
+          background-color: var(--bg);
+          border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           padding: 28px 14px 24px;
@@ -236,7 +236,7 @@ export default function LibraryPage() {
           position: sticky;
           top: 0;
           height: 64px;
-          background-color: rgba(255, 255, 255, 0.95);
+          background-color: var(--nav-bg, rgba(255, 255, 255, 0.95));
           backdrop-filter: blur(8px);
           border-bottom: 1px solid var(--border);
           display: flex;
@@ -248,7 +248,7 @@ export default function LibraryPage() {
         .uget-header-search {
           align-items: center;
           gap: 8px;
-          background-color: #fafafa;
+          background-color: var(--bg-3);
           border-radius: 99px;
           padding: 6px 16px;
           width: 240px;
@@ -256,8 +256,8 @@ export default function LibraryPage() {
           transition: all 0.2s;
         }
         .uget-header-search:focus-within {
-          background-color: #ffffff;
-          border-color: #e2e8f0;
+          background-color: var(--bg);
+          border-color: var(--border);
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .uget-content-container {
@@ -272,7 +272,7 @@ export default function LibraryPage() {
           left: 0;
           bottom: 0;
           width: 280px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           z-index: 1001;
           padding: 24px 20px;
           display: flex;
@@ -294,7 +294,7 @@ export default function LibraryPage() {
           font-family: var(--sans);
           font-size: 13px;
           font-weight: 500;
-          color: #4b5563;
+          color: var(--muted);
         }
         .uget-live-dot {
           width: 8px;
@@ -344,33 +344,33 @@ export default function LibraryPage() {
         </nav>
 
         {userProfile && (
-          <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 16, marginTop: "auto" }}>
+          <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 16, marginTop: "auto" }}>
             <div className="flex items-center gap-3" style={{ marginBottom: 10 }}>
               <Link href={`/profile/${userProfile?.username || user?.id}`} style={{ display: "block", flexShrink: 0 }}>
                 <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden" }}>
                   {userProfile.avatar_url ? (
                     <Image src={userProfile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
                   ) : (
-                    <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {getInitials(userProfile.full_name || user?.email || "?")}
                     </div>
                   )}
                 </div>
               </Link>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile.full_name || "Writer"}</div>
-                <div style={{ fontSize: 11, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{userProfile.username || "writer"}</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userProfile.full_name || "Writer"}</div>
+                <div style={{ fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{userProfile.username || "writer"}</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{followingProfiles.length}</span>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Following</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{followingProfiles.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Following</span>
               </Link>
-              <div style={{ width: 1, background: "#f0f0f0", alignSelf: "stretch" }} />
+              <div style={{ width: 1, background: "var(--border-2)", alignSelf: "stretch" }} />
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>—</span>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Followers</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>—</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Followers</span>
               </Link>
             </div>
           </div>
@@ -424,19 +424,19 @@ export default function LibraryPage() {
             </nav>
 
             {userProfile && (
-              <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
+              <div className="flex items-center gap-3 pt-4 mt-auto" style={{ borderTop: "1px solid var(--border-2)" }}>
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                   {userProfile.avatar_url ? (
                     <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
                   ) : (
-                    <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center">
+                    <div className="w-full h-full font-bold text-sm flex items-center justify-center font-sans" style={{ background: "var(--brand-light)", color: "var(--brand)" }}>
                       {getInitials(userProfile.full_name || user?.email || "?")}
                     </div>
                   )}
                 </div>
                 <div className="min-w-0" style={{ flex: 1 }}>
-                  <div className="font-bold text-sm text-gray-900 truncate">{userProfile.full_name || "Writer"}</div>
-                  <div className="text-xs text-gray-500 truncate">@{userProfile.username || "writer"}</div>
+                  <div className="font-bold text-sm truncate font-sans" style={{ color: "var(--ink)" }}>{userProfile.full_name || "Writer"}</div>
+                  <div className="text-xs truncate font-sans" style={{ color: "var(--muted)" }}>@{userProfile.username || "writer"}</div>
                 </div>
               </div>
             )}
@@ -583,7 +583,7 @@ export default function LibraryPage() {
         {/* Content area */}
         <div className="uget-content-container">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h1 style={{ fontFamily: "var(--display)", fontSize: 42, fontWeight: 700, color: "#1a1a1a", margin: 0, letterSpacing: "-0.03em" }}>
+            <h1 style={{ fontFamily: "var(--display)", fontSize: 42, fontWeight: 700, color: "var(--ink)", margin: 0, letterSpacing: "-0.03em" }}>
               Your library
             </h1>
             <button

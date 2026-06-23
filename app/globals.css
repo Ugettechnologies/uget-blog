@@ -1020,4 +1020,172 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   height: 16px;
 }
 
+/* ══════════════════════════════════════
+   GLOBAL DARK MODE OVERRIDES FOR LOCAL COMPONENT STYLES
+   ══════════════════════════════════════ */
+.dark .uget-layout {
+  background-color: var(--bg) !important;
+}
+.dark .uget-sidebar {
+  background-color: var(--bg) !important;
+  border-right: 1px solid var(--border) !important;
+}
+.dark .uget-main {
+  background-color: var(--bg) !important;
+}
+.dark .uget-header {
+  background-color: var(--nav-bg) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.dark .uget-mobile-drawer {
+  background-color: var(--bg) !important;
+}
+.dark .uget-header-search {
+  background-color: var(--bg-3) !important;
+}
+.dark .uget-header-search:focus-within {
+  background-color: var(--bg) !important;
+  border-color: var(--border) !important;
+}
+
+/* Sidebar user info details in dark mode */
+.dark .uget-sidebar div,
+.dark .uget-sidebar span,
+.dark .uget-sidebar a {
+  color: var(--ink) !important;
+}
+.dark .uget-sidebar div[style*="color: #9ca3af"],
+.dark .uget-sidebar span[style*="color: #9ca3af"],
+.dark .uget-sidebar a[style*="color: #9ca3af"],
+.dark .uget-sidebar div[style*="color:#9ca3af"],
+.dark .uget-sidebar span[style*="color:#9ca3af"],
+.dark .uget-sidebar a[style*="color:#9ca3af"] {
+  color: var(--muted) !important;
+}
+.dark .uget-sidebar div[style*="border-top"],
+.dark .uget-sidebar div[style*="borderTop"] {
+  border-color: var(--border) !important;
+}
+.dark .uget-sidebar div[style*="background: #f0f0f0"],
+.dark .uget-sidebar div[style*="background:#f0f0f0"] {
+  background-color: var(--border) !important;
+}
+
+/* Titles and headings contrast in main content */
+.dark h1[style*="color: #1a1a1a"],
+.dark h1[style*="color:#1a1a1a"],
+.dark h2[style*="color: #1a1a1a"],
+.dark h2[style*="color:#1a1a1a"],
+.dark h3[style*="color: #1a1a1a"],
+.dark h3[style*="color:#1a1a1a"] {
+  color: var(--black) !important;
+}
+
+/* Reading list card background contrast override */
+.dark div[style*="background: #fdfcff"],
+.dark div[style*="background:#fdfcff"] {
+  background: var(--bg-2) !important;
+  border-color: var(--border) !important;
+}
+.dark div[style*="background: #fdfcff"] span,
+.dark div[style*="background:#fdfcff"] span {
+  color: var(--ink) !important;
+}
+.dark div[style*="background: #fdfcff"] h3,
+.dark div[style*="background:#fdfcff"] h3 {
+  color: var(--black) !important;
+}
+
+/* Dashboard sub-tabs list buttons overrides */
+.dark button[style*="background: #f9fafb"],
+.dark button[style*="background:#f9fafb"] {
+  background-color: var(--bg-3) !important;
+  border-color: var(--border) !important;
+  color: var(--muted) !important;
+}
+
+/* Mini cover image placeholders in dark mode */
+.dark div[style*="background: #e5e7eb"],
+.dark div[style*="background:#e5e7eb"],
+.dark div[style*="background: #f3f4f6"],
+.dark div[style*="background:#f3f4f6"] {
+  background-color: var(--bg-3) !important;
+  border-color: var(--border) !important;
+}
+
+/* Notification dropdown container overrides */
+.dark .notif-dropdown {
+  background: var(--bg-2) !important;
+  border-color: var(--border) !important;
+}
+.dark .notif-dropdown div {
+  background-color: var(--bg-2) !important;
+  border-color: var(--border) !important;
+}
+.dark .notif-dropdown div[style*="background: #fcfcfc"],
+.dark .notif-dropdown div[style*="background:#fcfcfc"] {
+  background-color: var(--bg-3) !important;
+}
+
+/* ══════════════════════════════════════
+   GLOBAL DARK MODE OVERRIDES FOR TAILWIND UTILITY CLASSES
+   ══════════════════════════════════════ */
+.dark .border-gray-100 {
+  border-color: var(--border) !important;
+}
+.dark .border-gray-200 {
+  border-color: var(--border) !important;
+}
+.dark .bg-white {
+  background-color: var(--bg-2) !important;
+}
+.dark .text-gray-900 {
+  color: var(--black) !important;
+}
+.dark .text-gray-800 {
+  color: var(--ink) !important;
+}
+.dark .text-gray-700 {
+  color: var(--ink-2) !important;
+}
+.dark .text-gray-600 {
+  color: var(--ink-3) !important;
+}
+.dark .text-gray-500 {
+  color: var(--muted) !important;
+}
+.dark .text-gray-400 {
+  color: var(--muted-2) !important;
+}
+.dark .bg-gray-50 {
+  background-color: var(--bg-3) !important;
+}
+.dark .bg-gray-100 {
+  background-color: var(--bg-3) !important;
+}
+.dark .bg-gray-50\/50 {
+  background-color: var(--bg-3) !important;
+}
+.dark .hover\:bg-gray-50:hover {
+  background-color: var(--bg-3) !important;
+}
+.dark .hover\:bg-gray-100:hover {
+  background-color: var(--bg-3) !important;
+}
+.dark .bg-violet-50 {
+  background-color: var(--brand-light) !important;
+}
+.dark .text-violet-600 {
+  color: var(--brand) !important;
+}
+.dark .text-violet-700 {
+  color: var(--brand) !important;
+}
+.dark .bg-\[\#f3efff\] {
+  background-color: rgba(124, 58, 237, 0.15) !important;
+}
+.dark .hover\:bg-\[\#f8f6ff\]:hover {
+  background-color: rgba(124, 58, 237, 0.08) !important;
+}
+
 

@@ -257,7 +257,7 @@ export default function ProfilePage() {
         .uget-layout {
           display: flex;
           min-height: 100vh;
-          background-color: #ffffff;
+          background-color: var(--bg);
         }
         .uget-sidebar {
           position: fixed;
@@ -265,8 +265,8 @@ export default function ProfilePage() {
           left: 0;
           bottom: 0;
           width: 252px;
-          background-color: #ffffff;
-          border-right: 1px solid #f0f0f0;
+          background-color: var(--bg);
+          border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           padding: 28px 14px 24px;
@@ -286,7 +286,7 @@ export default function ProfilePage() {
           position: sticky;
           top: 0;
           height: 64px;
-          background-color: rgba(255, 255, 255, 0.95);
+          background-color: var(--nav-bg, rgba(255, 255, 255, 0.95));
           backdrop-filter: blur(8px);
           border-bottom: 1px solid var(--border);
           display: flex;
@@ -298,7 +298,7 @@ export default function ProfilePage() {
         .uget-header-search {
           align-items: center;
           gap: 8px;
-          background-color: #fafafa;
+          background-color: var(--bg-3);
           border-radius: 99px;
           padding: 6px 16px;
           width: 240px;
@@ -306,8 +306,8 @@ export default function ProfilePage() {
           transition: all 0.2s;
         }
         .uget-header-search:focus-within {
-          background-color: #ffffff;
-          border-color: #e2e8f0;
+          background-color: var(--bg);
+          border-color: var(--border);
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .uget-profile-grid {
@@ -349,7 +349,7 @@ export default function ProfilePage() {
           left: 0;
           bottom: 0;
           width: 280px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           z-index: 1001;
           padding: 24px 20px;
           display: flex;

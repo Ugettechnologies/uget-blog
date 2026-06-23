@@ -207,7 +207,7 @@ export default function RefineRecommendationsPage() {
         .uget-layout {
           display: flex;
           min-height: 100vh;
-          background-color: #ffffff;
+          background-color: var(--bg);
         }
         .uget-sidebar {
           position: fixed;
@@ -215,7 +215,7 @@ export default function RefineRecommendationsPage() {
           left: 0;
           bottom: 0;
           width: 240px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
@@ -234,7 +234,7 @@ export default function RefineRecommendationsPage() {
           position: sticky;
           top: 0;
           height: 64px;
-          background-color: rgba(255, 255, 255, 0.95);
+          background-color: var(--nav-bg, rgba(255, 255, 255, 0.95));
           backdrop-filter: blur(8px);
           border-bottom: 1px solid var(--border);
           display: flex;
@@ -246,7 +246,7 @@ export default function RefineRecommendationsPage() {
         .uget-header-search {
           align-items: center;
           gap: 8px;
-          background-color: #fafafa;
+          background-color: var(--bg-3);
           border-radius: 99px;
           padding: 6px 16px;
           width: 240px;
@@ -254,8 +254,8 @@ export default function RefineRecommendationsPage() {
           transition: all 0.2s;
         }
         .uget-header-search:focus-within {
-          background-color: #ffffff;
-          border-color: #e2e8f0;
+          background-color: var(--bg);
+          border-color: var(--border);
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .uget-content-container {
@@ -270,7 +270,7 @@ export default function RefineRecommendationsPage() {
           left: 0;
           bottom: 0;
           width: 280px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           z-index: 1001;
           padding: 24px 20px;
           display: flex;
@@ -341,19 +341,19 @@ export default function RefineRecommendationsPage() {
         </nav>
 
         {userProfile && (
-          <div className="flex items-center gap-3 border-t border-gray-100 pt-4 mt-auto">
+          <div className="flex items-center gap-3 pt-4 mt-auto" style={{ borderTop: "1px solid var(--border-2)" }}>
             <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
               {userProfile.avatar_url ? (
                 <Image src={userProfile.avatar_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
               ) : (
-                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-sm flex items-center justify-center font-sans">
+                <div className="w-full h-full font-bold text-sm flex items-center justify-center font-sans" style={{ background: "var(--brand-light)", color: "var(--brand)" }}>
                   {getInitials(userProfile.full_name || "?")}
                 </div>
               )}
             </div>
             <div className="min-w-0" style={{ flex: 1 }}>
-              <div className="font-bold text-sm text-gray-900 truncate font-sans">{userProfile.full_name || "Writer"}</div>
-              <div className="text-xs text-gray-500 truncate font-sans">@{userProfile.username || "writer"}</div>
+              <div className="font-bold text-sm truncate font-sans" style={{ color: "var(--ink)" }}>{userProfile.full_name || "Writer"}</div>
+              <div className="text-xs truncate font-sans" style={{ color: "var(--muted)" }}>@{userProfile.username || "writer"}</div>
             </div>
           </div>
         )}

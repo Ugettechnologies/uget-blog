@@ -268,7 +268,7 @@ export default function DashboardPage() {
         .uget-layout {
           display: flex;
           min-height: 100vh;
-          background-color: #ffffff;
+          background-color: var(--bg);
         }
         .uget-sidebar {
           position: fixed;
@@ -276,8 +276,8 @@ export default function DashboardPage() {
           left: 0;
           bottom: 0;
           width: 252px;
-          background-color: #ffffff;
-          border-right: 1px solid #f0f0f0;
+          background-color: var(--bg);
+          border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           padding: 28px 14px 24px;
@@ -297,7 +297,7 @@ export default function DashboardPage() {
           position: sticky;
           top: 0;
           height: 64px;
-          background-color: rgba(255, 255, 255, 0.95);
+          background-color: var(--nav-bg, rgba(255, 255, 255, 0.95));
           backdrop-filter: blur(8px);
           border-bottom: 1px solid var(--border);
           display: flex;
@@ -309,7 +309,7 @@ export default function DashboardPage() {
         .uget-header-search {
           align-items: center;
           gap: 8px;
-          background-color: #fafafa;
+          background-color: var(--bg-3);
           border-radius: 99px;
           padding: 6px 16px;
           width: 240px;
@@ -317,8 +317,8 @@ export default function DashboardPage() {
           transition: all 0.2s;
         }
         .uget-header-search:focus-within {
-          background-color: #ffffff;
-          border-color: #e2e8f0;
+          background-color: var(--bg);
+          border-color: var(--border);
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .uget-dashboard-grid {
@@ -336,7 +336,7 @@ export default function DashboardPage() {
           left: 0;
           bottom: 0;
           width: 280px;
-          background-color: #ffffff;
+          background-color: var(--bg);
           z-index: 1001;
           padding: 24px 20px;
           display: flex;
@@ -444,33 +444,33 @@ export default function DashboardPage() {
         </nav>
 
         {profile && (
-          <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 16, marginTop: "auto" }}>
+          <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 16, marginTop: "auto" }}>
             <div className="flex items-center gap-3" style={{ marginBottom: 10 }}>
               <Link href={`/profile/${profile?.username || profile?.id}`} style={{ display: "block", flexShrink: 0 }}>
                 <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden" }}>
                   {profile.avatar_url ? (
                     <Image src={profile.avatar_url} alt="" width={36} height={36} className="object-cover w-full h-full" />
                   ) : (
-                    <div style={{ width: "100%", height: "100%", background: "#ede9fe", color: "#7c3aed", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {getInitials(profile.full_name || "?")}
                     </div>
                   )}
                 </div>
               </Link>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.full_name || "Writer"}</div>
-                <div style={{ fontSize: 11, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{profile.username || "writer"}</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.full_name || "Writer"}</div>
+                <div style={{ fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{profile.username || "writer"}</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{following.length}</span>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Following</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{following.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Following</span>
               </Link>
-              <div style={{ width: 1, background: "#f0f0f0", alignSelf: "stretch" }} />
+              <div style={{ width: 1, background: "var(--border-2)", alignSelf: "stretch" }} />
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "#111827" }}>{followers.length}</span>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "#9ca3af" }}>Followers</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{followers.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Followers</span>
               </Link>
             </div>
           </div>
