@@ -123,7 +123,7 @@ function TrendingSection({ posts, router }: TrendingSectionProps) {
   const trendingPosts = posts.slice(0, 6);
 
   return (
-    <div style={{ borderBottom: "1px solid var(--border)", padding: "48px 0 40px", background: "white" }}>
+    <div className="trending-section" style={{ borderBottom: "1px solid var(--border)", background: "white" }}>
       <div style={{ maxWidth: 1192, margin: "0 auto", padding: "0 24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
           <span style={{ fontSize: 20 }}>📈</span>
@@ -454,7 +454,7 @@ export default function HomePage() {
         <Navbar />
 
         {/* ── Logged-out Hero ── */}
-        <div style={{ borderBottom: "1px solid var(--border)", padding: "20px 0 60px" }}>
+        <div className="home-hero-container" style={{ borderBottom: "1px solid var(--border)" }}>
           <div 
             style={{ 
               maxWidth: 1192, 
@@ -520,7 +520,7 @@ export default function HomePage() {
         <TrendingSection posts={posts} router={router} />
 
         {/* ── Main content grid (stories feed on left, sidebar on right) ── */}
-        <div style={{ background: "var(--bg)", padding: "48px 0 80px" }}>
+        <div className="home-feed-container" style={{ background: "var(--bg)" }}>
           <div style={{ maxWidth: 1192, margin: "0 auto", padding: "0 24px" }}>
             <div className="home-grid">
               <main className="home-feed">
@@ -578,14 +578,33 @@ export default function HomePage() {
         <Footer />
 
         <style jsx global>{`
+          .home-hero-container {
+            padding: 40px 0 80px;
+          }
+          .trending-section {
+            padding: 48px 0 40px;
+          }
+          .home-feed-container {
+            padding: 48px 0 80px;
+          }
           @media (max-width: 900px) {
             .hero-split {
               grid-template-columns: 1fr !important;
               text-align: center;
-              padding: 40px 16px !important;
+              padding: 24px 16px !important;
+              gap: 24px !important;
             }
             .hero-split button {
               margin: 0 auto;
+            }
+            .home-hero-container {
+              padding: 24px 0 32px !important;
+            }
+            .trending-section {
+              padding: 24px 0 20px !important;
+            }
+            .home-feed-container {
+              padding: 24px 0 60px !important;
             }
           }
         `}</style>
