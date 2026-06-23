@@ -185,8 +185,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         backdropFilter: "blur(6px)",
         WebkitBackdropFilter: "blur(6px)",
         zIndex: 1000,
-        display: "grid",
-        placeItems: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         padding: "40px 16px",
         overflowY: "auto",
         WebkitOverflowScrolling: "touch"
