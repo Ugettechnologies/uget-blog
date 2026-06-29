@@ -117,11 +117,17 @@ function AuthForm() {
   const handleOAuth = async (provider: "google" | "github") => {
     setOauthLoading(provider);
     setError("");
+    localStorage.setItem("uget_remember_me", "true");
+    localStorage.setItem("uget_pending_provider", provider);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     }) as any;
-    if (error) { setError(error.message); setOauthLoading(null); }
+    if (error) { 
+      setError(error.message); 
+      setOauthLoading(null);
+      localStorage.removeItem("uget_pending_provider");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -18,7 +18,7 @@ export async function GET() {
       user_metadata: { full_name: user.full_name },
       // Standard JWT payload structure:
       aud: "authenticated",
-      app_metadata: { provider: "email" }
+      app_metadata: { provider: user.provider || "email" }
     };
 
     return NextResponse.json({ user: formattedUser });

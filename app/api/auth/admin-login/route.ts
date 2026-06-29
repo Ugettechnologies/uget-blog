@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSql } from "@/lib/db";
-import { signJWT, verifyJWT, hashPassword } from "@/lib/auth-server";
-
-const ALLOWED_ADMIN_EMAILS = [
-  "ugettechnologies@gmail.com",
-  "bfranklyn2@gmail.com",
-  "admin@uget.com"
-];
+import { signJWT, verifyJWT, hashPassword, ALLOWED_ADMIN_EMAILS } from "@/lib/auth-server";
 
 // POST /api/auth/admin-login - Requests a code or verifies it
 export async function POST(request: Request) {
@@ -115,7 +109,7 @@ export async function POST(request: Request) {
       }
 
       // Generate session token
-      const sessionToken = await signJWT({ id: userId, email: normalizedEmail });
+      const sessionToken = await signJWT({ id: userId, email: normalizedEmail, provider: "email" });
 
       response.cookies.set("uget_session", sessionToken, {
         httpOnly: true,

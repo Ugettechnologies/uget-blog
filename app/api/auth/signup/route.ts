@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSql } from "@/lib/db";
-import { hashPassword, signJWT } from "@/lib/auth-server";
+import { hashPassword, signJWT, ALLOWED_ADMIN_EMAILS } from "@/lib/auth-server";
 
 export async function POST(request: Request) {
   try {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     // Generate random avatar background for rich styling
     const username = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "") + Math.floor(Math.random() * 9000 + 1000);
     
-    const isAdmin = email.toLowerCase() === "ugettechnologies@gmail.com" || email.toLowerCase() === "admin@uget.com";
+    const isAdmin = ALLOWED_ADMIN_EMAILS.includes(email.toLowerCase());
     const role = isAdmin ? "admin" : "writer";
 
     const profileRes = await sql`
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     };
 
     // Sign session token
-    const token = await signJWT({ id: userId, email });
+    const token = await signJWT({ id: userId, email, provider: "email" });
 
     const response = NextResponse.json({ user, session: { access_token: token } });
     response.cookies.set("uget_session", token, {

@@ -1,6 +1,10 @@
 import bcrypt from "bcryptjs";
 import { getSql } from "./db";
 
+export const ALLOWED_ADMIN_EMAILS = [
+  "ugettechnologies@gmail.com"
+];
+
 const JWT_SECRET = process.env.JWT_SECRET || "uget-super-secret-key-at-least-32-chars-long";
 
 // Web Crypto JWT Signer (Edge & Node compatible)
@@ -80,5 +84,29 @@ export async function getUserFromSession(cookies: any): Promise<any | null> {
   `;
   
   if (users.length === 0) return null;
-  return users[0];
+  
+  const userObj = users[0];
+  if (userObj.email && ALLOWED_ADMIN_EMAILS.includes(userObj.email.toLowerCase())) {
+    if (userObj.role !== "admin") {
+      // Auto-promote in the DB!
+      await sql`
+        UPDATE profiles
+        SET role = 'admin'
+        WHERE id = ${userObj.id}
+      `;
+      userObj.role = "admin";
+    }
+  } else {
+    // Auto-demote in the DB if they have admin role but their email is not allowed!
+    if (userObj.role === "admin") {
+      await sql`
+        UPDATE profiles
+        SET role = 'writer'
+        WHERE id = ${userObj.id}
+      `;
+      userObj.role = "writer";
+    }
+  }
+
+  return { ...userObj, provider: payload.provider };
 }

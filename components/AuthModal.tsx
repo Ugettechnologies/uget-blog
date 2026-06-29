@@ -766,6 +766,32 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   </button>
                 </form>
 
+                {mode === "login" && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                      <div style={{ flex: 1, height: 1, backgroundColor: "var(--border)" }} />
+                      <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>or</span>
+                      <div style={{ flex: 1, height: 1, backgroundColor: "var(--border)" }} />
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => handleOAuth("google")} 
+                      className="oauth-btn-modal"
+                      disabled={!!oauthLoading}
+                      style={{ marginBottom: 0 }}
+                    >
+                      <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
+                        {oauthLoading === "google" ? (
+                          <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
+                        ) : (
+                          <GoogleIcon />
+                        )}
+                      </div>
+                      Sign in with Google
+                    </button>
+                  </div>
+                )}
+
                 {/* Back to all options */}
                 <button 
                   onClick={() => setShowEmailForm(false)} 

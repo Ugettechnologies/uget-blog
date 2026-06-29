@@ -128,7 +128,7 @@ export async function GET(request: Request) {
     }
 
     // Sign session token
-    const token = await signJWT({ id: userId, email });
+    const token = await signJWT({ id: userId, email, provider: "github" });
 
     // Set token cookie and redirect
     const response = NextResponse.redirect(new URL(nextPath, request.url));

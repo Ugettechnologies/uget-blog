@@ -124,7 +124,7 @@ export function getSavedUsers(): SavedUser[] {
 }
 
 export function saveUserToSavedList(
-  user: { id: string; email?: string },
+  user: { id: string; email?: string; app_metadata?: { provider?: string } },
   profile: { full_name: string | null; avatar_url: string | null } | null,
   provider?: "email" | "google" | "facebook" | "github"
 ) {
@@ -136,7 +136,22 @@ export function saveUserToSavedList(
   const existingIndex = list.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
   const existingUser = existingIndex > -1 ? list[existingIndex] : null;
 
-  const resolvedProvider = provider || (localStorage.getItem("uget_pending_provider") as any) || existingUser?.provider || "email";
+  const supabaseProvider = user.app_metadata?.provider;
+  let resolvedProvider: "email" | "google" | "facebook" | "github" = "email";
+
+  if (provider) {
+    resolvedProvider = provider;
+  } else if (supabaseProvider && ["google", "facebook", "github", "email"].includes(supabaseProvider)) {
+    resolvedProvider = supabaseProvider as any;
+  } else {
+    const pending = localStorage.getItem("uget_pending_provider") as any;
+    if (pending && ["google", "facebook", "github", "email"].includes(pending)) {
+      resolvedProvider = pending;
+    } else if (existingUser?.provider) {
+      resolvedProvider = existingUser.provider;
+    }
+  }
+
   localStorage.removeItem("uget_pending_provider");
 
   const updatedUser: SavedUser = {

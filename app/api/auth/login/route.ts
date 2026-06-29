@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     };
 
     // Sign session token
-    const token = await signJWT({ id: user.id, email: user.email });
+    const token = await signJWT({ id: user.id, email: user.email, provider: "email" });
 
     const response = NextResponse.json({ user: userPayload, session: { access_token: token } });
     response.cookies.set("uget_session", token, {
