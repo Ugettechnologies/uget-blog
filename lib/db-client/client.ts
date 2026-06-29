@@ -109,9 +109,13 @@ export function createClient() {
           const res = await fetch("/api/auth/me");
           if (!res.ok) return { data: { user: null }, error: null };
           const data = await res.json();
-          return { data: { user: data.user }, error: null };
-        } catch {
-          return { data: { user: null }, error: null };
+          if (data.error) {
+            console.error("Auth session error on Vercel:", data.error);
+          }
+          return { data: { user: data.user }, error: data.error || null };
+        } catch (err: any) {
+          console.error("Auth fetch exception:", err);
+          return { data: { user: null }, error: err };
         }
       },
       async signInWithPassword({ email, password }: any) {
