@@ -155,7 +155,7 @@ export function createClient() {
         }
       },
       async signInWithOAuth({ provider, options }: any) {
-        window.location.href = `/api/auth/oauth/${provider}`;
+        window.location.href = `/api/auth/oauth/${provider}?next=/dashboard`;
         return { data: null, error: null };
       },
       onAuthStateChange(callback: (event: string, session: any) => void) {
