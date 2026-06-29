@@ -36,7 +36,9 @@ export async function POST(request: Request) {
       for (const filter of filters) {
         let fieldName = filter.field;
         // Prefix with table name to avoid ambiguity in joins
-        if (table === "posts" && selectFields.includes("profiles")) {
+        if (table === "profiles") {
+          fieldName = `profiles.${filter.field}`;
+        } else if (table === "posts" && selectFields.includes("profiles")) {
           if (filter.field.startsWith("profiles.")) {
             fieldName = filter.field;
           } else if (filter.field === "role") {
@@ -77,7 +79,9 @@ export async function POST(request: Request) {
     if (orders && orders.length > 0) {
       const orderClauses = orders.map((o: any) => {
         let fieldName = o.field;
-        if (table === "posts" && selectFields.includes("profiles")) {
+        if (table === "profiles") {
+          fieldName = `profiles.${o.field}`;
+        } else if (table === "posts" && selectFields.includes("profiles")) {
           fieldName = `posts.${o.field}`;
         } else if (table === "comments" && selectFields.includes("profiles")) {
           fieldName = `comments.${o.field}`;
