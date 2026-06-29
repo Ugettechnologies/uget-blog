@@ -36,6 +36,8 @@ export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isNotAdmin, setIsNotAdmin] = useState(false);
   const [publicPosts, setPublicPosts] = useState<Post[]>([]);
+  const [debugUser, setDebugUser] = useState<any>(null);
+  const [debugRole, setDebugRole] = useState<string | null>(null);
 
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -58,6 +60,7 @@ export default function AdminPage() {
 
   const checkAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    setDebugUser(user);
     if (!user) {
       await loadPublicPosts();
       setIsNotAdmin(true);
@@ -65,6 +68,7 @@ export default function AdminPage() {
       return;
     }
     const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+    setDebugRole(prof?.role || "null");
     if (prof?.role !== "admin") {
       await loadPublicPosts();
       setIsNotAdmin(true);
@@ -149,6 +153,35 @@ export default function AdminPage() {
           <Link href="/" className="btn btn-outline" style={{ textDecoration: "none", borderRadius: 999, padding: "10px 24px", display: "inline-flex", borderColor: "var(--border)", color: "var(--black)" }}>
             Home
           </Link>
+          {debugUser && (
+            <div style={{ 
+              marginTop: 40, 
+              padding: 20, 
+              background: "var(--bg-2)", 
+              border: "1px solid var(--border)", 
+              borderRadius: 12,
+              textAlign: "left",
+              fontFamily: "var(--sans)",
+              fontSize: 13,
+              color: "var(--muted)",
+              maxWidth: 480,
+              margin: "40px auto 0"
+            }}>
+              <strong style={{ display: "block", color: "var(--black)", marginBottom: 8, fontSize: 14 }}>🔍 Admin Access Diagnostic Info</strong>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span>Session Email:</span>
+                <span style={{ fontWeight: 600, color: "var(--ink)" }}>{debugUser.email || "Unknown"}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span>Database Role:</span>
+                <span style={{ fontWeight: 600, color: "var(--brand)" }}>{debugRole || "Checking..."}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>User UUID:</span>
+                <span style={{ fontFamily: "monospace", fontSize: 11 }}>{debugUser.id}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ borderTop: "1px solid var(--border)", background: "var(--bg-2)", padding: "60px 24px" }}>
