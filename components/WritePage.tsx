@@ -44,8 +44,13 @@ export default function WritePage() {
 
   // Auth check
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push("/auth"); return; }
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+      if (profile?.role !== "admin" && profile?.role !== "staff") {
+        router.push("/");
+        return;
+      }
       setUser(user);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -7,7 +7,7 @@ import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 
-type AdminTab = "overview" | "posts" | "users";
+type AdminTab = "overview" | "posts" | "users" | "payments" | "staff";
 
 function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
   return (
@@ -30,6 +30,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<Profile[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [staffSearchQuery, setStaffSearchQuery] = useState("");
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isNotAdmin, setIsNotAdmin] = useState(false);
@@ -74,13 +76,22 @@ export default function AdminPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [postsRes, usersRes] = await Promise.all([
+    const [postsRes, usersRes, subsRes] = await Promise.all([
       supabase.from("posts").select("*, profiles(full_name, avatar_url, username)").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("subscriptions").select("*").order("created_at", { ascending: false }),
     ]);
     setPosts(postsRes.data as Post[] || []);
     setUsers(usersRes.data as Profile[] || []);
+    setSubscriptions(subsRes.data as any[] || []);
     setLoading(false);
+  };
+
+  const handleUpdateSubStatus = async (subId: string, status: string) => {
+    const { error } = await supabase.from("subscriptions").update({ status }).eq("id", subId);
+    if (error) { showMsg(error.message, "err"); return; }
+    setSubscriptions(subscriptions.map(s => s.id === subId ? { ...s, status } : s));
+    showMsg(`Subscription status updated to ${status}`);
   };
 
   const handleDeletePost = async (id: string) => {
@@ -120,6 +131,8 @@ export default function AdminPage() {
     { id: "overview", label: "Overview", icon: "📊" },
     { id: "posts", label: "All Posts", icon: "📝" },
     { id: "users", label: "Users", icon: "👥" },
+    { id: "payments", label: "Payments", icon: "💳" },
+    { id: "staff", label: "Staff", icon: "🛡️" },
   ];
 
   if (isNotAdmin) {
@@ -209,6 +222,9 @@ export default function AdminPage() {
               <span>{item.icon}</span>
               <span>{item.label}</span>
               {item.id === "posts" && <span style={{ marginLeft: "auto", background: "var(--bg-3)", color: "var(--muted)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{posts.length}</span>}
+              {item.id === "users" && <span style={{ marginLeft: "auto", background: "var(--bg-3)", color: "var(--muted)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{users.length}</span>}
+              {item.id === "payments" && subscriptions.filter(s => s.status === 'pending_approval').length > 0 && <span style={{ marginLeft: "auto", background: "rgba(245,158,11,0.15)", color: "#f59e0b", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{subscriptions.filter(s => s.status === 'pending_approval').length}</span>}
+              {item.id === "staff" && <span style={{ marginLeft: "auto", background: "var(--bg-3)", color: "var(--muted)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{users.filter(u => u.role === 'staff').length}</span>}
             </button>
           ))}
           <div style={{ height: 1, background: "var(--border-2)", margin: "12px 0" }} />
@@ -315,7 +331,7 @@ export default function AdminPage() {
                             <td>
                               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
-                                  {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={24} height={24} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name)}
+                                  {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={24} height={24} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name || "")}
                                 </div>
                                 <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}>{author?.full_name || "—"}</span>
                               </div>
@@ -382,7 +398,7 @@ export default function AdminPage() {
                           <td>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                               <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
-                                {u.avatar_url ? <Image src={u.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} /> : getInitials(u.full_name)}
+                                {u.avatar_url ? <Image src={u.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} /> : getInitials(u.full_name || "")}
                               </div>
                               <div>
                                 <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{u.full_name || "—"}</div>
@@ -398,6 +414,7 @@ export default function AdminPage() {
                             >
                               <option value="reader">Reader</option>
                               <option value="writer">Writer</option>
+                              <option value="staff">Staff</option>
                               <option value="admin">Admin</option>
                             </select>
                           </td>
@@ -418,6 +435,262 @@ export default function AdminPage() {
                       <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No users yet.</p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ── PAYMENTS ── */}
+              {tab === "payments" && (
+                <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Subscriptions & Payments</span>
+                    <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>
+                      Total payments: {subscriptions.length}
+                    </span>
+                  </div>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Proof / Details</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subscriptions.map((sub) => {
+                        const profileObj = users.find(u => u.id === sub.user_id);
+                        const badgeStyle = sub.status === "active" 
+                          ? { backgroundColor: "rgba(16, 185, 129, 0.1)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.2)" }
+                          : sub.status === "pending_approval"
+                            ? { backgroundColor: "rgba(245, 158, 11, 0.1)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.2)" }
+                            : { backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.2)" };
+                        
+                        return (
+                          <tr key={sub.id}>
+                            <td>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                  {profileObj?.avatar_url ? <Image src={profileObj.avatar_url} alt="" width={24} height={24} style={{ objectFit: "cover" }} /> : getInitials(profileObj?.full_name || "")}
+                                </div>
+                                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{profileObj?.full_name || "—"}</span>
+                              </div>
+                            </td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{(profileObj as any)?.email || "—"}</span></td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--black)", fontWeight: 500 }}>{sub.plan_name}</span></td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--ink-2)", fontWeight: 600 }}>{sub.amount}</span></td>
+                            <td>
+                              <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", textTransform: "capitalize" }}>
+                                {sub.payment_method?.replace("_", " ")}
+                              </span>
+                            </td>
+                            <td>
+                              {sub.payment_proof_url ? (
+                                <a href={sub.payment_proof_url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--blue)", fontWeight: 600, textDecoration: "underline" }}>
+                                  View Proof 🔗
+                                </a>
+                              ) : (
+                                <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", fontStyle: "italic" }}>No proof provided</span>
+                              )}
+                            </td>
+                            <td>
+                              <select
+                                value={sub.status}
+                                onChange={(e) => handleUpdateSubStatus(sub.id, e.target.value)}
+                                style={{
+                                  fontFamily: "var(--sans)", 
+                                  fontSize: 12, 
+                                  padding: "4px 8px", 
+                                  borderRadius: 6, 
+                                  outline: "none", 
+                                  cursor: "pointer",
+                                  fontWeight: 600,
+                                  ...badgeStyle
+                                }}
+                              >
+                                <option value="pending_approval" style={{ color: "#f59e0b", background: "white" }}>Pending</option>
+                                <option value="active" style={{ color: "#10b981", background: "white" }}>Active</option>
+                                <option value="expired" style={{ color: "#ef4444", background: "white" }}>Expired</option>
+                              </select>
+                            </td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", whiteSpace: "nowrap" }}>{formatDate(sub.created_at)}</span></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {subscriptions.length === 0 && (
+                    <div style={{ padding: "60px 0", textAlign: "center" }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>💳</div>
+                      <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No payments recorded yet.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── STAFF ── */}
+              {tab === "staff" && (
+                <div>
+                  {/* Current staff table */}
+                  <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: 32 }}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>UGET Staff Members</span>
+                      <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>
+                        Active staff: {users.filter(u => u.role === "staff").length}
+                      </span>
+                    </div>
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>User</th>
+                          <th>Username</th>
+                          <th>Email</th>
+                          <th>Role</th>
+                          <th>Joined</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.filter(u => u.role === "staff").map((u) => (
+                          <tr key={u.id}>
+                            <td>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                  {u.avatar_url ? <Image src={u.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} /> : getInitials(u.full_name || "")}
+                                </div>
+                                <div>
+                                  <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{u.full_name || "—"}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>@{u.username || "—"}</span></td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{(u as any).email || "—"}</span></td>
+                            <td>
+                              <span style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 600, background: "rgba(124,58,237,0.1)", color: "var(--brand)", padding: "2px 8px", borderRadius: 4, textTransform: "uppercase" }}>
+                                Staff
+                              </span>
+                            </td>
+                            <td><span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>{formatDate(u.created_at)}</span></td>
+                            <td>
+                              <button
+                                onClick={() => handleChangeRole(u.id, "writer")}
+                                style={{
+                                  fontFamily: "var(--sans)",
+                                  fontSize: 12,
+                                  color: "var(--red)",
+                                  padding: "5px 10px",
+                                  borderRadius: 6,
+                                  border: "1px solid rgba(192,57,43,0.2)",
+                                  background: "none",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                Remove Staff
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {users.filter(u => u.role === "staff").length === 0 && (
+                      <div style={{ padding: "40px 0", textAlign: "center", color: "var(--muted)", fontFamily: "var(--sans)", fontSize: 14 }}>
+                        No staff members assigned yet.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Promote/Assign section */}
+                  <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Assign New Staff Members</span>
+                      <p style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                        Select a writer or reader to give them staff writer status. Only staff members and admins can write on UGET.
+                      </p>
+                    </div>
+                    
+                    <div style={{ padding: 16, borderBottom: "1px solid var(--border-2)" }}>
+                      <input 
+                        type="text" 
+                        placeholder="Search users by name, username or email..." 
+                        onChange={(e) => setStaffSearchQuery(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "10px 14px",
+                          borderRadius: 8,
+                          border: "1px solid var(--border)",
+                          fontSize: 14,
+                          outline: "none",
+                          fontFamily: "var(--sans)"
+                        }}
+                      />
+                    </div>
+
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>User</th>
+                          <th>Username</th>
+                          <th>Email</th>
+                          <th>Current Role</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users
+                          .filter(u => u.role !== "staff" && u.role !== "admin")
+                          .filter(u => {
+                            if (!staffSearchQuery) return true;
+                            const q = staffSearchQuery.toLowerCase();
+                            return (
+                              (u.full_name || "").toLowerCase().includes(q) ||
+                              (u.username || "").toLowerCase().includes(q) ||
+                              ((u as any).email || "").toLowerCase().includes(q)
+                            );
+                          })
+                          .slice(0, 10)
+                          .map((u) => (
+                            <tr key={u.id}>
+                              <td>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                    {u.avatar_url ? <Image src={u.avatar_url} alt="" width={32} height={32} style={{ objectFit: "cover" }} /> : getInitials(u.full_name || "")}
+                                  </div>
+                                  <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{u.full_name || "—"}</span>
+                                </div>
+                              </td>
+                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>@{u.username || "—"}</span></td>
+                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{(u as any).email || "—"}</span></td>
+                              <td>
+                                <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", textTransform: "capitalize" }}>
+                                  {u.role}
+                                </span>
+                              </td>
+                              <td>
+                                <button
+                                  onClick={() => handleChangeRole(u.id, "staff")}
+                                  style={{
+                                    fontFamily: "var(--sans)",
+                                    fontSize: 12,
+                                    color: "white",
+                                    backgroundColor: "var(--brand)",
+                                    padding: "6px 12px",
+                                    borderRadius: 6,
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  Make Staff
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </>

@@ -96,7 +96,7 @@ export function SidebarFollowingList({ followingProfiles, userProfileId }: Follo
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {followingProfiles.length === 0 ? (
           <Link
-            href="/profile/admin"
+            href="/staff"
             style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 4px", borderRadius: 8, transition: "background 0.15s" }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--bg-3)")}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}

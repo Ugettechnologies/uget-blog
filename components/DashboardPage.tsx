@@ -110,13 +110,15 @@ export default function DashboardPage() {
     setFollowers(followersRes.data || []);
     setFollowing(followingRes.data || []);
 
-    // Fetch staff corner posts (posts authored by admins)
+    // Fetch staff corner posts (posts authored by admins or staff)
     const { data: staffRes } = await supabase.from("posts")
       .select("*, profiles(*)")
       .eq("published", true)
-      .eq("role", "admin")
       .order("created_at", { ascending: false });
-    setStaffPosts(staffRes as Post[] || []);
+    const filteredStaffPosts = (staffRes as Post[] || []).filter(
+      (p) => p.profiles?.role === "admin" || p.profiles?.role === "staff"
+    );
+    setStaffPosts(filteredStaffPosts);
 
     setLoading(false);
   };

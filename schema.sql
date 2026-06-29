@@ -20,7 +20,7 @@ create table if not exists public.profiles (
   bio text,
   twitter text,
   website text,
-  role text not null default 'writer' check (role in ('admin', 'writer', 'reader')),
+  role text not null default 'writer' check (role in ('admin', 'writer', 'reader', 'staff')),
   theme text default 'light' check (theme in ('light', 'dark', 'system')),
   interests text[] default '{}',
   follower_count integer default 0,

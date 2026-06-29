@@ -216,6 +216,15 @@ export async function POST(request: Request) {
           \${orderString}
           \${limitString}
         `;
+      } else if (table === "profiles") {
+        queryText = `
+          SELECT profiles.*, users.email 
+          FROM profiles
+          JOIN users ON profiles.id = users.id
+          ${whereString}
+          ${orderString}
+          ${limitString}
+        `;
       } else {
         queryText = `
           SELECT * FROM ${table}

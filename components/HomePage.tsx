@@ -934,10 +934,12 @@ export default function HomePage() {
             </Link>
 
             {/* Write button */}
-            <Link href="/write" className="flex items-center justify-center gap-2 text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-1.5 rounded-full text-sm font-medium transition-all" style={{ textDecoration: "none" }}>
-              <span className="flex items-center justify-center"><WriteIcon /></span>
-              <span className="hidden sm:inline">Write</span>
-            </Link>
+            {(userProfile?.role === "admin" || userProfile?.role === "staff") && (
+              <Link href="/write" className="flex items-center justify-center gap-2 text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-1.5 rounded-full text-sm font-medium transition-all" style={{ textDecoration: "none" }}>
+                <span className="flex items-center justify-center"><WriteIcon /></span>
+                <span className="hidden sm:inline">Write</span>
+              </Link>
+            )}
 
             {/* Notification bell trigger */}
             <div className="relative notif-dropdown-trigger">
@@ -1198,7 +1200,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : feedPosts.length === 0 ? (
-              <EmptyState showWriteButton />
+              <EmptyState showWriteButton={userProfile?.role === "admin" || userProfile?.role === "staff"} />
             ) : (
               feedPosts.map((post) => <PostCard key={post.id} post={post} />)
             )}
