@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getSql } from "@/lib/db";
 import { hashPassword, signJWT } from "@/lib/auth-server";
 
@@ -131,8 +132,8 @@ export async function GET(request: Request) {
     const token = await signJWT({ id: userId, email, provider: "github" });
 
     // Set token cookie and redirect
-    const response = NextResponse.redirect(new URL(nextPath, request.url));
-    response.cookies.set("uget_session", token, {
+    const cookieStore = await cookies();
+    cookieStore.set("uget_session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -140,7 +141,7 @@ export async function GET(request: Request) {
       path: "/",
     });
 
-    return response;
+    return NextResponse.redirect(new URL(nextPath, request.url));
   } catch (err: any) {
     console.error("GitHub OAuth error:", err);
     return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(err.message || "GitHub OAuth failed")}`, request.url));
