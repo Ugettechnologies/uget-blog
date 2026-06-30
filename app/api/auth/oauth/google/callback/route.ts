@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getSql } from "@/lib/db";
 import { hashPassword, signJWT } from "@/lib/auth-server";
 
@@ -101,9 +100,26 @@ export async function GET(request: Request) {
     // Sign session token
     const token = await signJWT({ id: userId, email, provider: "google" });
 
-    // Set token cookie and redirect
-    const cookieStore = await cookies();
-    cookieStore.set("uget_session", token, {
+    // Set token cookie and return HTML redirect response
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <script>
+            window.location.href = ${JSON.stringify(nextPath)};
+          </script>
+        </head>
+        <body>
+          Redirecting to dashboard...
+        </body>
+      </html>
+    `;
+
+    const response = new NextResponse(htmlContent, {
+      headers: { "Content-Type": "text/html" }
+    });
+
+    response.cookies.set("uget_session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -111,7 +127,7 @@ export async function GET(request: Request) {
       path: "/",
     });
 
-    return NextResponse.redirect(new URL(nextPath, request.url));
+    return response;
   } catch (err: any) {
     console.error("Google OAuth error:", err);
     return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(err.message || "Google OAuth failed")}`, request.url));

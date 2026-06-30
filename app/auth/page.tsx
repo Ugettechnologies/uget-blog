@@ -104,9 +104,15 @@ function AuthForm() {
   const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
-        router.push("/dashboard");
+        const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        const hasInterests = profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0;
+        if (!hasInterests) {
+          router.push("/onboarding");
+        } else {
+          router.push("/dashboard");
+        }
       }
     });
   }, [router, supabase]);
