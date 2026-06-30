@@ -104,6 +104,14 @@ function AuthForm() {
   const supabase = createClient();
 
   useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.push("/dashboard");
+      }
+    });
+  }, [router, supabase]);
+
+  useEffect(() => {
     const err = searchParams.get("error");
     if (err) {
       if (err === "oauth_disabled_use_credentials") {
@@ -148,7 +156,20 @@ function AuthForm() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push("/"); router.refresh();
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+          const hasInterests = profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0;
+          if (!hasInterests) {
+            router.push("/onboarding");
+          } else {
+            router.push("/dashboard");
+          }
+        } else {
+          router.push("/dashboard");
+        }
+        router.refresh();
       }
     } catch (e: unknown) {
       setError((e as Error).message || "Something went wrong");
@@ -241,32 +262,6 @@ function AuthForm() {
 export default function AuthPage() {
   return (
     <div className="auth-page">
-      {/* Left — 3D logo panel */}
-      <div className="auth-left">
-        <div className="auth-left-bg" />
-        <div className="auth-left-dots" />
-        <div style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <p style={{ fontFamily: "var(--sans)", fontSize: 11, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 28 }}>
-            Drag to spin
-          </p>
-          <Logo3D />
-          <h2 className="auth-tagline">
-            Ideas worth<br /><span>sharing.</span>
-          </h2>
-          <p className="auth-tagline-sub">
-            UGET is where writers and thinkers share their best work.
-          </p>
-          <div className="auth-stats">
-            {[{ v: "12K+", l: "Readers" }, { v: "1K+", l: "Stories" }, { v: "50+", l: "Topics" }].map((s) => (
-              <div key={s.l} style={{ textAlign: "center" }}>
-                <div className="auth-stat-value">{s.v}</div>
-                <div className="auth-stat-label">{s.l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Right — form panel */}
       <div className="auth-right">
         <Suspense fallback={<div />}>
