@@ -47,7 +47,7 @@ export default function WritePage() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push("/auth"); return; }
       const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-      if (profile?.role !== "admin" && profile?.role !== "staff") {
+      if (profile?.role !== "admin" && profile?.role !== "staff" && profile?.role !== "writer") {
         router.push("/");
         return;
       }

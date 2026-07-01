@@ -61,7 +61,7 @@ export default function AdminPage() {
   const checkAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setDebugUser(user);
-    if (!user) {
+    if (!user || !user.email || user.email.toLowerCase() !== "ugettechnologies@gmail.com") {
       await loadPublicPosts();
       setIsNotAdmin(true);
       setLoading(false);
@@ -69,12 +69,12 @@ export default function AdminPage() {
     }
     const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     setDebugRole(prof?.role || "null");
-    if (prof?.role !== "admin") {
-      await loadPublicPosts();
-      setIsNotAdmin(true);
-      setLoading(false);
-      return;
+    
+    if (prof && prof.role !== "admin") {
+      await supabase.from("profiles").update({ role: "admin" }).eq("id", user.id);
+      setDebugRole("admin");
     }
+    
     loadData();
   };
 

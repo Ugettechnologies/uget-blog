@@ -13,6 +13,8 @@ export default function StaffPage() {
   const [staffMembers, setStaffMembers] = useState<Profile[]>([]);
   const [staffPosts, setStaffPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"posts" | "team" | "guidelines">("posts");
   
   const supabase = createClient();
 
@@ -66,65 +68,173 @@ export default function StaffPage() {
       <Navbar />
 
       <main style={{ maxWidth: 1040, margin: "64px auto 80px", padding: "40px 24px" }}>
-        {/* Header Section */}
-        <div style={{ 
-          borderBottom: "1px solid var(--border-2)", 
-          paddingBottom: 32, 
-          marginBottom: 40,
+        {/* Verified Publication Header */}
+        <div style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          flexWrap: "wrap",
-          gap: 20
+          gap: 28,
+          alignItems: "center",
+          borderBottom: "1px solid var(--border-2)",
+          paddingBottom: 40,
+          marginBottom: 32,
+          flexWrap: "wrap"
         }}>
-          <div>
-            <span style={{ 
-              fontFamily: "var(--sans)", 
-              fontSize: 12, 
-              fontWeight: 700, 
-              color: "var(--brand)", 
-              textTransform: "uppercase", 
-              letterSpacing: "0.1em",
-              display: "block",
-              marginBottom: 8
-            }}>
-              Official Directory
-            </span>
-            <h1 style={{ 
-              fontFamily: "var(--display)", 
-              fontSize: 42, 
-              fontWeight: 800, 
-              color: "var(--black)", 
-              letterSpacing: "-0.03em",
-              margin: 0,
-              lineHeight: 1.1
-            }}>
-              UGET Staff & Writers
-            </h1>
-            <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", marginTop: 8, margin: 0 }}>
-              Meet the editorial guild, official team, and creators behind UGET.
+          {/* Circular logo */}
+          <div style={{
+            width: 90,
+            height: 90,
+            borderRadius: "50%",
+            backgroundColor: "#191919",
+            color: "white",
+            fontFamily: "var(--display)",
+            fontSize: 36,
+            fontWeight: 800,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "var(--shadow-md)",
+            border: "1px solid var(--border)",
+            flexShrink: 0
+          }}>
+            U
+          </div>
+
+          <div style={{ flex: 1, minWidth: 260 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
+              <h1 style={{
+                fontFamily: "var(--display)",
+                fontSize: 32,
+                fontWeight: 700,
+                color: "var(--black)",
+                margin: 0,
+                letterSpacing: "-0.025em"
+              }}>
+                UGET Staff
+              </h1>
+              {/* Verified Badge */}
+              <span 
+                style={{ 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  backgroundColor: "rgba(26,137,23,0.1)", 
+                  color: "#1a8917", 
+                  borderRadius: "50%", 
+                  width: 22, 
+                  height: 22, 
+                  fontSize: 12,
+                  fontWeight: "bold",
+                  border: "1px solid rgba(26,137,23,0.2)"
+                }}
+                title="Verified Publication"
+              >
+                ✓
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", fontWeight: 500 }}>
+                {isFollowing ? "12,401 followers" : "12,400 followers"}
+              </span>
+              
+              {/* Follow Button */}
+              <button
+                onClick={() => setIsFollowing(!isFollowing)}
+                style={{
+                  fontFamily: "var(--sans)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: isFollowing ? "var(--muted)" : "white",
+                  backgroundColor: isFollowing ? "transparent" : "#1a8917",
+                  border: isFollowing ? "1px solid var(--border)" : "none",
+                  padding: "6px 18px",
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+              >
+                {isFollowing ? "Following" : "Follow"}
+              </button>
+
+              {isAdmin && (
+                <Link 
+                  href="/admin?tab=staff" 
+                  style={{
+                    fontFamily: "var(--sans)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--brand)",
+                    textDecoration: "none",
+                    border: "1px solid rgba(124,58,237,0.3)",
+                    padding: "5px 16px",
+                    borderRadius: 999,
+                    transition: "all 0.2s"
+                  }}
+                  className="hover:bg-brand-light"
+                >
+                  🛡️ Manage Staff
+                </Link>
+              )}
+            </div>
+
+            <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
+              Official account for news, announcements, and hand-picked stories from the UGET Editorial Team.
             </p>
           </div>
-          {isAdmin && (
-            <Link 
-              href="/admin?tab=staff" 
+        </div>
+
+        {/* Tab Switcher Navigation */}
+        <div style={{
+          display: "flex",
+          borderBottom: "1px solid var(--border-2)",
+          marginBottom: 32,
+          gap: 24
+        }}>
+          {[
+            { id: "posts", label: "Announcements & Picks", count: staffPosts.length },
+            { id: "team", label: "Editorial Directory", count: staffMembers.length },
+            { id: "guidelines", label: "Writer Guidelines", count: null }
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id as any)}
               style={{
                 fontFamily: "var(--sans)",
                 fontSize: 14,
-                fontWeight: 600,
-                color: "white",
-                backgroundColor: "var(--brand)",
-                padding: "10px 20px",
-                borderRadius: 999,
-                textDecoration: "none",
-                boxShadow: "0 4px 12px rgba(124,58,237,0.15)",
-                transition: "all 0.2s"
+                fontWeight: activeTab === t.id ? 700 : 500,
+                color: activeTab === t.id ? "var(--black)" : "var(--muted)",
+                border: "none",
+                background: "none",
+                padding: "12px 4px 16px",
+                cursor: "pointer",
+                position: "relative",
+                transition: "color 0.2s"
               }}
-              className="hover:scale-105"
             >
-              🛡️ Manage Staff (Admin)
-            </Link>
-          )}
+              {t.label}
+              {t.count !== null && (
+                <span style={{ 
+                  marginLeft: 6, 
+                  fontSize: 11, 
+                  background: activeTab === t.id ? "var(--bg-3)" : "var(--bg-2)", 
+                  padding: "1px 6px", 
+                  borderRadius: 99, 
+                  fontWeight: 600 
+                }}>
+                  {t.count}
+                </span>
+              )}
+              {activeTab === t.id && (
+                <div style={{
+                  position: "absolute",
+                  bottom: -1,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  backgroundColor: "var(--black)"
+                }} />
+              )}
+            </button>
+          ))}
         </div>
 
         {loading ? (
@@ -134,110 +244,9 @@ export default function StaffPage() {
           </div>
         ) : (
           <div>
-            {/* Staff Profiles Grid */}
-            <section style={{ marginBottom: 56 }}>
-              <h2 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-2)", marginBottom: 24 }}>
-                Team Members ({staffMembers.length})
-              </h2>
-              {staffMembers.length === 0 ? (
-                <div style={{ padding: "40px 0", textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12, background: "var(--bg-2)" }}>
-                  <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>No staff members assigned yet.</p>
-                </div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
-                  {staffMembers.map((member) => (
-                    <div key={member.id} style={{ 
-                      background: "white", 
-                      border: "1px solid var(--border)", 
-                      borderRadius: 16, 
-                      padding: 24, 
-                      display: "flex", 
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      boxShadow: "var(--shadow-sm)",
-                      transition: "transform 0.2s, box-shadow 0.2s"
-                    }} className="hover:shadow-md hover:translate-y-[-2px]">
-                      <div>
-                        <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16 }}>
-                          <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", background: "var(--bg-3)", flexShrink: 0 }}>
-                            {member.avatar_url ? (
-                              <Image src={member.avatar_url} alt="" width={48} height={48} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                            ) : (
-                              <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                {getInitials(member.full_name)}
-                              </div>
-                            )}
-                          </div>
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                              <h3 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", margin: 0 }}>
-                                {member.full_name || "Staff Writer"}
-                              </h3>
-                              <span style={{ 
-                                fontSize: 9, 
-                                fontWeight: 700, 
-                                background: member.role === "admin" ? "rgba(239,68,68,0.1)" : "rgba(124,58,237,0.1)", 
-                                color: member.role === "admin" ? "#ef4444" : "var(--brand)", 
-                                padding: "2px 6px", 
-                                borderRadius: 4,
-                                textTransform: "uppercase"
-                              }}>
-                                {member.role}
-                              </span>
-                            </div>
-                            <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>@{member.username}</span>
-                          </div>
-                        </div>
-                        <p style={{ 
-                          fontFamily: "var(--serif)", 
-                          fontSize: 14, 
-                          color: "var(--muted)", 
-                          lineHeight: 1.5,
-                          margin: "0 0 20px 0",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden"
-                        }}>
-                          {member.bio || "Official UGET staff team member."}
-                        </p>
-                      </div>
-                      
-                      <Link 
-                        href={`/profile/${member.username || member.id}`}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          textAlign: "center",
-                          fontFamily: "var(--sans)",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "var(--ink)",
-                          border: "1px solid var(--border)",
-                          borderRadius: 8,
-                          padding: "8px 16px",
-                          textDecoration: "none",
-                          background: "var(--bg-2)",
-                          transition: "background 0.2s"
-                        }}
-                        className="hover:bg-gray-100"
-                      >
-                        View Profile
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Layout Columns for Posts & Rules */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 48 }} className="staff-layout-columns">
-              {/* Staff Posts Feed */}
-              <section style={{ minWidth: 0 }}>
-                <h2 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-2)", marginBottom: 20 }}>
-                  Staff Picks & Corner ({staffPosts.length})
-                </h2>
-                
+            {/* ─── ANNOUNCEMENTS & PICKS TAB ─── */}
+            {activeTab === "posts" && (
+              <div style={{ maxWidth: 760, margin: "0 auto" }}>
                 {staffPosts.length === 0 ? (
                   <div style={{ padding: "60px 24px", textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>
                     <div style={{ fontSize: 40, marginBottom: 12 }}>✍️</div>
@@ -252,23 +261,23 @@ export default function StaffPage() {
                       return (
                         <article key={post.id} style={{ 
                           display: "flex", 
-                          gap: 20, 
+                          gap: 32, 
                           alignItems: "flex-start", 
-                          padding: "24px 0",
+                          padding: "32px 0",
                           borderBottom: "1px solid var(--border-2)"
                         }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                              <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
-                                {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={24} height={24} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name)}
+                              <div style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
+                                {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={22} height={22} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name)}
                               </div>
-                              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)" }}>{author?.full_name || "UGET Staff"}</span>
+                              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{author?.full_name || "UGET Staff"}</span>
                               <span style={{ 
                                 fontFamily: "var(--sans)", 
                                 fontSize: 9, 
                                 fontWeight: 700, 
-                                background: author?.role === "admin" ? "rgba(239,68,68,0.1)" : "rgba(124,58,237,0.1)", 
-                                color: author?.role === "admin" ? "#ef4444" : "var(--brand)",
+                                background: author?.role === "admin" ? "rgba(239,68,68,0.08)" : "rgba(26,137,23,0.08)", 
+                                color: author?.role === "admin" ? "#ef4444" : "#1a8917",
                                 padding: "2px 6px", 
                                 borderRadius: 4 
                               }}>
@@ -278,18 +287,28 @@ export default function StaffPage() {
                             </div>
                             
                             <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>
-                              <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", margin: "4px 0 8px" }}>{post.title}</h3>
-                              {post.excerpt && <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", margin: 0, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{post.excerpt}</p>}
+                              <h3 style={{ 
+                                fontFamily: "var(--display)", 
+                                fontSize: 22, 
+                                fontWeight: 700, 
+                                color: "var(--black)", 
+                                margin: "4px 0 8px",
+                                lineHeight: 1.3,
+                                letterSpacing: "-0.015em"
+                              }}>
+                                {post.title}
+                              </h3>
+                              {post.excerpt && <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: 0, lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{post.excerpt}</p>}
                             </Link>
                             
-                            <div style={{ display: "flex", gap: 12, marginTop: 8, color: "var(--muted-2)", fontSize: 12 }}>
+                            <div style={{ display: "flex", gap: 12, marginTop: 16, color: "var(--muted-2)", fontSize: 12, alignItems: "center" }}>
                               <span>{post.read_time} min read</span>
-                              {cat && <span>· {cat.icon} {cat.label}</span>}
+                              {cat && <span style={{ background: "var(--bg-3)", padding: "2px 8px", borderRadius: 12 }}>{cat.icon} {cat.label}</span>}
                             </div>
                           </div>
                           {post.cover_image && (
-                            <Link href={`/post/${post.slug}`} style={{ width: 100, height: 100, borderRadius: 8, overflow: "hidden", flexShrink: 0, display: "block" }}>
-                              <Image src={post.cover_image} alt="" width={100} height={100} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                            <Link href={`/post/${post.slug}`} style={{ width: 112, height: 112, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
+                              <Image src={post.cover_image} alt="" width={112} height={112} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                             </Link>
                           )}
                         </article>
@@ -297,37 +316,134 @@ export default function StaffPage() {
                     })}
                   </div>
                 )}
-              </section>
+              </div>
+            )}
 
-              {/* Guidelines Sidebar */}
-              <aside style={{ alignSelf: "start" }} className="staff-guidelines-sidebar">
+            {/* ─── EDITORIAL DIRECTORY TAB ─── */}
+            {activeTab === "team" && (
+              <section style={{ marginBottom: 56 }}>
+                {staffMembers.length === 0 ? (
+                  <div style={{ padding: "40px 0", textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12, background: "var(--bg-2)" }}>
+                    <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>No staff members assigned yet.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 24 }}>
+                    {staffMembers.map((member) => (
+                      <div key={member.id} style={{ 
+                        background: "white", 
+                        border: "1px solid var(--border)", 
+                        borderRadius: 16, 
+                        padding: 24, 
+                        display: "flex", 
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        boxShadow: "var(--shadow-sm)",
+                        transition: "transform 0.2s, box-shadow 0.2s"
+                      }} className="hover:shadow-md hover:translate-y-[-2px]">
+                        <div>
+                          <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16 }}>
+                            <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", background: "var(--bg-3)", flexShrink: 0 }}>
+                              {member.avatar_url ? (
+                                <Image src={member.avatar_url} alt="" width={48} height={48} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                              ) : (
+                                <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                  {getInitials(member.full_name)}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                                <h3 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", margin: 0 }}>
+                                  {member.full_name || "Staff Writer"}
+                                </h3>
+                                <span style={{ 
+                                  fontSize: 9, 
+                                  fontWeight: 700, 
+                                  background: member.role === "admin" ? "rgba(239,68,68,0.1)" : "rgba(124,58,237,0.1)", 
+                                  color: member.role === "admin" ? "#ef4444" : "var(--brand)", 
+                                  padding: "2px 6px", 
+                                  borderRadius: 4,
+                                  textTransform: "uppercase"
+                                }}>
+                                  {member.role}
+                                </span>
+                              </div>
+                              <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>@{member.username}</span>
+                            </div>
+                          </div>
+                          <p style={{ 
+                            fontFamily: "var(--serif)", 
+                            fontSize: 14, 
+                            color: "var(--muted)", 
+                            lineHeight: 1.5,
+                            margin: "0 0 20px 0",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden"
+                          }}>
+                            {member.bio || "Official UGET staff team member."}
+                          </p>
+                        </div>
+                        
+                        <Link 
+                          href={`/profile/${member.username || member.id}`}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            textAlign: "center",
+                            fontFamily: "var(--sans)",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "var(--ink)",
+                            border: "1px solid var(--border)",
+                            borderRadius: 8,
+                            padding: "8px 16px",
+                            textDecoration: "none",
+                            background: "var(--bg-2)",
+                            transition: "background 0.2s"
+                          }}
+                          className="hover:bg-gray-100"
+                        >
+                          View Profile
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* ─── WRITER GUIDELINES TAB ─── */}
+            {activeTab === "guidelines" && (
+              <div style={{ maxWidth: 680, margin: "0 auto" }}>
                 <div style={{ 
                   background: "var(--bg-2)", 
                   border: "1px solid var(--border)", 
                   borderRadius: 16, 
-                  padding: 24, 
+                  padding: 32, 
                   boxShadow: "var(--shadow-sm)" 
                 }}>
-                  <h3 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>UGET Writer Guild</h3>
-                  <p style={{ fontFamily: "var(--serif)", fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 16 }}>
-                    Welcome to the UGET Writer Guild. Review these basic rules and guidelines to ensure your articles qualify for promotion in the Staff Picks feed.
+                  <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>UGET Writer Guidelines</h3>
+                  <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
+                    Welcome to the UGET Editorial Board. Review these basic rules and guidelines to ensure your articles qualify for official curation and promotion in our Staff Picks feed.
                   </p>
                   
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     {[
-                      { title: "Content Policy", desc: "Respect intellectual property and avoid plagiarism." },
-                      { title: "Format & Layout", desc: "Use headers, bolding, and code snippets correctly." },
-                      { title: "Readability Tips", desc: "Keep paragraphs short and explain complex jargon." }
+                      { title: "1. Content Integrity & Quality", desc: "Respect intellectual property. Plagiarism, uncredited sources, or spam content will result in immediate removal and suspension." },
+                      { title: "2. Clean Formatting & Typography", desc: "Format code blocks with syntax highlighting, structure posts with clean hierarchical titles (H2, H3), and use relevant high-quality cover images." },
+                      { title: "3. Readability & Engagement", desc: "Keep paragraphs readable, avoid heavy blocks of text, use clear explanatory subheadings, and verify factual references." }
                     ].map((g) => (
-                      <div key={g.title} style={{ borderBottom: "1px solid var(--border-2)", paddingBottom: 10 }}>
-                        <strong style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--ink)", display: "block" }}>{g.title}</strong>
-                        <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>{g.desc}</span>
+                      <div key={g.title} style={{ borderBottom: "1px solid var(--border-2)", paddingBottom: 16 }}>
+                        <strong style={{ fontFamily: "var(--display)", fontSize: 16, color: "var(--ink)", display: "block", marginBottom: 6 }}>{g.title}</strong>
+                        <span style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", lineHeight: 1.5 }}>{g.desc}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              </aside>
-            </div>
+              </div>
+            )}
           </div>
         )}
       </main>

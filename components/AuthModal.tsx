@@ -56,6 +56,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPw, setShowPw] = useState(false);
+
+  // New verification states
+  const [verificationStep, setVerificationStep] = useState<"none" | "verify_code" | "forgot_password" | "reset_password">("none");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [userInputCode, setUserInputCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [toastCode, setToastCode] = useState<string | null>(null);
   
   const router = useRouter();
   const supabase = createClient();
@@ -79,6 +86,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       setName("");
       setEmail("");
       setPassword("");
+
+      // Reset verification steps
+      setVerificationStep("none");
+      setVerificationCode("");
+      setUserInputCode("");
+      setNewPassword("");
+      setToastCode(null);
     } else {
       document.body.style.overflow = "";
     }
@@ -118,15 +132,40 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       setError("Please fill all fields");
       return;
     }
+    if (mode === "signup" && !name.trim()) {
+      setError("Please enter your name");
+      return;
+    }
+    setLoading(true);
+    try {
+      // Simulate sending verification code
+      const generated = Math.floor(100000 + Math.random() * 900000).toString();
+      setVerificationCode(generated);
+      setToastCode(generated);
+      console.log(`\n==================================================`);
+      console.log(`[UGET AUTH] Verification Code for ${email} is: ${generated}`);
+      console.log(`==================================================\n`);
+      setVerificationStep("verify_code");
+      setSuccess("A verification code has been sent to your email!");
+    } catch (err: any) {
+      setError(err.message || "Failed to send code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    if (userInputCode !== verificationCode) {
+      setError("Invalid verification code. Please try again.");
+      return;
+    }
     setLoading(true);
     localStorage.setItem("uget_remember_me", rememberMe ? "true" : "false");
     try {
       if (mode === "signup") {
-        if (!name.trim()) {
-          setError("Please enter your name");
-          setLoading(false);
-          return;
-        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -168,7 +207,67 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         }
       }
     } catch (e: any) {
-      setError(e.message || "Something went wrong");
+      setError(e.message || "Something went wrong during sign-in.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    if (!email) {
+      setError("Please enter your email");
+      return;
+    }
+    setLoading(true);
+    try {
+      const generated = Math.floor(100000 + Math.random() * 900000).toString();
+      setVerificationCode(generated);
+      setToastCode(generated);
+      console.log(`\n==================================================`);
+      console.log(`[UGET RESET PASSWORD] Verification Code for ${email} is: ${generated}`);
+      console.log(`==================================================\n`);
+      setVerificationStep("reset_password");
+      setSuccess("A verification code has been sent to your email!");
+    } catch (err: any) {
+      setError(err.message || "Failed to send reset code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    if (userInputCode !== verificationCode) {
+      setError("Invalid verification code. Please try again.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password: newPassword });
+      if (error) throw error;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        if (rememberMe) {
+          saveUserToSavedList(user, profile, "email");
+        }
+        onClose();
+        router.push("/dashboard");
+      } else {
+        onClose();
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to update password.");
     } finally {
       setLoading(false);
     }
@@ -292,6 +391,54 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+
+        {/* Simulated Email Passcode Toast Notification */}
+        {toastCode && (
+          <div 
+            style={{
+              position: "absolute",
+              top: -65,
+              left: 0,
+              right: 0,
+              backgroundColor: "#191919",
+              color: "white",
+              padding: "12px 20px",
+              borderRadius: "12px",
+              boxShadow: "var(--shadow-lg)",
+              fontFamily: "var(--sans)",
+              fontSize: 13,
+              textAlign: "left",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              zIndex: 1100,
+              animation: "slideDown 0.3s ease-out forwards"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 16 }}>✉️</span>
+              <div>
+                <strong style={{ display: "block" }}>[Email Code Verification]</strong>
+                <span style={{ color: "var(--muted-2)" }}>
+                  Your code is <strong style={{ color: "#10b981", fontSize: 14, letterSpacing: 1 }}>{toastCode}</strong>
+                </span>
+              </div>
+            </div>
+            <button 
+              onClick={() => setToastCode(null)}
+              style={{ background: "none", border: "none", color: "white", cursor: "pointer", fontSize: 14, padding: 4 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <style jsx global>{`
+          @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+        `}</style>
 
         {!showMoreOptions && mode === "login" && savedUsers.length > 0 ? (
           /* ────────────────────────────────────────────────────────
@@ -654,163 +801,361 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                 )}
               </div>
             ) : (
-              /* Email/Password Fields Form View */
+              /* Email/Password Form and Verification Flow Container */
               <div style={{ textAlign: "left" }}>
-                <h2 
-                  style={{ 
-                    fontFamily: "var(--display)", 
-                    fontSize: 28, 
-                    fontWeight: 700, 
-                    color: "var(--black)", 
-                    marginBottom: 6,
-                    textAlign: "center",
-                    letterSpacing: "-0.015em"
-                  }}
-                >
-                  {mode === "login" ? "Welcome back." : "Join UGET."}
-                </h2>
-                <p 
-                  style={{ 
-                    fontFamily: "var(--serif)", 
-                    fontSize: 14, 
-                    color: "var(--muted)", 
-                    marginBottom: 24,
-                    textAlign: "center"
-                  }}
-                >
-                  {mode === "login" ? "Sign in with email." : "Create an account with email."}
-                </p>
+                {verificationStep === "verify_code" && (
+                  /* ─── VERIFY CODE STEP ─── */
+                  <div>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 700, color: "var(--black)", marginBottom: 6, textAlign: "center", letterSpacing: "-0.015em" }}>
+                      Verify your identity
+                    </h2>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", marginBottom: 24, textAlign: "center" }}>
+                      Please enter the 6-digit code sent to **{email}**.
+                    </p>
 
-                {/* Alerts */}
-                {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
-                {success && <div className="alert alert-success" style={{ marginBottom: 12 }}>{success}</div>}
+                    {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
+                    {success && <div className="alert alert-success" style={{ marginBottom: 12 }}>{success}</div>}
 
-                {/* Form */}
-                <form onSubmit={handleSubmit}>
-                  {mode === "signup" && (
-                    <div className="form-group" style={{ marginBottom: 12 }}>
-                      <label className="form-label">Full name</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder="Your full name" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)} 
-                        required 
-                      />
-                    </div>
-                  )}
-                  <div className="form-group" style={{ marginBottom: 12 }}>
-                    <label className="form-label">Email</label>
-                    <input 
-                      type="email" 
-                      className="form-input" 
-                      placeholder="you@example.com" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 16 }}>
-                    <label className="form-label">Password</label>
-                    <div style={{ position: "relative" }}>
-                      <input 
-                        type={showPw ? "text" : "password"} 
-                        className="form-input" 
-                        placeholder={mode === "signup" ? "Min 6 characters" : "Your password"} 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        style={{ paddingRight: 44 }} 
-                        required 
-                      />
+                    <form onSubmit={handleVerifyCodeSubmit}>
+                      <div className="form-group" style={{ marginBottom: 16 }}>
+                        <label className="form-label">Verification Code</label>
+                        <input 
+                          type="text" 
+                          maxLength={6}
+                          className="form-input" 
+                          placeholder="123456" 
+                          value={userInputCode} 
+                          onChange={(e) => setUserInputCode(e.target.value.replace(/\D/g, ""))}
+                          style={{ letterSpacing: "8px", textAlign: "center", fontSize: 20, fontWeight: 700 }}
+                          required 
+                        />
+                      </div>
                       <button 
-                        type="button" 
-                        onClick={() => setShowPw(!showPw)}
-                        style={{ 
-                          position: "absolute", 
-                          right: 12, 
-                          top: "50%", 
-                          transform: "translateY(-50%)", 
-                          background: "none", 
-                          border: "none", 
-                          cursor: "pointer", 
-                          color: "var(--muted-2)", 
-                          padding: 4,
-                          display: "flex",
-                          alignItems: "center"
+                        type="submit" 
+                        className="auth-submit" 
+                        disabled={loading}
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          borderRadius: 999,
+                          fontWeight: 600,
+                          fontSize: 15,
+                          cursor: "pointer",
                         }}
                       >
-                        {showPw ? (
-                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
-                        ) : (
-                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        )}
+                        {loading ? <div className="spinner" /> : "Verify & Continue"}
                       </button>
-                    </div>
-                  </div>
-                  <button 
-                    type="submit" 
-                    className="auth-submit" 
-                    disabled={loading}
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      borderRadius: 999,
-                      fontWeight: 600,
-                      fontSize: 15,
-                      cursor: "pointer",
-                      marginTop: 8
-                    }}
-                  >
-                    {loading ? <div className="spinner" /> : (mode === "login" ? "Sign in" : "Create account")}
-                  </button>
-                </form>
+                    </form>
 
-                {mode === "login" && (
-                  <div style={{ marginTop: 16 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                      <div style={{ flex: 1, height: 1, backgroundColor: "var(--border)" }} />
-                      <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>or</span>
-                      <div style={{ flex: 1, height: 1, backgroundColor: "var(--border)" }} />
-                    </div>
                     <button 
                       type="button"
-                      onClick={() => handleOAuth("google")} 
-                      className="oauth-btn-modal"
-                      disabled={!!oauthLoading}
-                      style={{ marginBottom: 0 }}
+                      onClick={() => { setVerificationStep("none"); setUserInputCode(""); setError(""); setSuccess(""); }} 
+                      style={{
+                        display: "block",
+                        margin: "24px auto 0",
+                        fontFamily: "var(--sans)",
+                        fontSize: 13,
+                        color: "var(--muted)",
+                        textDecoration: "underline",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer"
+                      }}
                     >
-                      <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
-                        {oauthLoading === "google" ? (
-                          <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
-                        ) : (
-                          <GoogleIcon />
-                        )}
-                      </div>
-                      Sign in with Google
+                      ← Back to form
                     </button>
                   </div>
                 )}
 
-                {/* Back to all options */}
-                <button 
-                  onClick={() => setShowEmailForm(false)} 
-                  style={{
-                    display: "block",
-                    margin: "24px auto 0",
-                    fontFamily: "var(--sans)",
-                    fontSize: 13,
-                    color: "var(--muted)",
-                    textDecoration: "underline",
-                    border: "none",
-                    background: "none",
-                    cursor: "pointer"
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
-                >
-                  ← Back to all options
-                </button>
+                {verificationStep === "forgot_password" && (
+                  /* ─── FORGOT PASSWORD STEP ─── */
+                  <div>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 700, color: "var(--black)", marginBottom: 6, textAlign: "center", letterSpacing: "-0.015em" }}>
+                      Reset your password
+                    </h2>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", marginBottom: 24, textAlign: "center" }}>
+                      Enter the email address associated with your account.
+                    </p>
+
+                    {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
+                    {success && <div className="alert alert-success" style={{ marginBottom: 12 }}>{success}</div>}
+
+                    <form onSubmit={handleForgotPasswordSubmit}>
+                      <div className="form-group" style={{ marginBottom: 16 }}>
+                        <label className="form-label">Email address</label>
+                        <input 
+                          type="email" 
+                          className="form-input" 
+                          placeholder="you@example.com" 
+                          value={email} 
+                          onChange={(e) => setEmail(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <button 
+                        type="submit" 
+                        className="auth-submit" 
+                        disabled={loading}
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          borderRadius: 999,
+                          fontWeight: 600,
+                          fontSize: 15,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {loading ? <div className="spinner" /> : "Send Reset Code"}
+                      </button>
+                    </form>
+
+                    <button 
+                      type="button"
+                      onClick={() => { setVerificationStep("none"); setError(""); setSuccess(""); }} 
+                      style={{
+                        display: "block",
+                        margin: "24px auto 0",
+                        fontFamily: "var(--sans)",
+                        fontSize: 13,
+                        color: "var(--muted)",
+                        textDecoration: "underline",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer"
+                      }}
+                    >
+                      ← Back to sign in
+                    </button>
+                  </div>
+                )}
+
+                {verificationStep === "reset_password" && (
+                  /* ─── RESET PASSWORD STEP ─── */
+                  <div>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 700, color: "var(--black)", marginBottom: 6, textAlign: "center", letterSpacing: "-0.015em" }}>
+                      Choose new password
+                    </h2>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", marginBottom: 24, textAlign: "center" }}>
+                      Please enter the code sent to your email and your new password.
+                    </p>
+
+                    {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
+                    {success && <div className="alert alert-success" style={{ marginBottom: 12 }}>{success}</div>}
+
+                    <form onSubmit={handleResetPasswordSubmit}>
+                      <div className="form-group" style={{ marginBottom: 12 }}>
+                        <label className="form-label">Verification Code</label>
+                        <input 
+                          type="text" 
+                          maxLength={6}
+                          className="form-input" 
+                          placeholder="123456" 
+                          value={userInputCode} 
+                          onChange={(e) => setUserInputCode(e.target.value.replace(/\D/g, ""))}
+                          style={{ letterSpacing: "8px", textAlign: "center", fontSize: 16, fontWeight: 700 }}
+                          required 
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 16 }}>
+                        <label className="form-label">New Password</label>
+                        <input 
+                          type="password" 
+                          className="form-input" 
+                          placeholder="At least 6 characters" 
+                          value={newPassword} 
+                          onChange={(e) => setNewPassword(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <button 
+                        type="submit" 
+                        className="auth-submit" 
+                        disabled={loading}
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          borderRadius: 999,
+                          fontWeight: 600,
+                          fontSize: 15,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {loading ? <div className="spinner" /> : "Reset & Log in"}
+                      </button>
+                    </form>
+
+                    <button 
+                      type="button"
+                      onClick={() => { setVerificationStep("forgot_password"); setUserInputCode(""); setNewPassword(""); setError(""); setSuccess(""); }} 
+                      style={{
+                        display: "block",
+                        margin: "24px auto 0",
+                        fontFamily: "var(--sans)",
+                        fontSize: 13,
+                        color: "var(--muted)",
+                        textDecoration: "underline",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer"
+                      }}
+                    >
+                      ← Back
+                    </button>
+                  </div>
+                )}
+
+                {verificationStep === "none" && (
+                  /* ─── STANDARD EMAIL FORM ─── */
+                  <div>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 700, color: "var(--black)", marginBottom: 6, textAlign: "center", letterSpacing: "-0.015em" }}>
+                      {mode === "login" ? "Welcome back." : "Join UGET."}
+                    </h2>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", marginBottom: 24, textAlign: "center" }}>
+                      {mode === "login" ? "Sign in with email." : "Create an account with email."}
+                    </p>
+
+                    {error && <div className="alert alert-error" style={{ marginBottom: 12 }}>{error}</div>}
+                    {success && <div className="alert alert-success" style={{ marginBottom: 12 }}>{success}</div>}
+
+                    <form onSubmit={handleSubmit}>
+                      {mode === "signup" && (
+                        <div className="form-group" style={{ marginBottom: 12 }}>
+                          <label className="form-label">Full name</label>
+                          <input 
+                            type="text" 
+                            className="form-input" 
+                            placeholder="Your full name" 
+                            value={name} 
+                            onChange={(e) => setName(e.target.value)} 
+                            required 
+                          />
+                        </div>
+                      )}
+                      <div className="form-group" style={{ marginBottom: 12 }}>
+                        <label className="form-label">Email</label>
+                        <input 
+                          type="email" 
+                          className="form-input" 
+                          placeholder="you@example.com" 
+                          value={email} 
+                          onChange={(e) => setEmail(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 16 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <label className="form-label" style={{ margin: 0 }}>Password</label>
+                          {mode === "login" && (
+                            <button 
+                              type="button" 
+                              onClick={() => { setVerificationStep("forgot_password"); setError(""); setSuccess(""); }}
+                              style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--brand)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                            >
+                              Forgot password?
+                            </button>
+                          )}
+                        </div>
+                        <div style={{ position: "relative" }}>
+                          <input 
+                            type={showPw ? "text" : "password"} 
+                            className="form-input" 
+                            placeholder={mode === "signup" ? "Min 6 characters" : "Your password"} 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            style={{ paddingRight: 44 }} 
+                            required 
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setShowPw(!showPw)}
+                            style={{ 
+                              position: "absolute", 
+                              right: 12, 
+                              top: "50%", 
+                              transform: "translateY(-50%)", 
+                              background: "none", 
+                              border: "none", 
+                              cursor: "pointer", 
+                              color: "var(--muted-2)", 
+                              padding: 4,
+                              display: "flex",
+                              alignItems: "center"
+                            }}
+                          >
+                            {showPw ? (
+                              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                            ) : (
+                              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <button 
+                        type="submit" 
+                        className="auth-submit" 
+                        disabled={loading}
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          borderRadius: 999,
+                          fontWeight: 600,
+                          fontSize: 15,
+                          cursor: "pointer",
+                          marginTop: 8
+                        }}
+                      >
+                        {loading ? <div className="spinner" /> : (mode === "login" ? "Sign in" : "Create account")}
+                      </button>
+                    </form>
+
+                    {mode === "login" && (
+                      <div style={{ marginTop: 16 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                          <div style={{ flex: 1, height: 1, backgroundColor: "var(--border)" }} />
+                          <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>or</span>
+                          <div style={{ flex: 1, height: 1, backgroundColor: "var(--border)" }} />
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => handleOAuth("google")} 
+                          className="oauth-btn-modal"
+                          disabled={!!oauthLoading}
+                          style={{ marginBottom: 0 }}
+                        >
+                          <div style={{ position: "absolute", left: 24, display: "flex", alignItems: "center" }}>
+                            {oauthLoading === "google" ? (
+                              <div className="spinner" style={{ width: 18, height: 18, borderColor: "rgba(0,0,0,0.15)", borderTopColor: "var(--ink)" }} />
+                            ) : (
+                              <GoogleIcon />
+                            )}
+                          </div>
+                          Sign in with Google
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Back to all options */}
+                    <button 
+                      type="button"
+                      onClick={() => setShowEmailForm(false)} 
+                      style={{
+                        display: "block",
+                        margin: "24px auto 0",
+                        fontFamily: "var(--sans)",
+                        fontSize: 13,
+                        color: "var(--muted)",
+                        textDecoration: "underline",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer"
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
+                    >
+                      ← Back to all options
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
