@@ -433,12 +433,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
           </div>
         )}
 
-        <style jsx global>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           @keyframes slideDown {
             from { transform: translateY(-20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
           }
-        `}</style>
+        ` }} />
 
         {!showMoreOptions && mode === "login" && savedUsers.length > 0 ? (
           /* ────────────────────────────────────────────────────────
