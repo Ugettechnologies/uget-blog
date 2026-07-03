@@ -428,7 +428,7 @@ export default function LiveVideoStream({
             autoPlay
             playsInline
             muted={!isAuthor} // Always mute viewer's self camera to avoid feedback echo
-            style={{ width: "100%", height: "100%", objectFit: "cover", zIndex: 5, transform: "scaleX(-1)" }} // mirror webcam
+            style={{ width: "100%", height: "100%", objectFit: "contain", zIndex: 5, transform: "scaleX(-1)" }} // mirror webcam
           />
         )}
 
@@ -440,7 +440,7 @@ export default function LiveVideoStream({
             playsInline
             loop
             muted
-            style={{ width: "100%", height: "100%", objectFit: "cover", zIndex: 5 }}
+            style={{ width: "100%", height: "100%", objectFit: "contain", zIndex: 5 }}
           />
         )}
 
@@ -609,12 +609,66 @@ export default function LiveVideoStream({
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
                   {isBroadcasting ? (
-                    <button type="button" onClick={stopCameraBroadcast} className="btn btn-outline" style={{ borderRadius: 999, color: "#ef4444", borderColor: "#fca5a5", fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-                      🛑 Terminate Live Broadcast
+                    <button
+                      type="button"
+                      onClick={stopCameraBroadcast}
+                      style={{
+                        borderRadius: "12px",
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "12px 24px",
+                        backgroundColor: "#ef4444",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        boxShadow: "0 4px 12px rgba(239, 68, 68, 0.25)",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#dc2626";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#ef4444";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <span style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "white" }} />
+                      Terminate Live Broadcast
                     </button>
                   ) : (
-                    <button type="button" onClick={startCameraBroadcast} className="btn btn-primary" style={{ borderRadius: 999, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-                      🔴 Start Camera Live Broadcast
+                    <button
+                      type="button"
+                      onClick={startCameraBroadcast}
+                      style={{
+                        borderRadius: "12px",
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "12px 24px",
+                        backgroundColor: "var(--brand, #7c3aed)",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        boxShadow: "0 4px 12px rgba(124, 58, 237, 0.25)",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "var(--brand-hover, #6d28d9)";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "var(--brand, #7c3aed)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <span className="uget-live-dot" style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#ef4444" }} />
+                      Start Camera Live Broadcast
                     </button>
                   )}
                 </div>
@@ -624,20 +678,33 @@ export default function LiveVideoStream({
             {broadcastMode === "upload" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)" }}>
-                  Upload a video file from your camera or library to Cloudinary
+                  Upload a video file from your camera or library
                 </label>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <label style={{
-                    padding: "11px 20px",
-                    border: "1px dashed var(--brand)",
-                    borderRadius: 999,
+                    padding: "12px 24px",
+                    borderRadius: "12px",
                     backgroundColor: "white",
-                    color: "var(--brand)",
-                    fontSize: 13,
+                    border: "2px dashed var(--brand, #7c3aed)",
+                    color: "var(--brand, #7c3aed)",
+                    fontSize: "14px",
                     fontWeight: 700,
                     cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}>
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    boxShadow: "0 2px 8px rgba(124, 58, 237, 0.08)",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "rgba(124, 58, 237, 0.04)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                  >
                     📁 {uploadingVideo ? "Uploading video report..." : "Select & Upload Video"}
                     <input type="file" accept="video/*" onChange={handleVideoUpload} style={{ display: "none" }} disabled={uploadingVideo} />
                   </label>
@@ -657,6 +724,17 @@ export default function LiveVideoStream({
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--brand)", display: "block", marginBottom: 8, letterSpacing: "0.05em" }}>
                     RTMP Connection Credentials
                   </span>
+
+                  {/* Instructions on how to hook up OBS */}
+                  <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5, marginBottom: 12 }}>
+                    To stream using external software (like OBS Studio):
+                    <ol style={{ margin: "6px 0 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <li>Copy the <strong>RTMP Server URL</strong> and <strong>Stream Key</strong> below.</li>
+                      <li>In OBS, open <strong>Settings &gt; Stream</strong>, set Service to <strong>Custom...</strong>, and paste these credentials.</li>
+                      <li>Click <strong>Start Streaming</strong> in OBS, then click the button below to display your stream live on UGET.</li>
+                    </ol>
+                  </div>
+
                   <div style={{ fontSize: 12, fontFamily: "monospace", display: "flex", flexDirection: "column", gap: 8, color: "var(--ink)" }}>
                     <div>
                       <strong style={{ color: "var(--muted)" }}>RTMP Server URL:</strong><br />
@@ -670,12 +748,64 @@ export default function LiveVideoStream({
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
                   {isBroadcasting && videoUrl === "obs-stream" ? (
-                    <button type="button" onClick={stopBroadcast} className="btn btn-outline" style={{ borderRadius: 999, color: "#ef4444", borderColor: "#fca5a5", fontWeight: 700 }}>
+                    <button
+                      type="button"
+                      onClick={stopBroadcast}
+                      style={{
+                        borderRadius: "12px",
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "12px 24px",
+                        backgroundColor: "#ef4444",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        boxShadow: "0 4px 12px rgba(239, 68, 68, 0.25)",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#dc2626";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#ef4444";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
                       🛑 Stop Stream Broadcast
                     </button>
                   ) : (
-                    <button type="button" onClick={startObsBroadcast} className="btn btn-primary" style={{ borderRadius: 999, fontWeight: 700 }}>
-                      📡 Activate Cloudinary RTMP Stream
+                    <button
+                      type="button"
+                      onClick={startObsBroadcast}
+                      style={{
+                        borderRadius: "12px",
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "12px 24px",
+                        backgroundColor: "var(--brand, #7c3aed)",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        boxShadow: "0 4px 12px rgba(124, 58, 237, 0.25)",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "var(--brand-hover, #6d28d9)";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "var(--brand, #7c3aed)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      📡 Activate RTMP Stream
                     </button>
                   )}
                 </div>
