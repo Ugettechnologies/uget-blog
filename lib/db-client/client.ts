@@ -105,51 +105,44 @@ export function createClient() {
     },
     auth: {
       async getUser() {
-        return {
-          data: {
-            user: {
-              id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-              email: "admin@uget.com",
-              role: "admin",
-              user_metadata: { full_name: "UGET Admin" },
-              aud: "authenticated",
-              app_metadata: { provider: "email" }
-            }
-          },
-          error: null
-        };
+        try {
+          const res = await fetch("/api/auth/me");
+          const data = await res.json();
+          if (data && data.user) {
+            return { data: { user: data.user }, error: null };
+          }
+          return { data: { user: null }, error: null };
+        } catch (err: any) {
+          return { data: { user: null }, error: err };
+        }
       },
       async signInWithPassword({ email, password }: any) {
-        return {
-          data: {
-            user: {
-              id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-              email: "admin@uget.com",
-              role: "admin",
-              user_metadata: { full_name: "UGET Admin" },
-              aud: "authenticated",
-              app_metadata: { provider: "email" }
-            },
-            session: { access_token: "mock-session-token" }
-          },
-          error: null
-        };
+        try {
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+          return { data: { user: data.user, session: data.session }, error: null };
+        } catch (err: any) {
+          return { data: { user: null, session: null }, error: { message: err.message } };
+        }
       },
       async signUp({ email, password, options }: any) {
-        return {
-          data: {
-            user: {
-              id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-              email: "admin@uget.com",
-              role: "admin",
-              user_metadata: { full_name: "UGET Admin" },
-              aud: "authenticated",
-              app_metadata: { provider: "email" }
-            },
-            session: { access_token: "mock-session-token" }
-          },
-          error: null
-        };
+        try {
+          const res = await fetch("/api/auth/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, name: options?.data?.full_name })
+          });
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+          return { data: { user: data.user, session: data.session }, error: null };
+        } catch (err: any) {
+          return { data: { user: null, session: null }, error: { message: err.message } };
+        }
       },
       async signOut() {
         try {
@@ -160,21 +153,22 @@ export function createClient() {
         }
       },
       async signInWithOAuth({ provider, options }: any) {
-        window.location.href = `/api/auth/oauth/${provider}?next=/dashboard`;
+        window.location.href = `/auth/oauth-mock?provider=${provider}&next=/dashboard`;
         return { data: null, error: null };
       },
       onAuthStateChange(callback: (event: string, session: any) => void) {
-        const mockUser = {
-          id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-          email: "admin@uget.com",
-          role: "admin",
-          user_metadata: { full_name: "UGET Admin" },
-          aud: "authenticated",
-          app_metadata: { provider: "email" }
-        };
-        setTimeout(() => {
-          callback("SIGNED_IN", { user: mockUser });
-        }, 0);
+        fetch("/api/auth/me")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.user) {
+              callback("SIGNED_IN", { user: data.user });
+            } else {
+              callback("SIGNED_OUT", null);
+            }
+          })
+          .catch(() => {
+            callback("SIGNED_OUT", null);
+          });
         return { data: { subscription: { unsubscribe() {} } } };
       },
     },

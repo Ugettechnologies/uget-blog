@@ -68,14 +68,27 @@ export function comparePassword(password: string, hash: string): boolean {
 }
 
 export async function getUserFromSession(cookies: any): Promise<any | null> {
-  // BYPASS AUTH FOR NOW: Always return the default admin user.
-  return {
-    id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-    email: "admin@uget.com",
-    username: "admin",
-    full_name: "UGET Admin",
-    avatar_url: "",
-    role: "admin",
-    provider: "email"
-  };
+  const sessionToken = cookies.get("uget_session")?.value;
+  if (!sessionToken) return null;
+
+  const payload = await verifyJWT(sessionToken);
+  if (!payload || !payload.id) return null;
+
+  try {
+    const sql = getSql();
+    const user = await sql`
+      SELECT u.id, u.email, p.username, p.full_name, p.avatar_url, p.role
+      FROM users u
+      LEFT JOIN profiles p ON u.id = p.id
+      WHERE u.id = ${payload.id}
+      LIMIT 1
+    `;
+    if (!user || user.length === 0) return null;
+    return {
+      ...user[0],
+      provider: payload.provider || "email"
+    };
+  } catch (err) {
+    return null;
+  }
 }
