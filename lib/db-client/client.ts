@@ -153,7 +153,8 @@ export function createClient() {
         }
       },
       async signInWithOAuth({ provider, options }: any) {
-        window.location.href = `/auth/oauth-mock?provider=${provider}&next=/dashboard`;
+        const next = options?.redirectTo || "/dashboard";
+        window.location.href = `/api/auth/oauth/initiate?provider=${provider}&next=${encodeURIComponent(next)}`;
         return { data: null, error: null };
       },
       onAuthStateChange(callback: (event: string, session: any) => void) {
