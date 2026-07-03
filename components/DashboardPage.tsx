@@ -704,26 +704,26 @@ export default function DashboardPage() {
                   <div style={{ display: "flex", gap: 16, marginBottom: 32, overflowX: "auto", paddingBottom: 4 }}>
                     <button
                       onClick={() => setStoriesSubTab("published")}
-                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "published" ? "var(--ink)" : "#f9fafb", color: storiesSubTab === "published" ? "white" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "published" ? "var(--ink)" : "var(--border-2)", cursor: "pointer" }}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "published" ? "var(--ink)" : "var(--bg-3)", color: storiesSubTab === "published" ? "var(--bg)" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "published" ? "var(--ink)" : "var(--border-2)", cursor: "pointer" }}
                     >
                       Published <span style={{ opacity: 0.7, marginLeft: 4 }}>{published.length}</span>
                     </button>
                     <button
                       onClick={() => setStoriesSubTab("drafts")}
-                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "drafts" ? "var(--ink)" : "#f9fafb", color: storiesSubTab === "drafts" ? "white" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "drafts" ? "var(--ink)" : "var(--border-2)", cursor: "pointer" }}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "drafts" ? "var(--ink)" : "var(--bg-3)", color: storiesSubTab === "drafts" ? "var(--bg)" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "drafts" ? "var(--ink)" : "var(--border-2)", cursor: "pointer" }}
                     >
                       Drafts <span style={{ opacity: 0.7, marginLeft: 4 }}>{drafts.length}</span>
                     </button>
                     <button
                       onClick={() => setStoriesSubTab("scheduled")}
-                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "scheduled" ? "var(--ink)" : "#f9fafb", color: storiesSubTab === "scheduled" ? "white" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "scheduled" ? "var(--ink)" : "var(--border-2)", cursor: "not-allowed", opacity: 0.6 }}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s", background: storiesSubTab === "scheduled" ? "var(--ink)" : "var(--bg-3)", color: storiesSubTab === "scheduled" ? "var(--bg)" : "var(--muted)", border: "1px solid", borderColor: storiesSubTab === "scheduled" ? "var(--ink)" : "var(--border-2)", cursor: "not-allowed", opacity: 0.6 }}
                     >
                       Scheduled <span style={{ opacity: 0.7, marginLeft: 4 }}>0</span>
                     </button>
                   </div>
 
                   {shownStories.length === 0 ? (
-                    <div style={{ background: "white", border: "1px solid var(--border-2)", borderRadius: 24, padding: "64px 24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+                    <div style={{ background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 24, padding: "64px 24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
                       <div style={{ width: 80, height: 80, background: "#f5f3ff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, color: "var(--brand)" }}>
                         {storiesSubTab === "published" ? (
                           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -817,13 +817,13 @@ export default function DashboardPage() {
                   {/* Stats Sub-tabs */}
                   <div style={{ display: "flex", gap: 12, marginBottom: 32, overflowX: "auto", paddingBottom: 8 }}>
                     <button 
-                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "background 0.2s, color 0.2s", background: statsSubTab === "stories" ? "var(--ink)" : "#f3f4f6", color: statsSubTab === "stories" ? "white" : "#4b5563", border: "none", cursor: "pointer" }}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "background 0.2s, color 0.2s", background: statsSubTab === "stories" ? "var(--ink)" : "var(--bg-3)", color: statsSubTab === "stories" ? "var(--bg)" : "var(--muted)", border: "none", cursor: "pointer" }}
                       onClick={() => setStatsSubTab("stories")}
                     >
                       Stories
                     </button>
                     <button 
-                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "background 0.2s, color 0.2s", background: statsSubTab === "audience" ? "var(--ink)" : "#f3f4f6", color: statsSubTab === "audience" ? "white" : "#4b5563", border: "none", cursor: "pointer" }}
+                      style={{ padding: "10px 20px", borderRadius: 999, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", transition: "background 0.2s, color 0.2s", background: statsSubTab === "audience" ? "var(--ink)" : "var(--bg-3)", color: statsSubTab === "audience" ? "var(--bg)" : "var(--muted)", border: "none", cursor: "pointer" }}
                       onClick={() => setStatsSubTab("audience")}
                     >
                       Audience
@@ -858,7 +858,7 @@ export default function DashboardPage() {
                           { label: "Followers", value: followers.length, tooltip: "How many users follow you." },
                           { label: "Subscribers", value: Math.floor(followers.length * 0.2), tooltip: "How many users subscribe to your updates." }
                         ].map((m, idx) => (
-                          <div key={m.label} style={{ background: "white", border: "1px solid var(--border-2)", borderRadius: 16, padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+                          <div key={m.label} style={{ background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 16, padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700, marginBottom: 12, fontFamily: "var(--sans)" }}>
                               {m.label}
                               <span style={{ cursor: "help", color: "var(--border)" }} title={m.tooltip}>ⓘ</span>
@@ -871,7 +871,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* SVG Line Chart */}
-                      <div style={{ background: "white", border: "1px solid var(--border-2)", borderRadius: 16, padding: "24px", marginBottom: 40, boxShadow: "0 1px 3px rgba(0,0,0,0.02)", width: "100%", overflow: "hidden", boxSizing: "border-box" }}>
+                      <div style={{ background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 16, padding: "24px", marginBottom: 40, boxShadow: "0 1px 3px rgba(0,0,0,0.02)", width: "100%", overflow: "hidden", boxSizing: "border-box" }}>
                         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 24 }}>
                           <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)", margin: 0 }}>Views &amp; Reads Trend</h4>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 12, fontFamily: "var(--sans)" }}>
@@ -996,18 +996,18 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     /* Audience stats tab content */
-                    <div style={{ background: "#fdfcff", border: "1px solid var(--border)", borderRadius: 16, padding: 32, textAlign: "center" }}>
+                    <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 16, padding: 32, textAlign: "center" }}>
                       <div style={{ fontSize: 44, marginBottom: 12 }}>👥</div>
                       <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>Audience Insights</h3>
                       <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "0 auto 24px", maxWidth: 440 }}>
                         Track your follower growth, subscriber signups, and readers network trends.
                       </p>
                       <div style={{ display: "flex", justifyContent: "center", gap: 32, flexWrap: "wrap" }}>
-                        <div style={{ background: "white", padding: "16px 24px", borderRadius: 12, border: "1px solid var(--border)", minWidth: 150 }}>
+                        <div style={{ background: "var(--bg)", padding: "16px 24px", borderRadius: 12, border: "1px solid var(--border)", minWidth: 150 }}>
                           <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.03em", color: "var(--muted)", fontWeight: 700, marginBottom: 4 }}>Followers</div>
                           <div style={{ fontSize: 28, fontWeight: 800, color: "var(--black)" }}>{followers.length}</div>
                         </div>
-                        <div style={{ background: "white", padding: "16px 24px", borderRadius: 12, border: "1px solid var(--border)", minWidth: 150 }}>
+                        <div style={{ background: "var(--bg)", padding: "16px 24px", borderRadius: 12, border: "1px solid var(--border)", minWidth: 150 }}>
                           <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.03em", color: "var(--muted)", fontWeight: 700, marginBottom: 4 }}>Subscribers</div>
                           <div style={{ fontSize: 28, fontWeight: 800, color: "var(--black)" }}>{Math.floor(followers.length * 0.2)}</div>
                         </div>
@@ -1157,7 +1157,7 @@ export default function DashboardPage() {
 
                   {/* Editorial Guidelines Panel */}
                   <aside className="staff-panel">
-                    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, padding: 24, boxShadow: "var(--shadow-sm)" }}>
+                    <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, padding: 24, boxShadow: "var(--shadow-sm)" }}>
                       <h3 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>UGET Writer Guild</h3>
                       <p style={{ fontFamily: "var(--serif)", fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 16 }}>
                         Welcome to the UGET Writer Guild. Review these basic rules and guidelines to ensure your articles qualify for promotion in the Staff Picks feed.

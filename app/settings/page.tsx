@@ -265,7 +265,8 @@ export default function SettingsPage() {
       return;
     }
 
-    setAvatarUrl(data.path);
+    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(data.path);
+    setAvatarUrl(publicUrl);
     setUploading(false);
     showMsg("Profile picture uploaded!");
   };
@@ -1419,6 +1420,7 @@ export default function SettingsPage() {
                                   bio: bio.trim(),
                                   website: website.trim(),
                                   twitter: twitter.trim(),
+                                  avatar_url: avatarUrl,
                                 });
                                 setIsEditingProfileInfo(false);
                               }}

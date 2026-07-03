@@ -39,6 +39,79 @@ export default function AdminPage() {
   const [debugUser, setDebugUser] = useState<any>(null);
   const [debugRole, setDebugRole] = useState<string | null>(null);
 
+  // Official UGET Staff Profile state
+  const [staffName, setStaffName] = useState("UGET Staff");
+  const [staffUsername, setStaffUsername] = useState("ugetstaff");
+  const [staffBio, setStaffBio] = useState("");
+  const [staffAvatarUrl, setStaffAvatarUrl] = useState("");
+  const [uploadingStaffAvatar, setUploadingStaffAvatar] = useState(false);
+  const [savingStaffProfile, setSavingStaffProfile] = useState(false);
+
+  useEffect(() => {
+    const staff = users.find(u => u.id === "c0de57af-f011-0e5a-ff55-c0de57aff555");
+    if (staff) {
+      setStaffName(staff.full_name || "UGET Staff");
+      setStaffUsername(staff.username || "ugetstaff");
+      setStaffBio(staff.bio || "");
+      setStaffAvatarUrl(staff.avatar_url || "");
+    }
+  }, [users]);
+
+  const handleStaffAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingStaffAvatar(true);
+    const ext = file.name.split(".").pop();
+    const path = `avatars/staff-${Date.now()}.${ext}`;
+
+    const { error, data } = await supabase.storage.from("avatars").upload(path, file);
+
+    if (error) {
+      showMsg(error.message, "err");
+      setUploadingStaffAvatar(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(data.path);
+    setStaffAvatarUrl(publicUrl);
+    setUploadingStaffAvatar(false);
+    showMsg("Staff profile picture uploaded!");
+  };
+
+  const handleSaveStaffProfile = async () => {
+    if (!staffName.trim()) {
+      showMsg("Display name is required", "err");
+      return;
+    }
+    setSavingStaffProfile(true);
+
+    const payload = {
+      id: "c0de57af-f011-0e5a-ff55-c0de57aff555",
+      full_name: staffName.trim(),
+      username: staffUsername.trim().toLowerCase().replace(/[^a-z0-9]/g, ""),
+      bio: staffBio.trim(),
+      avatar_url: staffAvatarUrl,
+      role: "staff",
+      updated_at: new Date().toISOString()
+    };
+
+    const exists = users.some(u => u.id === "c0de57af-f011-0e5a-ff55-c0de57aff555");
+    const query = exists
+      ? supabase.from("profiles").update(payload).eq("id", "c0de57af-f011-0e5a-ff55-c0de57aff555")
+      : supabase.from("profiles").insert(payload);
+
+    const { error } = await query;
+
+    setSavingStaffProfile(false);
+    if (error) {
+      showMsg(error.message, "err");
+    } else {
+      showMsg("Staff profile updated successfully!");
+      loadData();
+    }
+  };
+
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
@@ -141,7 +214,7 @@ export default function AdminPage() {
 
   if (isNotAdmin) {
     return (
-      <div style={{ background: "white", minHeight: "100vh", color: "var(--ink)", width: "100%" }}>
+      <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)", width: "100%" }}>
         <Navbar />
         <div style={{ maxWidth: 680, margin: "80px auto 40px", padding: "0 24px", textAlign: "center" }}>
           <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.15em" }}>Page not found</span>
@@ -273,7 +346,7 @@ export default function AdminPage() {
         <div className="admin-topbar">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border)", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+            style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg-2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
           >
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -309,7 +382,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Recent posts */}
-                  <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                  <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
                     <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>Recent posts</span>
                       <button onClick={() => setTab("posts")} style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--blue)", background: "none", border: "none", cursor: "pointer" }}>View all</button>
@@ -345,7 +418,7 @@ export default function AdminPage() {
 
               {/* ── ALL POSTS ── */}
               {tab === "posts" && (
-                <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
                   <table className="admin-table">
                     <thead>
                       <tr><th>Title</th><th>Author</th><th>Category</th><th>Status</th><th>Featured</th><th>Views</th><th>Date</th><th>Actions</th></tr>
@@ -420,7 +493,7 @@ export default function AdminPage() {
 
               {/* ── USERS ── */}
               {tab === "users" && (
-                <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
                   <table className="admin-table">
                     <thead>
                       <tr><th>User</th><th>Username</th><th>Role</th><th>Posts</th><th>Joined</th><th>Actions</th></tr>
@@ -443,7 +516,7 @@ export default function AdminPage() {
                             <select
                               value={u.role}
                               onChange={(e) => handleChangeRole(u.id, e.target.value)}
-                              style={{ fontFamily: "var(--sans)", fontSize: 13, padding: "4px 8px", border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "white", color: "var(--ink)", cursor: "pointer" }}
+                              style={{ fontFamily: "var(--sans)", fontSize: 13, padding: "4px 8px", border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "var(--input-bg, white)", color: "var(--ink)", cursor: "pointer" }}
                             >
                               <option value="reader">Reader</option>
                               <option value="writer">Writer</option>
@@ -473,7 +546,7 @@ export default function AdminPage() {
 
               {/* ── PAYMENTS ── */}
               {tab === "payments" && (
-                <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
                   <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Subscriptions & Payments</span>
                     <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>
@@ -567,8 +640,118 @@ export default function AdminPage() {
               {/* ── STAFF ── */}
               {tab === "staff" && (
                 <div>
+                  {/* Official UGET Staff Profile Settings */}
+                  <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: 32 }}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Official UGET Staff Profile Settings</span>
+                      <p style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                        Customize the public profile for the official UGET Staff account.
+                      </p>
+                    </div>
+
+                    <div style={{ padding: 24, display: "grid", gridTemplateColumns: "220px 1fr", gap: 32 }}>
+                      {/* Left: Card Preview */}
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <div style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Profile Card Preview</div>
+                        
+                        <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 16, padding: 20, width: "100%", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", boxShadow: "var(--shadow-sm)" }}>
+                          <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f5f3ff", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative", marginBottom: 16 }}>
+                            {staffAvatarUrl ? (
+                              <Image src={staffAvatarUrl} alt="" width={80} height={80} style={{ objectFit: "cover" }} />
+                            ) : (
+                              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--brand)", fontSize: 24, fontWeight: 700, fontFamily: "var(--sans)" }}>
+                                {getInitials(staffName)}
+                              </div>
+                            )}
+                            {uploadingStaffAvatar && (
+                              <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <div className="spinner" style={{ width: 20, height: 20 }} />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div style={{ fontFamily: "var(--sans)", fontSize: 18, fontWeight: 800, color: "var(--black)", marginBottom: 4 }}>{staffName}</div>
+                          <div style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>@{staffUsername}</div>
+                          <div style={{ fontFamily: "var(--serif)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.4, marginBottom: 16, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", minHeight: 48 }}>
+                            {staffBio || "No bio set yet. Write a public bio on the right."}
+                          </div>
+                          <button type="button" className="btn btn-primary btn-sm" style={{ width: "100%", borderRadius: 999, pointerEvents: "none" }}>Follow</button>
+                        </div>
+                      </div>
+
+                      {/* Right: Form fields */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                          <div>
+                            <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Display Name</label>
+                            <input 
+                              type="text" 
+                              className="form-input" 
+                              value={staffName} 
+                              onChange={(e) => setStaffName(e.target.value)} 
+                              style={{ fontSize: 14, padding: "8px 12px", borderRadius: 8, background: "var(--input-bg, white)", color: "var(--ink)" }} 
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Username</label>
+                            <input 
+                              type="text" 
+                              className="form-input" 
+                              value={staffUsername} 
+                              onChange={(e) => setStaffUsername(e.target.value)} 
+                              style={{ fontSize: 14, padding: "8px 12px", borderRadius: 8, background: "var(--input-bg, white)", color: "var(--ink)" }} 
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Bio Description</label>
+                          <textarea 
+                            className="form-input" 
+                            rows={3} 
+                            value={staffBio} 
+                            onChange={(e) => setStaffBio(e.target.value)} 
+                            style={{ fontSize: 13, padding: "8px 12px", borderRadius: 8, background: "var(--input-bg, white)", color: "var(--ink)", resize: "vertical" }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Profile Picture</label>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+                            <label className="btn btn-outline btn-sm" style={{ cursor: "pointer", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+                              📁 {uploadingStaffAvatar ? "Uploading picture..." : "Select New Picture"}
+                              <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleStaffAvatarUpload} disabled={uploadingStaffAvatar} />
+                            </label>
+                            {staffAvatarUrl && (
+                              <button 
+                                type="button" 
+                                onClick={() => setStaffAvatarUrl("")}
+                                className="btn btn-sm" 
+                                style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, cursor: "pointer" }}
+                              >
+                                Remove Picture
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "1px solid var(--border-2)", paddingTop: 16, marginTop: 8 }}>
+                          <button 
+                            type="button" 
+                            onClick={handleSaveStaffProfile} 
+                            disabled={savingStaffProfile} 
+                            className="btn btn-primary" 
+                            style={{ borderRadius: 8, padding: "10px 24px", fontWeight: 700 }}
+                          >
+                            {savingStaffProfile ? "Saving..." : "Save Staff Profile"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Current staff table */}
-                  <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: 32 }}>
+                  <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: 32 }}>
                     <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>UGET Staff Members</span>
                       <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>
@@ -636,7 +819,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Promote/Assign section */}
-                  <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                  <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
                     <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
                       <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Assign New Staff Members</span>
                       <p style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
