@@ -952,17 +952,17 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <h2 className="font-bold text-lg text-gray-900 font-sans mb-1">{profile.full_name}</h2>
-            <p className="text-sm text-gray-500 font-sans mb-4">@{profile.username || "writer"}</p>
+            <h2 className="font-bold text-lg text-gray-900 dark:text-gray-100 font-sans" style={{ marginBottom: '2px' }}>{profile.full_name}</h2>
+            <p className="text-sm text-gray-500 font-sans" style={{ marginBottom: '6px' }}>@{profile.username || "writer"}</p>
 
             {profile.bio && (
-              <p className="text-sm text-gray-600 font-serif leading-relaxed mb-6" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-serif leading-relaxed" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", marginBottom: '12px' }}>
                 {profile.bio}
               </p>
             )}
 
             {/* Follow/Edit trigger buttons */}
-            <div className="mb-6">
+            <div style={{ marginBottom: '12px' }}>
               {currentUser && currentUser.id === profile.id ? (
                 <Link
                   href="/settings"
@@ -983,24 +983,36 @@ export default function ProfilePage() {
             </div>
 
             {/* User details stats */}
-            <div className="border-t border-gray-100 pt-6">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 font-sans">Metrics</h3>
-              <div className="flex flex-col gap-3 font-sans text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Stories:</span>
-                  <span className="font-bold text-gray-900">{posts.length}</span>
+            <div style={{ paddingTop: '8px' }}>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 font-sans">Metrics</h3>
+              <div className="flex flex-col font-sans text-sm">
+                <div className="flex justify-between items-center py-2.5 border-b border-gray-100/60 dark:border-gray-850/40">
+                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                    Stories
+                  </span>
+                  <span className="font-bold text-gray-900 dark:text-gray-100">{posts.length}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Followers:</span>
-                  <span className="font-bold text-gray-900">{profile.follower_count || 0}</span>
+                <div className="flex justify-between items-center py-2.5 border-b border-gray-100/60 dark:border-gray-850/40">
+                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                    Followers
+                  </span>
+                  <span className="font-bold text-gray-900 dark:text-gray-100">{profile.follower_count || 0}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Total Views:</span>
-                  <span className="font-bold text-gray-900">{totalViews.toLocaleString()}</span>
+                <div className="flex justify-between items-center py-2.5 border-b border-gray-100/60 dark:border-gray-850/40">
+                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    Total Views
+                  </span>
+                  <span className="font-bold text-gray-900 dark:text-gray-100">{totalViews.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Likes Received:</span>
-                  <span className="font-bold text-gray-900">{totalLikes.toLocaleString()}</span>
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                    Likes Received
+                  </span>
+                  <span className="font-bold text-gray-900 dark:text-gray-100">{totalLikes.toLocaleString()}</span>
                 </div>
               </div>
             </div>

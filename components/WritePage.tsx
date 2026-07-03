@@ -20,6 +20,8 @@ export default function WritePage() {
   const editId = params?.id as string | undefined;
 
   const [user, setUser] = useState<{ id: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [publishAsStaff, setPublishAsStaff] = useState(false);
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
@@ -52,6 +54,7 @@ export default function WritePage() {
         return;
       }
       setUser(user);
+      setUserProfile(profile);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -70,6 +73,9 @@ export default function WritePage() {
       setPublished(data.published);
       setFeatured(data.featured);
       setPostId(data.id);
+      if (data.author_id === "c0de57af-f011-0e5a-ff55-c0de57aff555") {
+        setPublishAsStaff(true);
+      }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
@@ -114,7 +120,7 @@ export default function WritePage() {
       cover_image: coverImage || null,
       category,
       tags,
-      author_id: user.id,
+      author_id: publishAsStaff ? "c0de57af-f011-0e5a-ff55-c0de57aff555" : user.id,
       published: pub,
       featured,
       read_time: readTime,
@@ -234,6 +240,20 @@ export default function WritePage() {
               </div>
               {/* Settings */}
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {(userProfile?.role === "admin" || userProfile?.role === "staff") && (
+                  <div>
+                    <div style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Publish As</div>
+                    <select
+                      value={publishAsStaff ? "staff" : "self"}
+                      onChange={(e) => setPublishAsStaff(e.target.value === "staff")}
+                      className="form-input"
+                      style={{ fontSize: 14 }}
+                    >
+                      <option value="self">Yourself ({userProfile?.full_name || "Writer"})</option>
+                      <option value="staff">UGET Staff</option>
+                    </select>
+                  </div>
+                )}
                 <div>
                   <div style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Category</div>
                   <select value={category} onChange={(e) => setCategory(e.target.value)} className="form-input" style={{ fontSize: 14 }}>

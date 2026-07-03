@@ -30,6 +30,9 @@ function PostCard({ post }: { post: Post }) {
           <Link href={`/profile/${authorUsername}`} className="post-card-author-name" style={{ textDecoration: "none" }}>
             {authorName}
           </Link>
+          <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)", fontWeight: 400, marginLeft: 2 }}>
+            @{authorUsername}
+          </span>
         </div>
         <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>
           <h2 className="post-card-title">{post.title}</h2>

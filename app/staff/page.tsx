@@ -10,6 +10,7 @@ import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 export default function StaffPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
+  const [staffProfile, setStaffProfile] = useState<Profile | null>(null);
   const [staffMembers, setStaffMembers] = useState<Profile[]>([]);
   const [staffPosts, setStaffPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,15 @@ export default function StaffPage() {
         supabase.from("profiles").select("*").eq("id", user.id).single()
           .then(({ data }) => {
             setCurrentUserProfile(data as Profile);
+            // Check follow state for UGET Staff
+            supabase.from("follows")
+              .select("id")
+              .eq("follower_id", user.id)
+              .eq("following_id", "c0de57af-f011-0e5a-ff55-c0de57aff555")
+              .single()
+              .then(({ data: followRes }) => {
+                setIsFollowing(!!followRes);
+              });
           });
       }
     });
@@ -37,27 +47,71 @@ export default function StaffPage() {
   const loadStaffData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch all profiles (we will filter for admin & staff on client side)
+      // 1. Fetch UGET Staff profile
+      const { data: staffProf } = await supabase.from("profiles")
+        .select("*")
+        .eq("id", "c0de57af-f011-0e5a-ff55-c0de57aff555")
+        .single();
+      if (staffProf) {
+        setStaffProfile(staffProf as Profile);
+      }
+
+      // 2. Fetch all profiles (we will filter for admin & staff on client side)
       const { data: profiles } = await supabase.from("profiles").select("*");
       const filteredStaff = (profiles || []).filter(
         (p: any) => p.role === "staff" || p.role === "admin"
       );
       setStaffMembers(filteredStaff as Profile[]);
 
-      // 2. Fetch all posts (we will filter for posts written by admin or staff)
+      // 3. Fetch all posts (including posts authored by UGET Staff)
       const { data: posts } = await supabase.from("posts")
         .select("*, profiles(full_name, avatar_url, username, role)")
         .eq("published", true)
         .order("created_at", { ascending: false });
 
       const filteredPosts = (posts || []).filter(
-        (p: any) => p.profiles?.role === "staff" || p.profiles?.role === "admin"
+        (p: any) => p.profiles?.role === "staff" || p.profiles?.role === "admin" || p.author_id === "c0de57af-f011-0e5a-ff55-c0de57aff555"
       );
       setStaffPosts(filteredPosts as Post[]);
     } catch (err) {
       console.error("Error loading staff data:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      window.location.href = "/auth";
+      return;
+    }
+    if (!staffProfile) return;
+
+    if (isFollowing) {
+      await supabase.from("follows")
+        .delete()
+        .eq("follower_id", currentUser.id)
+        .eq("following_id", "c0de57af-f011-0e5a-ff55-c0de57aff555");
+      
+      setIsFollowing(false);
+      
+      // Update local state and follower_count in profiles table
+      const newCount = Math.max((staffProfile.follower_count || 0) - 1, 0);
+      setStaffProfile({ ...staffProfile, follower_count: newCount });
+      await supabase.from("profiles").update({ follower_count: newCount }).eq("id", "c0de57af-f011-0e5a-ff55-c0de57aff555");
+    } else {
+      await supabase.from("follows")
+        .insert({
+          follower_id: currentUser.id,
+          following_id: "c0de57af-f011-0e5a-ff55-c0de57aff555"
+        });
+      
+      setIsFollowing(true);
+      
+      // Update local state and follower_count in profiles table
+      const newCount = (staffProfile.follower_count || 0) + 1;
+      setStaffProfile({ ...staffProfile, follower_count: newCount });
+      await supabase.from("profiles").update({ follower_count: newCount }).eq("id", "c0de57af-f011-0e5a-ff55-c0de57aff555");
     }
   };
 
@@ -133,12 +187,12 @@ export default function StaffPage() {
 
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
               <span style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", fontWeight: 500 }}>
-                {isFollowing ? "12,401 followers" : "12,400 followers"}
+                {staffProfile ? `${staffProfile.follower_count || 0} followers` : "Loading followers…"}
               </span>
               
               {/* Follow Button */}
               <button
-                onClick={() => setIsFollowing(!isFollowing)}
+                onClick={handleFollow}
                 style={{
                   fontFamily: "var(--sans)",
                   fontSize: 13,

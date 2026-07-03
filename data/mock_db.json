@@ -9,6 +9,11 @@
       "id": "hywhk2c6ndo-3n6my1zkxi2",
       "email": "tester_mode_dark_v1@test.com",
       "password_hash": "$2b$10$h0pda4dvPAC1/Tx/ta6Y4ORuwfxZiVvKO1bEEQNIlUBdfnGr06/RW"
+    },
+    {
+      "id": "c0de57af-f011-0e5a-ff55-c0de57aff555",
+      "email": "staff@uget.com",
+      "password_hash": "$2b$10$Z6DIDx7uuncnJoXyYHcnPuutvAHnNjRu3Qfa2Zsc0G2DectgEXN3m"
     }
   ],
   "profiles": [
@@ -21,7 +26,7 @@
       "bio": "UGET Admin account",
       "twitter": "",
       "website": "",
-      "follower_count": 5,
+      "follower_count": 0,
       "post_count": 3,
       "interests": [
         "tech",
@@ -36,6 +41,19 @@
       "role": "writer",
       "avatar_url": "",
       "bio": "",
+      "twitter": "",
+      "website": "",
+      "follower_count": 0,
+      "post_count": 0,
+      "interests": []
+    },
+    {
+      "id": "c0de57af-f011-0e5a-ff55-c0de57aff555",
+      "username": "ugetstaff",
+      "full_name": "UGET Staff",
+      "role": "staff",
+      "avatar_url": "",
+      "bio": "Official account for news, announcements, and hand-picked stories from the UGET Editorial Team.",
       "twitter": "",
       "website": "",
       "follower_count": 0,
