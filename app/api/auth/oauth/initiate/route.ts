@@ -6,8 +6,14 @@ export async function GET(request: Request) {
   const next = searchParams.get("next") || "/dashboard";
 
   const host = request.headers.get("host") || "localhost:3000";
-  const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+  const isLocal = host.includes("localhost") || 
+                  host.includes("127.0.0.1") || 
+                  host.startsWith("192.168.") || 
+                  host.startsWith("10.") || 
+                  host.startsWith("172.") || 
+                  host.includes(":");
+  const protocol = isLocal ? "http" : "https";
+  const siteUrl = isLocal ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`);
 
   const state = encodeURIComponent(next);
 

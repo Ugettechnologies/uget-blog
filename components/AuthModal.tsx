@@ -114,7 +114,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { 
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/dashboard`,
         queryParams: { prompt: "consent" }
       },
     }) as any;
