@@ -40,6 +40,24 @@ function OAuthMockInner() {
   const [name, setName] = useState("");
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [themeIsDark, setThemeIsDark] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      const root = document.documentElement;
+      const localTheme = localStorage.getItem("theme");
+      const systemIsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const isDarkActive = root.classList.contains("dark") || 
+                           localTheme === "dark" || 
+                           (!localTheme && systemIsDark);
+      setThemeIsDark(isDarkActive);
+    };
+    checkTheme();
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => checkTheme();
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     const list = getSavedUsers();
@@ -90,7 +108,7 @@ function OAuthMockInner() {
     logo = <FacebookIcon />;
   }
 
-  const isDark = provider === "github";
+  const isDark = provider === "github" || themeIsDark;
 
   return (
     <div 
