@@ -687,7 +687,7 @@ export default function AdminPage() {
                       </p>
                     </div>
 
-                    <div style={{ padding: 24, display: "grid", gridTemplateColumns: "220px 1fr", gap: 32 }}>
+                    <div className="admin-staff-settings-grid" style={{ padding: 24, gap: 32 }}>
                       {/* Left: Card Preview */}
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                         <div style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Profile Card Preview</div>
@@ -719,7 +719,7 @@ export default function AdminPage() {
 
                       {/* Right: Form fields */}
                       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                        <div className="admin-staff-fields-grid" style={{ gap: 16 }}>
                           <div>
                             <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Display Name</label>
                             <input 
@@ -957,6 +957,15 @@ export default function AdminPage() {
       </main>
 
       <style>{`
+        .admin-staff-settings-grid {
+          display: grid;
+          grid-template-columns: 220px 1fr;
+        }
+        .admin-staff-fields-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+
         @media (max-width: 768px) {
           .admin-sidebar-backdrop {
             display: block !important;
@@ -968,6 +977,27 @@ export default function AdminPage() {
             pointer-events: ${sidebarOpen ? "auto" : "none"} !important;
           }
           main { margin-left: 0 !important; }
+          .admin-staff-settings-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+          .admin-staff-settings-grid > div {
+            width: 100% !important;
+          }
+          .admin-content {
+            padding: 16px !important;
+          }
+          .admin-topbar {
+            padding: 12px 16px !important;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .admin-staff-fields-grid {
+            display: flex !important;
+            flex-direction: column !important;
+          }
         }
       `}</style>
     </div>
