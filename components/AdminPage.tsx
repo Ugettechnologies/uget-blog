@@ -329,7 +329,19 @@ export default function AdminPage() {
       )}
 
       {/* Sidebar */}
-      <aside className="admin-sidebar" style={{ transform: sidebarOpen ? "none" : "translateX(-240px)", transition: "transform 0.3s ease", position: "fixed", top: 0, left: 0, zIndex: 90 }}>
+      <aside 
+        className="admin-sidebar" 
+        style={{ 
+          transform: sidebarOpen ? "none" : "translateX(-240px)", 
+          transition: "transform 0.3s ease", 
+          position: "fixed", 
+          top: 0, 
+          left: 0, 
+          zIndex: 90,
+          visibility: sidebarOpen ? "visible" : "hidden",
+          pointerEvents: sidebarOpen ? "auto" : "none"
+        }}
+      >
         <div className="admin-logo">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Image src="/logo-icon.png" alt="UGET" width={24} height={24} className="object-contain" />
@@ -361,7 +373,7 @@ export default function AdminPage() {
       {/* Main */}
       <main style={{ flex: 1, marginLeft: sidebarOpen ? 240 : 0, transition: "margin-left 0.3s ease", minWidth: 0 }}>
         {/* Topbar */}
-        <div className="admin-topbar">
+        <div className="admin-topbar" style={{ zIndex: 75 }}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg-2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
@@ -951,7 +963,9 @@ export default function AdminPage() {
           }
           .admin-sidebar { 
             display: block !important;
-            transform: ${sidebarOpen ? "none" : "translateX(-240px)"} !important;
+            transform: ${sidebarOpen ? "none" : "translateX(-100%)"} !important;
+            visibility: ${sidebarOpen ? "visible" : "hidden"} !important;
+            pointer-events: ${sidebarOpen ? "auto" : "none"} !important;
           }
           main { margin-left: 0 !important; }
         }
