@@ -119,6 +119,9 @@ export default function AdminPage() {
 
   useEffect(() => {
     checkAdmin();
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -310,6 +313,21 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Sidebar Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="admin-sidebar-backdrop" 
+          onClick={() => setSidebarOpen(false)} 
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 80,
+            display: "none"
+          }} 
+        />
+      )}
+
       {/* Sidebar */}
       <aside className="admin-sidebar" style={{ transform: sidebarOpen ? "none" : "translateX(-240px)", transition: "transform 0.3s ease", position: "fixed", top: 0, left: 0, zIndex: 90 }}>
         <div className="admin-logo">
@@ -387,7 +405,8 @@ export default function AdminPage() {
                       <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>Recent posts</span>
                       <button onClick={() => setTab("posts")} style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--blue)", background: "none", border: "none", cursor: "pointer" }}>View all</button>
                     </div>
-                    <table className="admin-table">
+                    <div style={{ overflowX: "auto" }}>
+                      <table className="admin-table">
                       <thead>
                         <tr><th>Title</th><th>Author</th><th>Status</th><th>Views</th><th>Date</th></tr>
                       </thead>
@@ -412,6 +431,7 @@ export default function AdminPage() {
                         })}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
               )}
@@ -419,7 +439,8 @@ export default function AdminPage() {
               {/* ── ALL POSTS ── */}
               {tab === "posts" && (
                 <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
-                  <table className="admin-table">
+                  <div style={{ overflowX: "auto" }}>
+                    <table className="admin-table">
                     <thead>
                       <tr><th>Title</th><th>Author</th><th>Category</th><th>Status</th><th>Featured</th><th>Views</th><th>Date</th><th>Actions</th></tr>
                     </thead>
@@ -482,6 +503,7 @@ export default function AdminPage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                   {posts.length === 0 && (
                     <div style={{ padding: "60px 0", textAlign: "center" }}>
                       <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
@@ -494,7 +516,8 @@ export default function AdminPage() {
               {/* ── USERS ── */}
               {tab === "users" && (
                 <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
-                  <table className="admin-table">
+                  <div style={{ overflowX: "auto" }}>
+                    <table className="admin-table">
                     <thead>
                       <tr><th>User</th><th>Username</th><th>Role</th><th>Posts</th><th>Joined</th><th>Actions</th></tr>
                     </thead>
@@ -536,6 +559,7 @@ export default function AdminPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                   {users.length === 0 && (
                     <div style={{ padding: "60px 0", textAlign: "center" }}>
                       <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No users yet.</p>
@@ -553,7 +577,8 @@ export default function AdminPage() {
                       Total payments: {subscriptions.length}
                     </span>
                   </div>
-                  <table className="admin-table">
+                  <div style={{ overflowX: "auto" }}>
+                    <table className="admin-table">
                     <thead>
                       <tr>
                         <th>User</th>
@@ -628,6 +653,7 @@ export default function AdminPage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                   {subscriptions.length === 0 && (
                     <div style={{ padding: "60px 0", textAlign: "center" }}>
                       <div style={{ fontSize: 40, marginBottom: 12 }}>💳</div>
@@ -758,7 +784,8 @@ export default function AdminPage() {
                         Active staff: {users.filter(u => u.role === "staff").length}
                       </span>
                     </div>
-                    <table className="admin-table">
+                    <div style={{ overflowX: "auto" }}>
+                      <table className="admin-table">
                       <thead>
                         <tr>
                           <th>User</th>
@@ -811,6 +838,7 @@ export default function AdminPage() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                     {users.filter(u => u.role === "staff").length === 0 && (
                       <div style={{ padding: "40px 0", textAlign: "center", color: "var(--muted)", fontFamily: "var(--sans)", fontSize: 14 }}>
                         No staff members assigned yet.
@@ -844,68 +872,70 @@ export default function AdminPage() {
                       />
                     </div>
 
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>User</th>
-                          <th>Username</th>
-                          <th>Email</th>
-                          <th>Current Role</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users
-                          .filter(u => u.role !== "staff" && u.role !== "admin")
-                          .filter(u => {
-                            if (!staffSearchQuery) return true;
-                            const q = staffSearchQuery.toLowerCase();
-                            return (
-                              (u.full_name || "").toLowerCase().includes(q) ||
-                              (u.username || "").toLowerCase().includes(q) ||
-                              ((u as any).email || "").toLowerCase().includes(q)
-                            );
-                          })
-                          .slice(0, 10)
-                          .map((u) => (
-                            <tr key={u.id}>
-                              <td>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
-                                    {u.avatar_url ? <Image src={u.avatar_url} alt="" width={32} height={32} style={{ objectFit: "cover" }} /> : getInitials(u.full_name || "")}
+                    <div style={{ overflowX: "auto" }}>
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>User</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Current Role</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users
+                            .filter(u => u.role !== "staff" && u.role !== "admin")
+                            .filter(u => {
+                              if (!staffSearchQuery) return true;
+                              const q = staffSearchQuery.toLowerCase();
+                              return (
+                                (u.full_name || "").toLowerCase().includes(q) ||
+                                (u.username || "").toLowerCase().includes(q) ||
+                                ((u as any).email || "").toLowerCase().includes(q)
+                              );
+                            })
+                            .slice(0, 10)
+                            .map((u) => (
+                              <tr key={u.id}>
+                                <td>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                      {u.avatar_url ? <Image src={u.avatar_url} alt="" width={32} height={32} style={{ objectFit: "cover" }} /> : getInitials(u.full_name || "")}
+                                    </div>
+                                    <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{u.full_name || "—"}</span>
                                   </div>
-                                  <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{u.full_name || "—"}</span>
-                                </div>
-                              </td>
-                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>@{u.username || "—"}</span></td>
-                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{(u as any).email || "—"}</span></td>
-                              <td>
-                                <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", textTransform: "capitalize" }}>
-                                  {u.role}
-                                </span>
-                              </td>
-                              <td>
-                                <button
-                                  onClick={() => handleChangeRole(u.id, "staff")}
-                                  style={{
-                                    fontFamily: "var(--sans)",
-                                    fontSize: 12,
-                                    color: "white",
-                                    backgroundColor: "var(--brand)",
-                                    padding: "6px 12px",
-                                    borderRadius: 6,
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  Make Staff
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
+                                </td>
+                                <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>@{u.username || "—"}</span></td>
+                                <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{(u as any).email || "—"}</span></td>
+                                <td>
+                                  <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", textTransform: "capitalize" }}>
+                                    {u.role}
+                                  </span>
+                                </td>
+                                <td>
+                                  <button
+                                    onClick={() => handleChangeRole(u.id, "staff")}
+                                    style={{
+                                      fontFamily: "var(--sans)",
+                                      fontSize: 12,
+                                      color: "white",
+                                      backgroundColor: "var(--brand)",
+                                      padding: "6px 12px",
+                                      borderRadius: 6,
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontWeight: 600
+                                    }}
+                                  >
+                                    Make Staff
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               )}
@@ -916,7 +946,13 @@ export default function AdminPage() {
 
       <style>{`
         @media (max-width: 768px) {
-          .admin-sidebar { transform: translateX(-240px) !important; }
+          .admin-sidebar-backdrop {
+            display: block !important;
+          }
+          .admin-sidebar { 
+            display: block !important;
+            transform: ${sidebarOpen ? "none" : "translateX(-240px)"} !important;
+          }
           main { margin-left: 0 !important; }
         }
       `}</style>
