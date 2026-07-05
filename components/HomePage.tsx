@@ -449,6 +449,15 @@ export default function HomePage() {
   const rest = posts.filter((p) => p.id !== featured?.id);
   const topSidebar = posts.slice(0, 5);
 
+  if (isCheckingAuth) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)" }}>
+        <div style={{ width: 32, height: 32, borderTopColor: "var(--brand)", borderColor: "var(--border)", borderRadius: "50%", borderWidth: 2, borderStyle: "solid", animation: "spin 1s linear infinite" }} />
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }` }} />
+      </div>
+    );
+  }
+
   const isLoggedOut = !user;
 
   if (isLoggedOut) {
@@ -625,15 +634,6 @@ export default function HomePage() {
   };
 
   const feedPosts = activeFeedTab === "foryou" ? posts : (activeFeedTab === "featured" ? posts.filter((p) => p.featured) : posts);
-
-  if (isCheckingAuth) {
-    return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)" }}>
-        <div style={{ width: 32, height: 32, borderTopColor: "var(--brand)", borderColor: "var(--border)", borderRadius: "50%", borderWidth: 2, borderStyle: "solid", animation: "spin 1s linear infinite" }} />
-        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }` }} />
-      </div>
-    );
-  }
 
   // ── Logged-in feed layout ──
   return (

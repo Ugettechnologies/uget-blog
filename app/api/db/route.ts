@@ -177,9 +177,9 @@ export async function POST(request: Request) {
           FROM bookmarks
           JOIN posts ON bookmarks.post_id = posts.id
           LEFT JOIN profiles ON posts.author_id = profiles.id
-          \${whereString}
-          \${orderString}
-          \${limitString}
+          ${whereString}
+          ${orderString}
+          ${limitString}
         `;
       } else if (table === "follows" && selectFields.includes("profiles")) {
         queryText = `
@@ -201,9 +201,9 @@ export async function POST(request: Request) {
           FROM follows
           LEFT JOIN profiles follower ON follows.follower_id = follower.id
           LEFT JOIN profiles following ON follows.following_id = following.id
-          \${whereString}
-          \${orderString}
-          \${limitString}
+          ${whereString}
+          ${orderString}
+          ${limitString}
         `;
       } else if (table === "notifications" && selectFields.includes("profiles")) {
         queryText = `
@@ -216,9 +216,9 @@ export async function POST(request: Request) {
             ) as actor_profile
           FROM notifications
           LEFT JOIN profiles actor ON notifications.actor_id = actor.id
-          \${whereString}
-          \${orderString}
-          \${limitString}
+          ${whereString}
+          ${orderString}
+          ${limitString}
         `;
       } else if (table === "profiles") {
         queryText = `
