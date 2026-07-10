@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -27,6 +27,28 @@ export default function PostPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
+
+  // Click outside listener for share dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (shareRef.current && !shareRef.current.contains(e.target as Node)) {
+        setShareOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCopyLink = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -207,6 +229,50 @@ export default function PostPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
               </svg>
             </button>
+            <div ref={shareRef} style={{ position: "relative" }}>
+              <button onClick={() => setShareOpen(!shareOpen)} className="article-action-btn" title="Share story">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 8a3 3 0 100-6 3 3 0 000 6zm-12 7a3 3 0 100-6 3 3 0 000 6zm12 7a3 3 0 100-6 3 3 0 000 6zm-12-7l8-4.5m-8 4.5l8 4.5" />
+                </svg>
+              </button>
+              {shareOpen && (
+                <div className="share-dropdown">
+                  <a 
+                    href={`https://x.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="share-item"
+                    onClick={() => setShareOpen(false)}
+                  >
+                    Share on X
+                  </a>
+                  <a 
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="share-item"
+                    onClick={() => setShareOpen(false)}
+                  >
+                    Share on Facebook
+                  </a>
+                  <a 
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="share-item"
+                    onClick={() => setShareOpen(false)}
+                  >
+                    Share on LinkedIn
+                  </a>
+                  <button 
+                    onClick={handleCopyLink}
+                    className="share-item"
+                  >
+                    {copied ? "Link Copied!" : "Copy Link"}
+                  </button>
+                </div>
+              )}
+            </div>
             {isAuthor && (
               <>
                 <Link href={`/write/${post.id}`} className="article-action-btn" style={{ textDecoration: "none" }}>
