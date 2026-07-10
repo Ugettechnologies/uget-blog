@@ -825,7 +825,7 @@ export default function LibraryPage() {
                                     {cat && <span style={{ background: "var(--bg-3)", padding: "2px 8px", borderRadius: 4 }}>{cat.icon} {cat.label}</span>}
                                     <span>{formatDate(post.created_at)}</span>
                                     <span>·</span>
-                                    <span>{post.read_time} min read</span>
+                                    <span>{post.read_time || 1} min read</span>
                                   </div>
                                 </div>
                                 {post.cover_image && (

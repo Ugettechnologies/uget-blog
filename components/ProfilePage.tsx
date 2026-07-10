@@ -817,14 +817,14 @@ export default function ProfilePage() {
                               {post.excerpt && <p className="post-card-excerpt" style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>{post.excerpt}</p>}
                             </Link>
                             <div className="post-card-meta" style={{ marginTop: 8 }}>
-                              <span>{post.read_time} min read</span>
+                              <span>{post.read_time || 1} min read</span>
                               <span>· {post.view_count} views</span>
                               <span>· {post.like_count} likes</span>
                             </div>
                           </div>
                           {post.cover_image && (
                             <Link href={`/post/${post.slug}`} className="post-card-image">
-                              <Image src={post.cover_image} alt={post.title} width={200} height={134} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                              <Image src={post.cover_image} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                             </Link>
                           )}
                         </article>

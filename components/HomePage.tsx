@@ -42,7 +42,7 @@ function PostCard({ post }: { post: Post }) {
           {cat && <span className="post-card-tag">{cat.icon} {cat.label}</span>}
           <span>{formatDate(post.created_at)}</span>
           <span>·</span>
-          <span>{post.read_time} min read</span>
+          <span>{post.read_time || 1} min read</span>
           <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -53,7 +53,7 @@ function PostCard({ post }: { post: Post }) {
       </div>
       <Link href={`/post/${post.slug}`} className="post-card-image">
         {post.cover_image ? (
-          <Image src={post.cover_image} alt={post.title} width={200} height={134} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+          <Image src={post.cover_image} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
         ) : (
           <div className="post-card-placeholder">{cat?.icon || "📝"}</div>
         )}
@@ -705,8 +705,8 @@ export default function HomePage() {
         }
         .uget-content-grid {
           display: grid;
-          grid-template-columns: 1fr 340px;
-          gap: 48px;
+          grid-template-columns: 1fr 300px;
+          gap: 32px;
           padding: 24px 32px 80px;
           max-width: 1200px;
           width: 100%;
