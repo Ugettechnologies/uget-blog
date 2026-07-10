@@ -58,8 +58,15 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) { router.push("/auth"); return; }
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error) {
+        console.error("Dashboard auth getUser error:", error);
+      }
+      if (!user) { 
+        console.warn("No active user session found, redirecting to /auth");
+        router.push("/auth"); 
+        return; 
+      }
       setCurrentUser(user);
       
       supabase.from("profiles").select("*").eq("id", user.id).single()

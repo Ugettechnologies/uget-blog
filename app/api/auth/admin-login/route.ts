@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSql } from "@/lib/db";
-import { signJWT, verifyJWT, hashPassword, ALLOWED_ADMIN_EMAILS } from "@/lib/auth-server";
+import { signJWT, verifyJWT, hashPassword, ALLOWED_ADMIN_EMAILS, getCookieOptions } from "@/lib/auth-server";
 
 // POST /api/auth/admin-login - Requests a code or verifies it
 export async function POST(request: Request) {
@@ -111,13 +111,7 @@ export async function POST(request: Request) {
       // Generate session token
       const sessionToken = await signJWT({ id: userId, email: normalizedEmail, provider: "email" });
 
-      response.cookies.set("uget_session", sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7, // 1 week
-        path: "/"
-      });
+      response.cookies.set("uget_session", sessionToken, getCookieOptions(request.headers.get("host")));
 
       return response;
     }

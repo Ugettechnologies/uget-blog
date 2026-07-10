@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSql } from "@/lib/db";
-import { hashPassword, signJWT } from "@/lib/auth-server";
+import { hashPassword, signJWT, getCookieOptions } from "@/lib/auth-server";
 
 export const dynamic = "force-dynamic";
 
@@ -157,13 +157,7 @@ export async function GET(request: Request) {
       headers: { "Content-Type": "text/html" }
     });
 
-    response.cookies.set("uget_session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/",
-    });
+    response.cookies.set("uget_session", token, getCookieOptions(request.headers.get("host")));
 
     return response;
   } catch (err: any) {

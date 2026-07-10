@@ -92,3 +92,35 @@ export async function getUserFromSession(cookies: any): Promise<any | null> {
     return null;
   }
 }
+
+export function getCookieDomain(host: string | null): string | undefined {
+  if (!host) return undefined;
+  const cleanHost = host.split(":")[0].toLowerCase();
+  
+  if (cleanHost.includes("localhost") || cleanHost.includes("127.0.0.1")) {
+    return undefined;
+  }
+  
+  if (cleanHost.endsWith(".vercel.app")) {
+    return undefined;
+  }
+  
+  const domainParts = cleanHost.split(".");
+  if (domainParts.length >= 2) {
+    return `.${domainParts.slice(-2).join(".")}`;
+  }
+  
+  return undefined;
+}
+
+export function getCookieOptions(host: string | null) {
+  const domain = getCookieDomain(host);
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: "/",
+    ...(domain ? { domain } : {})
+  };
+}

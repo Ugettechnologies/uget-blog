@@ -111,8 +111,13 @@ export function createClient() {
           if (data && data.user) {
             return { data: { user: data.user }, error: null };
           }
+          if (data && data.error) {
+            console.error("Auth user error:", data.error);
+            return { data: { user: null }, error: new Error(data.error) };
+          }
           return { data: { user: null }, error: null };
         } catch (err: any) {
+          console.error("Auth user fetch error:", err);
           return { data: { user: null }, error: err };
         }
       },

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSql } from "@/lib/db";
-import { hashPassword, signJWT, ALLOWED_ADMIN_EMAILS } from "@/lib/auth-server";
+import { hashPassword, signJWT, ALLOWED_ADMIN_EMAILS, getCookieOptions } from "@/lib/auth-server";
 
 export async function POST(request: Request) {
   try {
@@ -53,13 +53,7 @@ export async function POST(request: Request) {
     const token = await signJWT({ id: userId, email: email, provider: "email" });
 
     const response = NextResponse.json({ user: userPayload, session: { access_token: token } });
-    response.cookies.set("uget_session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/"
-    });
+    response.cookies.set("uget_session", token, getCookieOptions(request.headers.get("host")));
 
     return response;
   } catch (err: any) {
