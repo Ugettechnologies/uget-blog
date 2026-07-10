@@ -40,16 +40,16 @@ function getMockDb() {
     const adminId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
     const initialData = {
       users: [
-        { id: adminId, email: "admin@uget.com", password_hash: adminHash }
+        { id: adminId, email: "admin@echogist.com", password_hash: adminHash }
       ],
       profiles: [
         { 
           id: adminId, 
           username: "admin", 
-          full_name: "UGET Admin", 
+          full_name: "EchoGist Admin", 
           role: "admin", 
           avatar_url: "", 
-          bio: "UGET Admin account",
+          bio: "EchoGist Admin account",
           twitter: "",
           website: "",
           follower_count: 5,

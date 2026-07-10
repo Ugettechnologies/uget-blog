@@ -432,8 +432,8 @@ export default function DashboardPage() {
       <aside className="uget-sidebar">
         <div style={{ marginBottom: 32 }}>
           <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <Image src="/favicon.png" alt="UGET Logo" width={32} height={32} />
-            <span className="font-bold text-2xl text-violet-600 font-display">UGET</span>
+            <Image src="/favicon.png" alt="EchoGist Logo" width={32} height={32} />
+            <span className="font-bold text-2xl text-violet-600 font-display">EchoGist</span>
           </Link>
         </div>
 
@@ -497,8 +497,8 @@ export default function DashboardPage() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }} onClick={() => setSidebarOpen(false)}>
-            <Image src="/favicon.png" alt="UGET Logo" width={32} height={32} style={{ borderRadius: 6 }} />
-            <span style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 800, color: "var(--brand)", letterSpacing: "-0.02em" }}>UGET</span>
+            <Image src="/favicon.png" alt="EchoGist Logo" width={32} height={32} style={{ borderRadius: 6 }} />
+            <span style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 800, color: "var(--brand)", letterSpacing: "-0.02em" }}>EchoGist</span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} style={{ padding: 8, background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-3)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
             <CloseIcon />
@@ -512,7 +512,7 @@ export default function DashboardPage() {
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search UGET..."
+            placeholder="Search EchoGist..."
             style={{ background: "transparent", border: "none", outline: "none", fontSize: 15, width: "100%", color: "var(--ink)", fontFamily: "var(--sans)" }}
           />
         </form>
@@ -561,8 +561,8 @@ export default function DashboardPage() {
 
             {/* Logo for mobile */}
             <Link href="/" className="lg:hidden flex items-center gap-1.5" style={{ textDecoration: "none" }}>
-              <Image src="/favicon.png" alt="UGET" width={24} height={24} />
-              <span className="font-bold text-lg text-violet-600 font-display">UGET</span>
+              <Image src="/favicon.png" alt="EchoGist" width={24} height={24} />
+              <span className="font-bold text-lg text-violet-600 font-display">EchoGist</span>
             </Link>
           </div>
 

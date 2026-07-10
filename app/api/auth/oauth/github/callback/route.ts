@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getSql } from "@/lib/db";
 import { hashPassword, signJWT } from "@/lib/auth-server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,7 +30,7 @@ export async function GET(request: Request) {
                     host.startsWith("172.") || 
                     host.includes(":");
     const protocol = isLocal ? "http" : "https";
-    const siteUrl = isLocal ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`);
+    const siteUrl = `${protocol}://${host}`;
     const redirectUri = `${siteUrl}/api/auth/oauth/github/callback`;
 
     // Exchange authorization code for access token
@@ -58,7 +60,7 @@ export async function GET(request: Request) {
     const profileResponse = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `token ${accessToken}`,
-        "User-Agent": "uget-blog",
+        "User-Agent": "echo-gist",
       },
     });
 
@@ -72,7 +74,7 @@ export async function GET(request: Request) {
     const emailsResponse = await fetch("https://api.github.com/user/emails", {
       headers: {
         Authorization: `token ${accessToken}`,
-        "User-Agent": "uget-blog",
+        "User-Agent": "echo-gist",
       },
     });
 

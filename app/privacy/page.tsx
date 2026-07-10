@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 
         <div style={{ fontFamily: "var(--serif)", fontSize: 16, lineHeight: 1.8, color: "var(--ink-2)", display: "flex", flexDirection: "column", gap: 24 }}>
           <p>
-            At UGET, we care deeply about your privacy. This Privacy Policy describes how we collect, use, and share information when you use our Services. Our policy is designed to protect your identity, data, and creative works, ensuring UGET is a safe and trustworthy space.
+            At EchoGist, we care deeply about your privacy. This Privacy Policy describes how we collect, use, and share information when you use our Services. Our policy is designed to protect your identity, data, and creative works, ensuring EchoGist is a safe and trustworthy space.
           </p>
 
           <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginTop: 16 }}>
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
           </p>
           <ul style={{ paddingLeft: 20, display: "flex", flexDirection: "column", gap: 8 }}>
             <li><strong>Account details:</strong> Email address, username, full name, and avatar when you sign up.</li>
-            <li><strong>Content:</strong> The posts, comments, drafts, and media you upload to UGET.</li>
+            <li><strong>Content:</strong> The posts, comments, drafts, and media you upload to EchoGist.</li>
             <li><strong>Technical data:</strong> Basic usage statistics to help us monitor performance and optimize the user interface.</li>
           </ul>
 

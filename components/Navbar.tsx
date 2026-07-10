@@ -174,8 +174,8 @@ function NavbarInner() {
       <nav className="nav" style={{ background: navBg, borderBottom: navBorder, zIndex: authModalOpen ? 9999 : undefined }}>
       <div className="nav-inner">
         <Link href="/" className="nav-logo">
-          <Image src="/favicon.png" alt="UGET" width={28} height={28} className="object-contain" />
-          <span className="nav-logo-text" style={{ color: logoColor }}>UGET</span>
+          <Image src="/favicon.png" alt="EchoGist" width={28} height={28} className="object-contain" />
+          <span className="nav-logo-text" style={{ color: logoColor }}>EchoGist</span>
         </Link>
         <div className="nav-divider" style={{ display: "var(--sm-hide, flex)" }} />
         <form onSubmit={handleSearch} className="nav-search" style={{ maxWidth: 280 }}>
@@ -387,7 +387,7 @@ export default function Navbar() {
       fallback={
         <nav className="nav">
           <div className="nav-inner" style={{ height: "100%", display: "flex", alignItems: "center" }}>
-            <div style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, color: "var(--brand)" }}>UGET</div>
+            <div style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, color: "var(--brand)" }}>EchoGist</div>
           </div>
         </nav>
       }

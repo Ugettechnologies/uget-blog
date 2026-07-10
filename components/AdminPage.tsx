@@ -39,9 +39,9 @@ export default function AdminPage() {
   const [debugUser, setDebugUser] = useState<any>(null);
   const [debugRole, setDebugRole] = useState<string | null>(null);
 
-  // Official UGET Staff Profile state
-  const [staffName, setStaffName] = useState("UGET Staff");
-  const [staffUsername, setStaffUsername] = useState("ugetstaff");
+  // Official EchoGist Staff Profile state
+  const [staffName, setStaffName] = useState("EchoGist Staff");
+  const [staffUsername, setStaffUsername] = useState("echogiststaff");
   const [staffBio, setStaffBio] = useState("");
   const [staffAvatarUrl, setStaffAvatarUrl] = useState("");
   const [uploadingStaffAvatar, setUploadingStaffAvatar] = useState(false);
@@ -50,8 +50,8 @@ export default function AdminPage() {
   useEffect(() => {
     const staff = users.find(u => u.id === "c0de57af-f011-0e5a-ff55-c0de57aff555");
     if (staff) {
-      setStaffName(staff.full_name || "UGET Staff");
-      setStaffUsername(staff.username || "ugetstaff");
+      setStaffName(staff.full_name || "EchoGist Staff");
+      setStaffUsername(staff.username || "echogiststaff");
       setStaffBio(staff.bio || "");
       setStaffAvatarUrl(staff.avatar_url || "");
     }
@@ -224,7 +224,7 @@ export default function AdminPage() {
           <h1 style={{ fontFamily: "var(--serif)", fontSize: 110, fontWeight: 400, margin: "16px 0", color: "var(--black)", lineHeight: 1 }}>404</h1>
           <h2 style={{ fontFamily: "var(--serif)", fontSize: 28, fontWeight: 700, marginBottom: 16, color: "var(--black)" }}>Out of nothing, something.</h2>
           <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", lineHeight: 1.6, marginBottom: 32, marginLeft: "auto", marginRight: "auto", maxWidth: 540 }}>
-            You can find (just about) anything on UGET — apparently even a page that doesn't exist. Maybe these stories will take you somewhere new?
+            You can find (just about) anything on EchoGist — apparently even a page that doesn't exist. Maybe these stories will take you somewhere new?
           </p>
           <Link href="/" className="btn btn-outline" style={{ textDecoration: "none", borderRadius: 999, padding: "10px 24px", display: "inline-flex", borderColor: "var(--border)", color: "var(--black)" }}>
             Home
@@ -344,8 +344,8 @@ export default function AdminPage() {
       >
         <div className="admin-logo">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Image src="/logo-icon.png" alt="UGET" width={24} height={24} className="object-contain" />
-            <span style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)" }}>UGET Admin</span>
+            <Image src="/logo-icon.png" alt="EchoGist" width={24} height={24} className="object-contain" />
+            <span style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)" }}>EchoGist Admin</span>
           </div>
         </div>
         <nav style={{ padding: "8px 0" }}>
@@ -678,12 +678,12 @@ export default function AdminPage() {
               {/* ── STAFF ── */}
               {tab === "staff" && (
                 <div>
-                  {/* Official UGET Staff Profile Settings */}
+                  {/* Official EchoGist Staff Profile Settings */}
                   <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: 32 }}>
                     <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Official UGET Staff Profile Settings</span>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Official EchoGist Staff Profile Settings</span>
                       <p style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                        Customize the public profile for the official UGET Staff account.
+                        Customize the public profile for the official EchoGist Staff account.
                       </p>
                     </div>
 
@@ -791,7 +791,7 @@ export default function AdminPage() {
                   {/* Current staff table */}
                   <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", marginBottom: 32 }}>
                     <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>UGET Staff Members</span>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>EchoGist Staff Members</span>
                       <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>
                         Active staff: {users.filter(u => u.role === "staff").length}
                       </span>
@@ -863,7 +863,7 @@ export default function AdminPage() {
                     <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
                       <span style={{ fontFamily: "var(--sans)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>Assign New Staff Members</span>
                       <p style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                        Select a writer or reader to give them staff writer status. Only staff members and admins can write on UGET.
+                        Select a writer or reader to give them staff writer status. Only staff members and admins can write on EchoGist.
                       </p>
                     </div>
                     

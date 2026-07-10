@@ -35,7 +35,7 @@ export default function TextToSpeechPage() {
           Text to Speech
         </h1>
         <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", marginBottom: 40, lineHeight: 1.6 }}>
-          Experience hands-free reading on UGET. Listen to your stories or copy any text below to hear it spoken aloud using our high-fidelity narration engine.
+          Experience hands-free reading on EchoGist. Listen to your stories or copy any text below to hear it spoken aloud using our high-fidelity narration engine.
         </p>
 
         <form onSubmit={handleSpeak} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -70,7 +70,7 @@ export default function TextToSpeechPage() {
             Audio Stories
           </h3>
           <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6 }}>
-            Every member-only article on UGET comes with a built-in play button at the top of the page. Subscribed members can listen to high-quality audio narrations of their favorite articles on the go, perfect for commutes or multitasking.
+            Every member-only article on EchoGist comes with a built-in play button at the top of the page. Subscribed members can listen to high-quality audio narrations of their favorite articles on the go, perfect for commutes or multitasking.
           </p>
         </div>
       </main>

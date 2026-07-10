@@ -17,7 +17,7 @@ export default function RulesPage() {
 
         <div style={{ fontFamily: "var(--serif)", fontSize: 16, lineHeight: 1.8, color: "var(--ink-2)", display: "flex", flexDirection: "column", gap: 24 }}>
           <p>
-            To keep UGET a welcoming, creative, and safe environment for sharing ideas, we require all users to follow these Platform Rules. By using UGET, you agree to these community guidelines.
+            To keep EchoGist a welcoming, creative, and safe environment for sharing ideas, we require all users to follow these Platform Rules. By using EchoGist, you agree to these community guidelines.
           </p>
 
           <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginTop: 16 }}>
@@ -38,7 +38,7 @@ export default function RulesPage() {
             3. Spams &amp; Deceptive Content
           </h2>
           <p>
-            UGET is a place for quality ideas, not advertisement boards. Affiliate link stuffing, excessive self-promotion, clickbait scams, and misleading content are prohibited.
+            EchoGist is a place for quality ideas, not advertisement boards. Affiliate link stuffing, excessive self-promotion, clickbait scams, and misleading content are prohibited.
           </p>
 
           <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginTop: 16 }}>

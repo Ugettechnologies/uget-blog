@@ -27,7 +27,7 @@ export default function StaffPage() {
         supabase.from("profiles").select("*").eq("id", user.id).single()
           .then(({ data }) => {
             setCurrentUserProfile(data as Profile);
-            // Check follow state for UGET Staff
+            // Check follow state for EchoGist Staff
             supabase.from("follows")
               .select("id")
               .eq("follower_id", user.id)
@@ -47,7 +47,7 @@ export default function StaffPage() {
   const loadStaffData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch UGET Staff profile
+      // 1. Fetch EchoGist Staff profile
       const { data: staffProf } = await supabase.from("profiles")
         .select("*")
         .eq("id", "c0de57af-f011-0e5a-ff55-c0de57aff555")
@@ -63,7 +63,7 @@ export default function StaffPage() {
       );
       setStaffMembers(filteredStaff as Profile[]);
 
-      // 3. Fetch all posts (including posts authored by UGET Staff)
+      // 3. Fetch all posts (including posts authored by EchoGist Staff)
       const { data: posts } = await supabase.from("posts")
         .select("*, profiles(full_name, avatar_url, username, role)")
         .eq("published", true)
@@ -162,7 +162,7 @@ export default function StaffPage() {
                 margin: 0,
                 letterSpacing: "-0.025em"
               }}>
-                UGET Staff
+                EchoGist Staff
               </h1>
               {/* Verified Badge */}
               <span 
@@ -231,7 +231,7 @@ export default function StaffPage() {
             </div>
 
             <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", margin: 0, lineHeight: 1.5 }}>
-              Official account for news, announcements, and hand-picked stories from the UGET Editorial Team.
+              Official account for news, announcements, and hand-picked stories from the EchoGist Editorial Team.
             </p>
           </div>
         </div>
@@ -325,7 +325,7 @@ export default function StaffPage() {
                               <div style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
                                 {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={22} height={22} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name)}
                               </div>
-                              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{author?.full_name || "UGET Staff"}</span>
+                              <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>{author?.full_name || "EchoGist Staff"}</span>
                               <span style={{ 
                                 fontFamily: "var(--sans)", 
                                 fontSize: 9, 
@@ -436,7 +436,7 @@ export default function StaffPage() {
                             WebkitBoxOrient: "vertical",
                             overflow: "hidden"
                           }}>
-                            {member.bio || "Official UGET staff team member."}
+                            {member.bio || "Official EchoGist staff team member."}
                           </p>
                         </div>
                         
@@ -478,9 +478,9 @@ export default function StaffPage() {
                   padding: 32, 
                   boxShadow: "var(--shadow-sm)" 
                 }}>
-                  <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>UGET Writer Guidelines</h3>
+                  <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>EchoGist Writer Guidelines</h3>
                   <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
-                    Welcome to the UGET Editorial Board. Review these basic rules and guidelines to ensure your articles qualify for official curation and promotion in our Staff Picks feed.
+                    Welcome to the EchoGist Editorial Board. Review these basic rules and guidelines to ensure your articles qualify for official curation and promotion in our Staff Picks feed.
                   </p>
                   
                   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

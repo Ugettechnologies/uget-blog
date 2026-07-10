@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const provider = (searchParams.get("provider") || "google").toLowerCase();
@@ -13,7 +15,7 @@ export async function GET(request: Request) {
                   host.startsWith("172.") || 
                   host.includes(":");
   const protocol = isLocal ? "http" : "https";
-  const siteUrl = isLocal ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`);
+  const siteUrl = `${protocol}://${host}`;
 
   const state = encodeURIComponent(next);
 

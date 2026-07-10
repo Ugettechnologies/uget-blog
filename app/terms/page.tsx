@@ -17,14 +17,14 @@ export default function TermsPage() {
 
         <div style={{ fontFamily: "var(--serif)", fontSize: 16, lineHeight: 1.8, color: "var(--ink-2)", display: "flex", flexDirection: "column", gap: 24 }}>
           <p>
-            Welcome to UGET! These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of UGET&rsquo;s website, APIs, and services (collectively, the &ldquo;Services&rdquo;). Please read them carefully. By using our Services, you agree to be bound by these Terms.
+            Welcome to EchoGist! These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of EchoGist&rsquo;s website, APIs, and services (collectively, the &ldquo;Services&rdquo;). Please read them carefully. By using our Services, you agree to be bound by these Terms.
           </p>
 
           <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginTop: 16 }}>
             1. Your Content &amp; Ownership
           </h2>
           <p>
-            <strong>You own all content you post on UGET.</strong> We do not claim ownership of your writing, photos, or other content. By posting content to UGET, you grant us a non-exclusive, royalty-free, worldwide, fully sublicensable license to use, display, host, run, copy, distribute, modify, and translate that content solely for the purpose of operating, promoting, and improving the UGET platform.
+            <strong>You own all content you post on EchoGist.</strong> We do not claim ownership of your writing, photos, or other content. By posting content to EchoGist, you grant us a non-exclusive, royalty-free, worldwide, fully sublicensable license to use, display, host, run, copy, distribute, modify, and translate that content solely for the purpose of operating, promoting, and improving the EchoGist platform.
           </p>
 
           <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginTop: 16 }}>
@@ -45,7 +45,7 @@ export default function TermsPage() {
             4. Limitation of Liability
           </h2>
           <p>
-            UGET is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without warranties of any kind. UGET Technologies shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the platform.
+            EchoGist is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without warranties of any kind. EchoGist Technologies shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the platform.
           </p>
 
           <h2 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginTop: 16 }}>

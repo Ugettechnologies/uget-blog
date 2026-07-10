@@ -42,7 +42,7 @@ export default function StatusPage() {
           {/* Breakdown list */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
             {[
-              { service: "UGET Web Platform", status: "Operational", color: "#22c55e" },
+              { service: "EchoGist Web Platform", status: "Operational", color: "#22c55e" },
               { service: "Database Services (Supabase)", status: "Operational", color: "#22c55e" },
               { service: "Image Storage & Media Hosting", status: "Operational", color: "#22c55e" },
               { service: "Authentication & OAuth Services", status: "Operational", color: "#22c55e" },

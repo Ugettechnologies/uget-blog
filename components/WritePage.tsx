@@ -398,7 +398,7 @@ export default function WritePage() {
                         <div style={{ position: "absolute", bottom: -20, left: -20, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.15)", filter: "blur(10px)" }} />
                         <div style={{ zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                           <span style={{ fontSize: 32, filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.15))" }}>📝</span>
-                          <span style={{ fontSize: 9, fontFamily: "var(--sans)", color: "rgba(255,255,255,0.85)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>UGET Story Preview</span>
+                          <span style={{ fontSize: 9, fontFamily: "var(--sans)", color: "rgba(255,255,255,0.85)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>EchoGist Story Preview</span>
                         </div>
                       </div>
                     )}
@@ -470,10 +470,10 @@ export default function WritePage() {
                           alignItems: "center", 
                           justifyContent: "center" 
                         }}>
-                          {publishAsStaff ? "U" : (userProfile?.full_name?.[0] || "W")}
+                          {publishAsStaff ? "E" : (userProfile?.full_name?.[0] || "W")}
                         </div>
                         <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--ink-2)", fontWeight: 600 }}>
-                          {publishAsStaff ? "UGET Staff" : (userProfile?.full_name || "You")}
+                          {publishAsStaff ? "EchoGist Staff" : (userProfile?.full_name || "You")}
                         </span>
                       </div>
                       <span style={{ fontSize: 10, fontFamily: "var(--sans)", color: "var(--muted-2)" }}>
@@ -493,7 +493,7 @@ export default function WritePage() {
                     onChange={(val) => setPublishAsStaff(val === "staff")}
                     options={[
                       { value: "self", label: `Yourself (${userProfile?.full_name || "Writer"})`, icon: "👤", description: "Publish under your personal profile" },
-                      { value: "staff", label: "UGET Staff", icon: "🏢", description: "Publish as official publication staff" }
+                      { value: "staff", label: "EchoGist Staff", icon: "🏢", description: "Publish as official publication staff" }
                     ]}
                   />
                 )}

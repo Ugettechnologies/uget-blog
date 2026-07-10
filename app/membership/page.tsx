@@ -269,21 +269,21 @@ export default function MembershipPage() {
 
   const plans = [
     {
-      name: "UGET Member",
+      name: "EchoGist Member",
       price: "$5/month",
       yearlyPrice: "$50/year",
       features: [
         "Read member-only stories",
         "Support writers you read most",
         "Listen to audio narrations",
-        "Read offline with the UGET app",
+        "Read offline with the EchoGist app",
         "Access our Mastodon community",
         "Connect your custom domain",
         "Create your own publications"
       ]
     },
     {
-      name: "Friend of UGET",
+      name: "Friend of EchoGist",
       price: "$15/month",
       yearlyPrice: "$150/year",
       isPremium: true,
@@ -346,7 +346,7 @@ export default function MembershipPage() {
             </p>
             <div style={{ display: "flex", gap: 16 }}>
               <button 
-                onClick={() => setCheckoutPlan({ name: "UGET Member", price: "$5/mo" })}
+                onClick={() => setCheckoutPlan({ name: "EchoGist Member", price: "$5/mo" })}
                 className="btn btn-primary btn-lg"
                 style={{ backgroundColor: "var(--brand)", color: "white", padding: "12px 28px", fontSize: 15, borderRadius: "999px" }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--brand-hover)")}
@@ -480,7 +480,7 @@ export default function MembershipPage() {
 
                 {plan.isPremium && (
                   <div style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
-                    All UGET member benefits
+                    All EchoGist member benefits
                     <div style={{ fontSize: 10, color: "var(--brand)", marginTop: 2 }}>plus</div>
                   </div>
                 )}

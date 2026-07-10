@@ -18,10 +18,10 @@ export default function PressPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <div>
             <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>
-              About UGET
+              About EchoGist
             </h3>
             <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.7 }}>
-              UGET Technologies is a modern digital publishing platform built to support clean, focused writing and premium editorial experiences. Established to provide a sustainable, membership-driven alternative to ad-supported blogging, UGET connects over a million monthly active readers directly with the creators they support.
+              EchoGist Technologies is a modern digital publishing platform built to support clean, focused writing and premium editorial experiences. Established to provide a sustainable, membership-driven alternative to ad-supported blogging, EchoGist connects over a million monthly active readers directly with the creators they support.
             </p>
           </div>
 
@@ -49,7 +49,7 @@ export default function PressPage() {
             <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6 }}>
               For press inquiries, interview requests, and brand partnerships, reach out directly to our communications desk at:
               <br />
-              <strong style={{ color: "var(--brand)", display: "block", marginTop: 8 }}>press@ugettechnologies.com</strong>
+              <strong style={{ color: "var(--brand)", display: "block", marginTop: 8 }}>press@echogist.com</strong>
             </p>
           </div>
         </div>

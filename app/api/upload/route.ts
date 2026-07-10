@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const uploadResult = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: `uget-blog/${user.id}`,
+          folder: `echo-gist/${user.id}`,
           resource_type: "auto",
         },
         (error, result) => {

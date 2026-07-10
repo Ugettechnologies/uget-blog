@@ -143,7 +143,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       setVerificationCode(generated);
       setToastCode(generated);
       console.log(`\n==================================================`);
-      console.log(`[UGET AUTH] Verification Code for ${email} is: ${generated}`);
+      console.log(`[EchoGist AUTH] Verification Code for ${email} is: ${generated}`);
       console.log(`==================================================\n`);
       setVerificationStep("verify_code");
       setSuccess("A verification code has been sent to your email!");
@@ -227,7 +227,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       setVerificationCode(generated);
       setToastCode(generated);
       console.log(`\n==================================================`);
-      console.log(`[UGET RESET PASSWORD] Verification Code for ${email} is: ${generated}`);
+      console.log(`[EchoGist RESET PASSWORD] Verification Code for ${email} is: ${generated}`);
       console.log(`==================================================\n`);
       setVerificationStep("reset_password");
       setSuccess("A verification code has been sent to your email!");
@@ -681,7 +681,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                     letterSpacing: "-0.02em"
                   }}
                 >
-                  {mode === "login" ? "Welcome back." : "Join UGET."}
+                  {mode === "login" ? "Welcome back." : "Join EchoGist."}
                 </h2>
 
                 {/* Google Sign In Button */}
@@ -1008,7 +1008,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   /* ─── STANDARD EMAIL FORM ─── */
                   <div>
                     <h2 style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 700, color: "var(--black)", marginBottom: 6, textAlign: "center", letterSpacing: "-0.015em" }}>
-                      {mode === "login" ? "Welcome back." : "Join UGET."}
+                      {mode === "login" ? "Welcome back." : "Join EchoGist."}
                     </h2>
                     <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", marginBottom: 24, textAlign: "center" }}>
                       {mode === "login" ? "Sign in with email." : "Create an account with email."}
@@ -1171,7 +1171,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             lineHeight: 1.6 
           }}
         >
-          By clicking &ldquo;{mode === "login" ? "Sign in" : "Sign up"}&rdquo;, you accept UGET&rsquo;s{" "}
+          By clicking &ldquo;{mode === "login" ? "Sign in" : "Sign up"}&rdquo;, you accept EchoGist&rsquo;s{" "}
           <Link href="/terms" style={{ color: "var(--ink)", textDecoration: "underline" }} onClick={onClose}>Terms of Service</Link> and{" "}
           <Link href="/privacy" style={{ color: "var(--ink)", textDecoration: "underline" }} onClick={onClose}>Privacy Policy</Link>.
         </p>

@@ -201,13 +201,13 @@ async function run() {
       INSERT INTO users (id, email, password_hash)
       VALUES ($1, $2, $3)
       ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash
-    `, [adminId, "admin@uget.com", adminHash]);
+    `, [adminId, "admin@echogist.com", adminHash]);
 
     await sql(`
       INSERT INTO profiles (id, username, full_name, role)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role
-    `, [adminId, "admin", "UGET Admin", "admin"]);
+    `, [adminId, "admin", "EchoGist Admin", "admin"]);
 
     console.log("✅ Admin user seeded!");
 
@@ -237,7 +237,7 @@ async function run() {
 
     console.log("✅ Database seeded successfully!");
     console.log("\n🔑 Login Credentials:");
-    console.log("   Email: admin@uget.com");
+    console.log("   Email: admin@echogist.com");
     console.log("   Password: admin123");
     
     process.exit(0);

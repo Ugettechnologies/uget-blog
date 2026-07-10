@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════════════════════
--- UGET Blog — Neon PostgreSQL Schema
+-- EchoGist — Neon PostgreSQL Schema
 -- ══════════════════════════════════════════════════════════════════════════════
 
 -- users table (replaces auth.users)

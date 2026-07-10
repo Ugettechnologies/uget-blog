@@ -9,7 +9,7 @@ export default function StorePage() {
 
       <main style={{ flex: 1, maxWidth: 680, margin: "0 auto", padding: "60px 24px 80px", width: "100%" }}>
         <h1 style={{ fontFamily: "var(--display)", fontSize: 36, fontWeight: 700, marginBottom: 8, color: "var(--black)" }}>
-          The UGET Merchandise Store
+          The EchoGist Merchandise Store
         </h1>
         <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", marginBottom: 40 }}>
           High-quality stationery and gear for modern writers.
@@ -17,7 +17,7 @@ export default function StorePage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 32 }}>
           {[
-            { name: "The UGET Minimalist Notebook", price: "$18.00", desc: "A hardbound, lay-flat journal with cream-colored acid-free pages, optimized for fountain pen drafting.", tag: "Notebook" },
+            { name: "The EchoGist Minimalist Notebook", price: "$18.00", desc: "A hardbound, lay-flat journal with cream-colored acid-free pages, optimized for fountain pen drafting.", tag: "Notebook" },
             { name: "Matte Metal Gel Ink Pen", price: "$12.00", desc: "Precision tip and quick-dry black ink for fluid, uninterrupted handwriting sessions.", tag: "Writing" },
             { name: "Premium Cotton Tote Bag", price: "$22.00", desc: "Extra wide double-stitched canvas tote with custom embroidered brand logo for carrying books and laptops.", tag: "Apparel" }
           ].map((item) => (

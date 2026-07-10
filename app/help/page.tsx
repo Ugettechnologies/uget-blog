@@ -12,13 +12,13 @@ export default function HelpPage() {
           Help Center
         </h1>
         <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", marginBottom: 40, lineHeight: 1.6 }}>
-          Need assistance or want to learn how to make the most of UGET? Search our guides below or reach out to support.
+          Need assistance or want to learn how to make the most of EchoGist? Search our guides below or reach out to support.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {[
-            { q: "How do I start writing on UGET?", a: "Once you sign in, click the 'Write' button in the navigation bar. This will take you to our simple, clutter-free text editor where you can type your title, upload a cover image, format headings, and publish your story instantly." },
-            { q: "Is UGET free to read?", a: "Yes, you can read public stories for free. We also have a member-supported model where premium stories can be unlocked by subscribing to our Membership package." },
+            { q: "How do I start writing on EchoGist?", a: "Once you sign in, click the 'Write' button in the navigation bar. This will take you to our simple, clutter-free text editor where you can type your title, upload a cover image, format headings, and publish your story instantly." },
+            { q: "Is EchoGist free to read?", a: "Yes, you can read public stories for free. We also have a member-supported model where premium stories can be unlocked by subscribing to our Membership package." },
             { q: "How do I update my profile?", a: "Go to settings by clicking on your avatar dropdown menu and choosing 'Settings'. You can update your display name, set a username, write a short bio, and select your preferred light or dark theme." },
             { q: "Can I delete or edit a published story?", a: "Absolutely. Simply go to your profile, click on the story you wish to edit, and click 'Edit'. You can make updates and save, or choose to delete the post entirely from the editor settings." }
           ].map((faq) => (

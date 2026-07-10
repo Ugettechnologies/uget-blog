@@ -870,8 +870,8 @@ export default function SettingsPage() {
       <aside className="uget-sidebar">
         <div style={{ marginBottom: 32 }}>
           <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <Image src="/favicon.png" alt="UGET Logo" width={32} height={32} />
-            <span className="font-bold text-2xl text-violet-600 font-display">UGET</span>
+            <Image src="/favicon.png" alt="EchoGist Logo" width={32} height={32} />
+            <span className="font-bold text-2xl text-violet-600 font-display">EchoGist</span>
           </Link>
         </div>
 
@@ -928,8 +928,8 @@ export default function SettingsPage() {
                 style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}
                 onClick={() => setSidebarOpen(false)}
               >
-                <Image src="/favicon.png" alt="UGET Logo" width={32} height={32} style={{ borderRadius: 6 }} />
-                <span style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 800, color: "var(--brand)", letterSpacing: "-0.02em" }}>UGET</span>
+                <Image src="/favicon.png" alt="EchoGist Logo" width={32} height={32} style={{ borderRadius: 6 }} />
+                <span style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 800, color: "var(--brand)", letterSpacing: "-0.02em" }}>EchoGist</span>
               </Link>
               <button
                 onClick={() => setSidebarOpen(false)}
@@ -950,7 +950,7 @@ export default function SettingsPage() {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search UGET..."
+                placeholder="Search EchoGist..."
                 style={{ background: "transparent", border: "none", outline: "none", fontSize: 15, width: "100%", color: "var(--ink)", fontFamily: "var(--sans)" }}
               />
             </form>
@@ -1013,8 +1013,8 @@ export default function SettingsPage() {
               className="lg:hidden flex items-center gap-1.5"
               style={{ textDecoration: "none" }}
             >
-              <Image src="/favicon.png" alt="UGET" width={24} height={24} />
-              <span className="font-bold text-lg text-violet-600 font-display">UGET</span>
+              <Image src="/favicon.png" alt="EchoGist" width={24} height={24} />
+              <span className="font-bold text-lg text-violet-600 font-display">EchoGist</span>
             </Link>
           </div>
 
@@ -1235,7 +1235,7 @@ export default function SettingsPage() {
                       <div className="settings-label">Site Theme</div>
                       <div className="settings-value" style={{ textTransform: "capitalize" }}>{theme} theme</div>
                       <div className="settings-desc">
-                        Customize the color scheme of your UGET experience. Choose between Light, Dark, or System themes.
+                        Customize the color scheme of your EchoGist experience. Choose between Light, Dark, or System themes.
                       </div>
                     </div>
                     <div className="settings-row-action">
@@ -1301,7 +1301,7 @@ export default function SettingsPage() {
                         <>
                           <div className="settings-value">@{profile?.username || "writer"}</div>
                           <div className="settings-desc">
-                            Edit your unique UGET username and public profile URL path.
+                            Edit your unique EchoGist username and public profile URL path.
                           </div>
                         </>
                       )}
@@ -1497,11 +1497,11 @@ export default function SettingsPage() {
                       {isEditingDomain ? (
                         <div className="settings-inline-editor">
                           <div className="text-sm text-gray-700 font-sans leading-relaxed">
-                            💡 <strong>UGET Custom Domains</strong> allow you to map your own personal web
-                            domain (e.g. `yourname.com`) directly to your UGET publication.
+                            💡 <strong>EchoGist Custom Domains</strong> allow you to map your own personal web
+                            domain (e.g. `yourname.com`) directly to your EchoGist publication.
                           </div>
                           <div className="text-xs text-gray-500 font-sans">
-                            This feature is premium and requires a valid active UGET Membership subscription.
+                            This feature is premium and requires a valid active EchoGist Membership subscription.
                           </div>
                           <div className="flex gap-2 justify-end mt-2">
                             <button
@@ -1525,7 +1525,7 @@ export default function SettingsPage() {
                         <>
                           <div className="settings-value">None</div>
                           <div className="settings-desc">
-                            Upgrade to a UGET Membership to map your own custom domain.
+                            Upgrade to a EchoGist Membership to map your own custom domain.
                           </div>
                         </>
                       )}
@@ -1577,7 +1577,7 @@ export default function SettingsPage() {
                       <div className="settings-label">Third-party AI indexing bots</div>
                       <div className="settings-value">{aiAllowed ? "Allowed" : "Blocked"}</div>
                       <div className="settings-desc">
-                        Control whether AI scrapers and Large Language Models (LLMs) can crawl and index your UGET
+                        Control whether AI scrapers and Large Language Models (LLMs) can crawl and index your EchoGist
                         stories for training datasets.
                       </div>
                     </div>
@@ -1709,7 +1709,7 @@ export default function SettingsPage() {
                       <button
                         onClick={() => {
                           const confirm = window.confirm(
-                            "Are you sure you want to deactivate your UGET account? This will hide your stories and profile temporarily."
+                            "Are you sure you want to deactivate your EchoGist account? This will hide your stories and profile temporarily."
                           );
                           if (confirm) {
                             showMsg("Account deactivated (simulated).", "ok");
@@ -1731,7 +1731,7 @@ export default function SettingsPage() {
                       <button
                         onClick={() => {
                           const confirm = window.confirm(
-                            "⚠️ WARNING: Are you sure you want to delete your UGET account? This will permanently delete your stories, comments, and profile. This action CANNOT be undone."
+                            "⚠️ WARNING: Are you sure you want to delete your EchoGist account? This will permanently delete your stories, comments, and profile. This action CANNOT be undone."
                           );
                           if (confirm) {
                             showMsg("Account deletion started (simulated).", "ok");
@@ -1742,7 +1742,7 @@ export default function SettingsPage() {
                         Delete account
                       </button>
                       <div className="settings-desc mt-1">
-                        Permanently delete your UGET account, all published stories, and stats metrics.
+                        Permanently delete your EchoGist account, all published stories, and stats metrics.
                       </div>
                     </div>
                   </div>
@@ -2004,9 +2004,9 @@ export default function SettingsPage() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
                       <div className="settings-row-main">
-                        <div className="settings-label">UGET Digest</div>
+                        <div className="settings-label">EchoGist Digest</div>
                         <div className="settings-desc">
-                          The best stories on UGET personalized based on your interests, as well as outstanding stories selected by our editors.
+                          The best stories on EchoGist personalized based on your interests, as well as outstanding stories selected by our editors.
                         </div>
                       </div>
                       <div className="settings-row-action">
@@ -2032,7 +2032,7 @@ export default function SettingsPage() {
 
                     <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
                       <div className="settings-row-main">
-                        <div className="settings-label">Your UGET Digest frequency</div>
+                        <div className="settings-label">Your EchoGist Digest frequency</div>
                         <div className="settings-desc">Adjust how often you see a new Digest.</div>
                       </div>
                       <div className="settings-row-action">
@@ -2343,13 +2343,13 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Others from UGET */}
+                {/* Others from EchoGist */}
                 <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24, marginBottom: 24 }}>
-                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>Others from UGET</h3>
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "#242424", marginBottom: 20 }}>Others from EchoGist</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
                       <div className="settings-row-main">
-                        <div className="settings-label">New product features from UGET</div>
+                        <div className="settings-label">New product features from EchoGist</div>
                       </div>
                       <div className="settings-row-action">
                         <div className="medium-checkbox-container">
@@ -2374,7 +2374,7 @@ export default function SettingsPage() {
 
                     <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
                       <div className="settings-row-main">
-                        <div className="settings-label">Information about UGET membership</div>
+                        <div className="settings-label">Information about EchoGist membership</div>
                       </div>
                       <div className="settings-row-action">
                         <div className="medium-checkbox-container">
@@ -2457,7 +2457,7 @@ export default function SettingsPage() {
                 <div>
                   <h2 style={{ fontFamily: "var(--sans)", fontSize: 22, fontWeight: 700, color: "#242424", marginBottom: 16 }}>Push notifications</h2>
                   <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "#757575" }}>
-                    Open the UGET app from your mobile device to make changes to push notifications.
+                    Open the EchoGist app from your mobile device to make changes to push notifications.
                   </p>
                 </div>
               </div>
@@ -2472,7 +2472,7 @@ export default function SettingsPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 16 }}>✨</span>
                       <span className="membership-promo-text">
-                        Get unlimited access to the best of UGET for less than $1/week.{" "}
+                        Get unlimited access to the best of EchoGist for less than $1/week.{" "}
                         <button
                           onClick={() => alert("Membership page — upgrade flow simulated!")}
                           className="membership-promo-link"
@@ -2490,9 +2490,9 @@ export default function SettingsPage() {
                 <div style={{ borderBottom: "1px solid #f2f2f2", paddingBottom: 24 }}>
                   <div className="settings-row" style={{ padding: 0, borderBottom: "none", alignItems: "center" }}>
                     <div className="settings-row-main">
-                      <div className="settings-label" style={{ fontSize: 16 }}>Upgrade to a UGET Membership</div>
+                      <div className="settings-label" style={{ fontSize: 16 }}>Upgrade to a EchoGist Membership</div>
                       <div className="settings-desc">
-                        Subscribe for unlimited access to the smartest writers and biggest ideas on UGET.
+                        Subscribe for unlimited access to the smartest writers and biggest ideas on EchoGist.
                       </div>
                     </div>
                     <div className="settings-row-action">
@@ -2583,7 +2583,7 @@ export default function SettingsPage() {
                     <div className="settings-row-main">
                       <div className="settings-label">Two-factor authentication (2FA)</div>
                       <div className="settings-desc">
-                        Add an extra layer of security to your UGET account by requiring a code from your phone upon sign in.
+                        Add an extra layer of security to your EchoGist account by requiring a code from your phone upon sign in.
                       </div>
                     </div>
                     <div className="settings-row-action" style={{ display: "flex", alignItems: "center" }}>

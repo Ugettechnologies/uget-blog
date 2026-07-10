@@ -39,10 +39,10 @@ export default function Footer() {
           ))}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
-          <span className="footer-logo" style={{ fontSize: 16 }}>UGET</span>
+          <span className="footer-logo" style={{ fontSize: 16 }}>EchoGist</span>
           <span style={{ fontSize: 13, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>·</span>
           <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>
-            © {new Date().getFullYear()} UGET Technologies
+            © {new Date().getFullYear()} EchoGist Technologies
           </span>
         </div>
       </div>
