@@ -959,7 +959,7 @@ export default function DashboardPage() {
                         <div style={{ background: "linear-gradient(180deg, #fafafa 0%, #ffffff 100%)", border: "1px solid var(--border-2)", borderRadius: 16, padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.02)", marginBottom: 40 }}>
                           <div style={{ fontSize: 48, marginBottom: 20, textShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>✍️</div>
                           <h4 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", margin: "0 0 8px 0" }}>You haven't published any stories yet</h4>
-                          <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", margin: "0 0 32px 0", maxWidth: 400 }}>Share your ideas, tutorials, and stories with the growing UGET community.</p>
+                          <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", margin: "0 0 32px 0", maxWidth: 400 }}>Share your ideas, tutorials, and stories with the growing EchoGist community.</p>
                           <Link href="/write" style={{ background: "var(--primary)", color: "white", fontFamily: "var(--sans)", fontSize: 15, fontWeight: 600, padding: "12px 32px", borderRadius: 999, textDecoration: "none", transition: "background 0.2s", display: "inline-block" }}>
                             Start writing
                           </Link>
@@ -1117,7 +1117,7 @@ export default function DashboardPage() {
                   {/* Posts feed */}
                   <div style={{ minWidth: 0 }}>
                     <div style={{ marginBottom: 24, borderBottom: "1px solid var(--border-2)", paddingBottom: 16 }}>
-                      <h2 className="font-display text-3xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em", marginBottom: 6 }}>UGET Staff Corner</h2>
+                      <h2 className="font-display text-3xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em", marginBottom: 6 }}>EchoGist Staff Corner</h2>
                       <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>Official announcements, writing advice, and staff picks.</p>
                     </div>
 
@@ -1138,7 +1138,7 @@ export default function DashboardPage() {
                                 <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
                                   {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={24} height={24} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name)}
                                 </div>
-                                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)" }}>{author?.full_name || "UGET Staff"}</span>
+                                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)" }}>{author?.full_name || "EchoGist Staff"}</span>
                                 <span style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 600, background: "var(--accent-bg)", color: "var(--accent-hover)", padding: "2px 6px", borderRadius: 4 }}>STAFF</span>
                                 <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>· {formatDate(post.created_at)}</span>
                               </div>
@@ -1165,9 +1165,9 @@ export default function DashboardPage() {
                   {/* Editorial Guidelines Panel */}
                   <aside className="staff-panel">
                     <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, padding: 24, boxShadow: "var(--shadow-sm)" }}>
-                      <h3 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>UGET Writer Guild</h3>
+                      <h3 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", marginBottom: 12 }}>EchoGist Writer Guild</h3>
                       <p style={{ fontFamily: "var(--serif)", fontSize: 13, color: "var(--muted)", lineHeight: 1.6, marginBottom: 16 }}>
-                        Welcome to the UGET Writer Guild. Review these basic rules and guidelines to ensure your articles qualify for promotion in the Staff Picks feed.
+                        Welcome to the EchoGist Writer Guild. Review these basic rules and guidelines to ensure your articles qualify for promotion in the Staff Picks feed.
                       </p>
                       
                       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

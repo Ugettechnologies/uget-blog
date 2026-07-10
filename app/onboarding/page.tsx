@@ -166,8 +166,8 @@ export default function OnboardingPage() {
       <header style={{ borderBottom: "1px solid var(--border)", padding: "16px 24px", position: "sticky", top: 0, background: "var(--nav-bg)", zIndex: 100, backdropFilter: "blur(8px)" }}>
         <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
-            <Image src="/favicon.png" alt="UGET" width={24} height={24} />
-            <span style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--brand)" }}>UGET</span>
+            <Image src="/favicon.png" alt="EchoGist" width={24} height={24} />
+            <span style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--brand)" }}>EchoGist</span>
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>

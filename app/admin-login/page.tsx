@@ -85,8 +85,8 @@ export default function AdminLoginPage() {
       <div className="admin-login-card">
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <Image src="/favicon.png" alt="UGET" width={40} height={40} />
-            <span style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 700, color: "var(--black)" }}>UGET</span>
+            <Image src="/favicon.png" alt="EchoGist" width={40} height={40} />
+            <span style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 700, color: "var(--black)" }}>EchoGist</span>
           </Link>
         </div>
 

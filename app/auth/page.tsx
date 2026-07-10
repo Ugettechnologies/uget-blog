@@ -57,7 +57,7 @@ function Logo3D() {
     >
       <div ref={logoRef} style={{ width: 140, height: 140, transformStyle: "preserve-3d" }}>
         <Image
-          src="/logo-icon-transparent.png" alt="UGET"
+          src="/logo-icon-transparent.png" alt="EchoGist"
           width={140} height={140}
           style={{
             objectFit: "contain", display: "block",
@@ -186,10 +186,10 @@ function AuthForm() {
     <div className="auth-form-wrap">
       {/* Mobile logo */}
       <div className="auth-logo-mobile">
-        <Image src="/logo-icon-transparent.png" alt="UGET" width={48} height={48} className="object-contain" />
+        <Image src="/logo-icon-transparent.png" alt="EchoGist" width={48} height={48} className="object-contain" />
       </div>
 
-      <h1 className="auth-title">{mode === "login" ? "Welcome back." : "Join UGET."}</h1>
+      <h1 className="auth-title">{mode === "login" ? "Welcome back." : "Join EchoGist."}</h1>
       <p className="auth-subtitle">{mode === "login" ? "Sign in to continue reading." : "Create an account to start writing."}</p>
 
       {/* Mode toggle */}
@@ -258,7 +258,7 @@ function AuthForm() {
 
       <div style={{ marginTop: 24, textAlign: "center" }}>
         <Link href="/" style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", textDecoration: "none" }}>
-          ← Back to UGET
+          ← Back to EchoGist
         </Link>
       </div>
     </div>
