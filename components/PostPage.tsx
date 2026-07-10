@@ -50,6 +50,30 @@ export default function PostPage() {
     }
   };
 
+  const handleShare = (platform: "x" | "facebook" | "linkedin") => {
+    if (typeof window === "undefined" || !post) return;
+    setShareOpen(false);
+    
+    let url = "";
+    const currentUrl = window.location.href;
+    const titleText = post.title || "";
+
+    if (platform === "x") {
+      url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(titleText)}&url=${encodeURIComponent(currentUrl)}`;
+    } else if (platform === "facebook") {
+      url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+    } else if (platform === "linkedin") {
+      url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
+    }
+
+    const width = 600;
+    const height = 450;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    window.open(url, "share-dialog", `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+  };
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
     if (slug) loadPost();
@@ -237,33 +261,24 @@ export default function PostPage() {
               </button>
               {shareOpen && (
                 <div className="share-dropdown">
-                  <a 
-                    href={`https://x.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  <button 
+                    onClick={() => handleShare("x")} 
                     className="share-item"
-                    onClick={() => setShareOpen(false)}
                   >
                     Share on X
-                  </a>
-                  <a 
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  </button>
+                  <button 
+                    onClick={() => handleShare("facebook")} 
                     className="share-item"
-                    onClick={() => setShareOpen(false)}
                   >
                     Share on Facebook
-                  </a>
-                  <a 
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  </button>
+                  <button 
+                    onClick={() => handleShare("linkedin")} 
                     className="share-item"
-                    onClick={() => setShareOpen(false)}
                   >
                     Share on LinkedIn
-                  </a>
+                  </button>
                   <button 
                     onClick={handleCopyLink}
                     className="share-item"

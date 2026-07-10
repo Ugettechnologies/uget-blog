@@ -66,6 +66,52 @@ export default function TipTapEditor({ content, onChange }: Props) {
         class: "tiptap-editor",
         style: "min-height:450px; outline:none; font-family: var(--serif); font-size: 19px; line-height: 1.6; color: var(--ink-2);",
       },
+      handleKeyDown: (view, event) => {
+        if (event.key === "Enter") {
+          const { state } = view;
+          const { selection } = state;
+          const { $from } = selection;
+          if ($from.parent.type.name === "codeBlock") {
+            const textContent = $from.parent.textContent;
+            const offset = $from.parentOffset;
+            const textBeforeCursor = textContent.slice(0, offset);
+            const lastNewLine = textBeforeCursor.lastIndexOf("\n");
+            const currentLineText = textBeforeCursor.slice(lastNewLine + 1);
+
+            // Exit code block if pressing Enter on an empty line at the end
+            if (offset === textContent.length && currentLineText.trim() === "") {
+              const { schema, tr } = state;
+              const paragraphType = schema.nodes.paragraph;
+              if (paragraphType) {
+                const pos = $from.after();
+                // 1. Insert a paragraph after the code block
+                tr.insert(pos, paragraphType.create());
+                
+                // 2. Remove the trailing newline inside the code block to keep it tidy
+                if (offset > 0 && textBeforeCursor.endsWith("\n")) {
+                  tr.delete($from.pos - 1, $from.pos);
+                }
+                
+                // 3. Dispatch the transaction
+                view.dispatch(tr);
+                
+                // 4. Set cursor to the new paragraph (position after the code block)
+                const newPos = pos - (textBeforeCursor.endsWith("\n") ? 1 : 0) + 1;
+                const newTr = view.state.tr;
+                const targetPos = Math.min(newTr.doc.content.size, newPos);
+                const resolvedPos = newTr.doc.resolve(targetPos);
+                const selectionClass = view.state.selection.constructor as any;
+                const nearSelection = selectionClass.near(resolvedPos);
+                newTr.setSelection(nearSelection).scrollIntoView();
+                view.dispatch(newTr);
+
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      },
     },
   });
 
@@ -115,7 +161,7 @@ export default function TipTapEditor({ content, onChange }: Props) {
 
     setLoadingUnsplash(true);
     try {
-      const res = await fetch(`https://unsplash.com/napi/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=9`);
+      const res = await fetch(`/api/unsplash/search?query=${encodeURIComponent(unsplashQuery)}`);
       if (res.ok) {
         const data = await res.json();
         const results = data.results.map((r: any) => ({

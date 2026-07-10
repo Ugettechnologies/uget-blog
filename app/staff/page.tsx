@@ -44,6 +44,15 @@ export default function StaffPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const isPrivileged = currentUserProfile?.role === "admin" || currentUserProfile?.role === "staff";
+
+  // Tab guard for non-privileged users
+  useEffect(() => {
+    if (activeTab === "team" && !loading && !isPrivileged) {
+      setActiveTab("posts");
+    }
+  }, [activeTab, isPrivileged, loading]);
+
   const loadStaffData = async () => {
     setLoading(true);
     try {
@@ -245,7 +254,7 @@ export default function StaffPage() {
         }}>
           {[
             { id: "posts", label: "Announcements & Picks", count: staffPosts.length },
-            { id: "team", label: "Editorial Directory", count: staffMembers.length },
+            ...(isPrivileged ? [{ id: "team", label: "Editorial Directory", count: staffMembers.length }] : []),
             { id: "guidelines", label: "Writer Guidelines", count: null }
           ].map((t) => (
             <button
