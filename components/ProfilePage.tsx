@@ -1097,7 +1097,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <Link href={`/post/${post.slug}`} className="post-card-image">
-                            <SafeImage src={post.cover_image} alt={post.title} width={160} height={108} fallbackSeed={post.id || post.slug} />
+                            <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
                           </Link>
                         </article>
                       );

@@ -60,7 +60,7 @@ export default function LibraryPage() {
     
     const { error } = await supabase
       .from("profiles")
-      .update({ custom_lists: updated })
+      .update({ custom_lists: JSON.stringify(updated) })
       .eq("id", user.id);
       
     if (error) {
@@ -86,7 +86,7 @@ export default function LibraryPage() {
     
     const { error } = await supabase
       .from("profiles")
-      .update({ custom_lists: updated })
+      .update({ custom_lists: JSON.stringify(updated) })
       .eq("id", user.id);
       
     if (error) {
@@ -98,7 +98,15 @@ export default function LibraryPage() {
 
   useEffect(() => {
     if (userProfile) {
-      setCustomLists(userProfile.custom_lists || []);
+      let lists = userProfile.custom_lists;
+      if (typeof lists === "string") {
+        try {
+          lists = JSON.parse(lists);
+        } catch (e) {
+          lists = [];
+        }
+      }
+      setCustomLists(lists || []);
     }
   }, [userProfile]);
 
