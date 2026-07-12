@@ -74,8 +74,17 @@ export default function ProfilePage() {
       setCurrentUser(user);
 
       if (user) {
-        // Fetch current user profile
-        const { data: cProf } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        // Fetch current user profile with follower/following counts
+        const [cProfRes, cFollowersRes, cFollowingRes] = await Promise.all([
+          supabase.from("profiles").select("*").eq("id", user.id).single(),
+          supabase.from("follows").select("*").eq("following_id", user.id),
+          supabase.from("follows").select("*").eq("follower_id", user.id),
+        ]);
+        const cProf = cProfRes.data ? {
+          ...cProfRes.data,
+          follower_count: cFollowersRes.data ? cFollowersRes.data.length : 0,
+          following_count: cFollowingRes.data ? cFollowingRes.data.length : 0,
+        } : null;
         setCurrentUserProfile(cProf);
         loadNotifications(user.id);
         loadFollowingProfiles(user.id);
@@ -88,8 +97,20 @@ export default function ProfilePage() {
         prof = res.data;
       }
       if (!prof) { setLoading(false); return; }
-      setProfile(prof);
-      setBioInput(prof.bio || "");
+
+      // Fetch follower/following counts for target profile
+      const [followersRes, followingRes] = await Promise.all([
+        supabase.from("follows").select("*").eq("following_id", prof.id),
+        supabase.from("follows").select("*").eq("follower_id", prof.id),
+      ]);
+      const profWithCounts = {
+        ...prof,
+        follower_count: followersRes.data ? followersRes.data.length : 0,
+        following_count: followingRes.data ? followingRes.data.length : 0,
+      };
+
+      setProfile(profWithCounts);
+      setBioInput(profWithCounts.bio || "");
 
       if (user && user.id !== prof.id) {
         const { data: followRes } = await supabase.from("follows")
@@ -205,21 +226,27 @@ export default function ProfilePage() {
     if (!currentUser) { router.push("/auth"); return; }
     if (!profile) return;
     
+    const nextFollowerCount = isFollowing 
+      ? Math.max((profile.follower_count || 0) - 1, 0)
+      : (profile.follower_count || 0) + 1;
+      
     if (isFollowing) {
       await supabase.from("follows").delete().eq("follower_id", currentUser.id).eq("following_id", profile.id);
       setIsFollowing(false);
-      setProfile({
-        ...profile,
-        follower_count: Math.max((profile.follower_count || 0) - 1, 0)
-      });
     } else {
       await supabase.from("follows").insert({ follower_id: currentUser.id, following_id: profile.id });
       setIsFollowing(true);
-      setProfile({
-        ...profile,
-        follower_count: (profile.follower_count || 0) + 1
-      });
     }
+    
+    setProfile({
+      ...profile,
+      follower_count: nextFollowerCount
+    });
+    
+    // Sync the count to profiles table in Supabase
+    await supabase.from("profiles")
+      .update({ follower_count: nextFollowerCount })
+      .eq("id", profile.id);
   };
 
   const saveBio = async () => {
@@ -631,12 +658,12 @@ export default function ProfilePage() {
             </div>
             <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{followingProfiles.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{currentUserProfile.following_count || 0}</span>
                 <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Following</span>
               </Link>
               <div style={{ width: 1, background: "var(--border-2)", alignSelf: "stretch" }} />
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>—</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{currentUserProfile.follower_count || 0}</span>
                 <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Followers</span>
               </Link>
             </div>

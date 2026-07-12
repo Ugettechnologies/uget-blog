@@ -348,7 +348,16 @@ export default function HomePage() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       setUser(user);
       if (user) {
-        const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        const [profileRes, followersRes, followingRes] = await Promise.all([
+          supabase.from("profiles").select("*").eq("id", user.id).single(),
+          supabase.from("follows").select("*").eq("following_id", user.id),
+          supabase.from("follows").select("*").eq("follower_id", user.id),
+        ]);
+        const profile = profileRes.data ? {
+          ...profileRes.data,
+          follower_count: followersRes.data ? followersRes.data.length : 0,
+          following_count: followingRes.data ? followingRes.data.length : 0,
+        } : null;
         setUserProfile(profile);
         // Check localStorage fallback before redirecting (in case DB column is missing)
         const localInterests = (() => { try { const s = localStorage.getItem("uget_user_interests"); return s ? JSON.parse(s) : []; } catch { return []; } })();
@@ -369,7 +378,16 @@ export default function HomePage() {
       const u = session?.user ?? null;
       setUser(u);
       if (u) {
-        const { data: profile } = await supabase.from("profiles").select("*").eq("id", u.id).single();
+        const [profileRes, followersRes, followingRes] = await Promise.all([
+          supabase.from("profiles").select("*").eq("id", u.id).single(),
+          supabase.from("follows").select("*").eq("following_id", u.id),
+          supabase.from("follows").select("*").eq("follower_id", u.id),
+        ]);
+        const profile = profileRes.data ? {
+          ...profileRes.data,
+          follower_count: followersRes.data ? followersRes.data.length : 0,
+          following_count: followingRes.data ? followingRes.data.length : 0,
+        } : null;
         setUserProfile(profile);
         // Check localStorage fallback before redirecting (in case DB column is missing)
         const localInterestsAuth = (() => { try { const s = localStorage.getItem("uget_user_interests"); return s ? JSON.parse(s) : []; } catch { return []; } })();
@@ -817,12 +835,12 @@ export default function HomePage() {
             {/* Clickable follower/following counts */}
             <div style={{ display: "flex", gap: 12, paddingLeft: 4 }}>
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{followingProfiles.length}</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{userProfile.following_count || 0}</span>
                 <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Following</span>
               </Link>
               <div style={{ width: 1, background: "var(--border-2)", alignSelf: "stretch" }} />
               <Link href="/dashboard?tab=followers" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>—</span>
+                <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>{userProfile.follower_count || 0}</span>
                 <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>Followers</span>
               </Link>
             </div>
