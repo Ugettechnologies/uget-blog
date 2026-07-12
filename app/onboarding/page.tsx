@@ -161,7 +161,7 @@ export default function OnboardingPage() {
   const remaining = 3 - selected.length;
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", paddingBottom: 120 }}>
+    <div className="onboarding-page-container">
       {/* Mini Navbar */}
       <header style={{ borderBottom: "1px solid var(--border)", padding: "16px 24px", position: "sticky", top: 0, background: "var(--nav-bg)", zIndex: 100, backdropFilter: "blur(8px)" }}>
         <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -234,25 +234,8 @@ export default function OnboardingPage() {
         </div>
       </main>
 
-      {/* Floating Bottom Bar */}
-      <div 
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: "var(--nav-bg)",
-          borderTop: "1px solid var(--border)",
-          padding: "16px 24px",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          zIndex: 90,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 8
-        }}
-      >
+      {/* Bottom Bar (Floating on mobile, static on desktop) */}
+      <div className="onboarding-bottom-bar">
         <button
           type="button"
           onClick={handleContinue}

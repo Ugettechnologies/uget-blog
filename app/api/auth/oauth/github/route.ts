@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { signJWT, hashPassword, ALLOWED_ADMIN_EMAILS } from "@/lib/auth-server";
+import { signJWT, hashPassword, ALLOWED_ADMIN_EMAILS, getCookieOptions } from "@/lib/auth-server";
 import { getSql } from "@/lib/db";
 
 export async function GET(request: Request) {
@@ -51,13 +51,7 @@ export async function GET(request: Request) {
     const redirectUrl = new URL(next, request.url);
     const response = NextResponse.redirect(redirectUrl);
     
-    response.cookies.set("uget_session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/",
-    });
+    response.cookies.set("uget_session", token, getCookieOptions(request.headers.get("host")));
 
     return response;
   } catch (err: any) {
