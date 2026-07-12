@@ -23,6 +23,7 @@
   --accent-hover: var(--brand-hover);
   --accent-bg: var(--brand-light);
   --blue: #1565c0;
+  --reading-list-bg: #fdfcff;
   --blue-light: #e8f0fe;
   --yellow: #ffc017;
   --yellow-dark: #b37c00;
@@ -56,6 +57,7 @@
   --modal-bg: #16161a;
   --input-bg: #0f0f11;
   --brand-light: rgba(124, 58, 237, 0.15);
+  --reading-list-bg: var(--bg-2);
 }
 
 /* Global Dark Mode overrides for inline background colors */

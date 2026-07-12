@@ -737,7 +737,7 @@ export default function LibraryPage() {
 
                   {/* Reading list card */}
                   <div style={{
-                    background: "#fdfcff",
+                    background: "var(--reading-list-bg)",
                     border: "1px solid var(--border)",
                     borderRadius: 16,
                     padding: 24,
