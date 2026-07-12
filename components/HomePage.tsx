@@ -1262,9 +1262,18 @@ export default function HomePage() {
             {/* Desktop right sidebar footer */}
             <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 16 }}>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", marginBottom: 12 }}>
-                {["Help", "Status", "About", "Careers", "Blog", "Privacy", "Terms", "Teams"].map((link) => (
-                  <Link key={link} href="#" style={{ fontSize: 11, color: "var(--muted-2)", textDecoration: "none" }} className="hover:underline">
-                    {link}
+                {[
+                  { label: "Help", href: "/help" },
+                  { label: "Status", href: "/status" },
+                  { label: "About", href: "/about" },
+                  { label: "Careers", href: "/careers" },
+                  { label: "Blog", href: "/blog" },
+                  { label: "Privacy", href: "/privacy" },
+                  { label: "Terms", href: "/terms" },
+                  { label: "Teams", href: "/staff" }
+                ].map((link) => (
+                  <Link key={link.label} href={link.href} style={{ fontSize: 11, color: "var(--muted-2)", textDecoration: "none" }} className="hover:underline">
+                    {link.label}
                   </Link>
                 ))}
               </div>
