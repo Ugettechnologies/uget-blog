@@ -816,7 +816,7 @@ export default function ProfilePage() {
                         <article key={post.id} className="post-card" style={{ padding: "24px 0", borderBottom: "1px solid var(--border-2)" }}>
                           <div className="post-card-content">
                             <div className="post-card-meta" style={{ marginBottom: 8 }}>
-                              {cat && <span className="post-card-tag">{cat.icon} {cat.label}</span>}
+                              {cat && <span className="post-card-tag">{cat.label}</span>}
                               <span>{formatDate(post.created_at)}</span>
                             </div>
                             <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>

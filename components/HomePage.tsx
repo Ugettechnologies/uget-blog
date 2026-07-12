@@ -39,7 +39,7 @@ function PostCard({ post }: { post: Post }) {
           {post.excerpt && <p className="post-card-excerpt">{post.excerpt}</p>}
         </Link>
         <div className="post-card-meta">
-          {cat && <span className="post-card-tag">{cat.icon} {cat.label}</span>}
+          {cat && <span className="post-card-tag">{cat.label}</span>}
           <span>{formatDate(post.created_at)}</span>
           <span>·</span>
           <span>{post.read_time || 1} min read</span>
