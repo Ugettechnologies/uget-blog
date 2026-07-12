@@ -1246,15 +1246,62 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <div className="settings-row-action">
-                      <select 
-                        value={theme} 
-                        onChange={(e) => handleThemeChange(e.target.value)} 
-                        style={{ appearance: "none", WebkitAppearance: "none", background: "var(--bg-2)", backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center", backgroundSize: "16px", border: "1px solid var(--border-2)", borderRadius: 999, padding: "10px 40px 10px 16px", fontSize: 14, fontFamily: "var(--sans)", fontWeight: 600, color: "var(--ink)", cursor: "pointer", outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
-                      >
-                        <option value="light">☀️ Light</option>
-                        <option value="dark">🌙 Dark</option>
-                        <option value="system">💻 System</option>
-                      </select>
+                      <div style={{
+                        display: "inline-flex",
+                        background: "var(--bg-3)",
+                        padding: 3,
+                        borderRadius: 10,
+                        border: "1px solid var(--border)",
+                        gap: 2,
+                      }}>
+                        {[
+                          { value: "light", label: "Light", icon: (
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="4" />
+                              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                            </svg>
+                          )},
+                          { value: "dark", label: "Dark", icon: (
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                            </svg>
+                          )},
+                          { value: "system", label: "System", icon: (
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="20" height="14" x="2" y="3" rx="2" />
+                              <line x1="8" y1="21" x2="16" y2="21" />
+                              <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
+                          )}
+                        ].map((opt) => {
+                          const isActive = theme === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => handleThemeChange(opt.value)}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                                padding: "6px 16px",
+                                borderRadius: 8,
+                                fontSize: 13.5,
+                                fontWeight: isActive ? 600 : 500,
+                                color: isActive ? "var(--black)" : "var(--muted)",
+                                background: isActive ? "var(--bg)" : "transparent",
+                                border: "1px solid " + (isActive ? "var(--border)" : "transparent"),
+                                boxShadow: isActive ? "0 2px 6px rgba(0,0,0,0.04)" : "none",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                                outline: "none",
+                              }}
+                            >
+                              {opt.icon}
+                              <span>{opt.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
 
