@@ -817,6 +817,16 @@ export default function SettingsPage() {
             padding: 0 24px;
           }
         }
+        @media (max-width: 640px) {
+          .settings-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .settings-row-action {
+            text-align: left;
+          }
+        }
 
         /* ── Dark Mode Overrides for Tailwind classes ── */
         .dark .border-gray-100 {

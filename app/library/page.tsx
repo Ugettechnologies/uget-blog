@@ -30,6 +30,66 @@ export default function LibraryPage() {
   const [libraryTab, setLibraryTab] = useState<"your-lists" | "saved-lists" | "highlights" | "history" | "responses">("your-lists");
   const [bannerVisible, setBannerVisible] = useState(true);
   const [readingListExpanded, setReadingListExpanded] = useState(false);
+  const [customLists, setCustomLists] = useState<any[]>([]);
+  const [isNewListModalOpen, setIsNewListModalOpen] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [newListPrivate, setNewListPrivate] = useState(true);
+  const [expandedListId, setExpandedListId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+
+  const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleCreateList = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newListName.trim()) return;
+    
+    const newList = {
+      id: Math.random().toString(36).substring(2) + "-" + Math.random().toString(36).substring(2),
+      name: newListName.trim(),
+      count: 0,
+      private: newListPrivate,
+      created_at: new Date().toISOString()
+    };
+    
+    const updated = [...customLists, newList];
+    setCustomLists(updated);
+    localStorage.setItem("uget_custom_lists", JSON.stringify(updated));
+    
+    setNewListName("");
+    setNewListPrivate(true);
+    setIsNewListModalOpen(false);
+    
+    showMsg(`List "${newList.name}" created successfully!`, "ok");
+  };
+
+  const handleDeleteList = (id: string) => {
+    const listToDelete = customLists.find(l => l.id === id);
+    const updated = customLists.filter((l) => l.id !== id);
+    setCustomLists(updated);
+    localStorage.setItem("uget_custom_lists", JSON.stringify(updated));
+    if (expandedListId === id) {
+      setExpandedListId(null);
+    }
+    if (listToDelete) {
+      showMsg(`List "${listToDelete.name}" deleted successfully!`, "ok");
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("uget_custom_lists");
+      if (saved) {
+        try {
+          setCustomLists(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -324,6 +384,164 @@ export default function LibraryPage() {
             padding: 40px 24px 60px;
           }
         }
+
+        /* Custom lists grid */
+        .custom-lists-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin-top: 16px;
+        }
+        .custom-list-card {
+          background: var(--reading-list-bg);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .custom-list-card:hover {
+          border-color: var(--brand);
+          box-shadow: var(--shadow-md);
+          transform: translateY(-1px);
+        }
+        
+        /* Modal dialog overlay */
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(4px);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.2s ease-out;
+        }
+        .modal-container {
+          background-color: var(--bg-2);
+          border: 1px solid var(--border);
+          border-radius: 24px;
+          padding: 32px;
+          width: 100%;
+          max-width: 440px;
+          box-shadow: var(--shadow-xl);
+          animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          color: var(--ink);
+        }
+        .modal-title {
+          font-family: var(--display);
+          font-size: 24px;
+          font-weight: 700;
+          margin-bottom: 8px;
+          color: var(--black);
+        }
+        .modal-desc {
+          font-family: var(--sans);
+          font-size: 14px;
+          color: var(--muted);
+          margin-bottom: 24px;
+          line-height: 1.4;
+        }
+        .modal-input {
+          width: 100%;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: 1px solid var(--border);
+          background-color: var(--bg);
+          color: var(--ink);
+          font-family: var(--sans);
+          font-size: 15px;
+          outline: none;
+          transition: border-color 0.2s;
+          margin-bottom: 20px;
+        }
+        .modal-input:focus {
+          border-color: var(--brand);
+        }
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 12px;
+          margin-top: 24px;
+        }
+        .modal-btn {
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 600;
+          padding: 10px 20px;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .modal-btn-cancel {
+          background: transparent;
+          border: 1px solid var(--border);
+          color: var(--ink);
+        }
+        .modal-btn-cancel:hover {
+          background: var(--bg-3);
+        }
+        .modal-btn-confirm {
+          background: linear-gradient(135deg, var(--brand) 0%, #6d28d9 100%);
+          color: white;
+          border: none;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        }
+        .modal-btn-confirm:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+        }
+        .modal-btn-confirm:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          z-index: 1100;
+        }
+        .toast {
+          background-color: var(--black);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 12px;
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 600;
+          box-shadow: var(--shadow-lg);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-success {
+          border-left: 4px solid #10b981;
+        }
+        .toast-error {
+          border-left: 4px solid #ef4444;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleUp {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideIn {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
       `}} />
 
       {/* ── Persistent Desktop Left Sidebar ── */}
@@ -594,12 +812,7 @@ export default function LibraryPage() {
               Your library
             </h1>
             <button
-              onClick={() => {
-                const listName = prompt("Enter a name for your new list:");
-                if (listName) {
-                  alert(`List "${listName}" created successfully!`);
-                }
-              }}
+              onClick={() => setIsNewListModalOpen(true)}
               style={{
                 backgroundColor: "var(--brand)",
                 color: "white",
@@ -698,10 +911,7 @@ export default function LibraryPage() {
                           Create a list to easily organize and share stories
                         </h2>
                         <button
-                          onClick={() => {
-                            const name = prompt("Enter list name:");
-                            if (name) alert(`List "${name}" created!`);
-                          }}
+                          onClick={() => setIsNewListModalOpen(true)}
                           style={{
                             background: "white",
                             color: "#7c3aed",
@@ -847,6 +1057,91 @@ export default function LibraryPage() {
                       )}
                     </div>
                   )}
+
+                  {/* Custom Lists rendering */}
+                  <div className="custom-lists-container">
+                    {customLists.map((item) => {
+                      const isExpanded = expandedListId === item.id;
+                      return (
+                        <div key={item.id}>
+                          <div
+                            className="custom-list-card"
+                            onClick={() => setExpandedListId(isExpanded ? null : item.id)}
+                            style={{ marginTop: 16 }}
+                          >
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                <div style={{ width: 20, height: 20, borderRadius: "50%", overflow: "hidden", background: "var(--border)" }}>
+                                  {userProfile?.avatar_url ? (
+                                    <Image src={userProfile.avatar_url} alt="" width={20} height={20} className="object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-[8px] flex items-center justify-center font-sans">
+                                      {getInitials(userProfile?.full_name || user?.email || "?")}
+                                    </div>
+                                  )}
+                                </div>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", fontFamily: "var(--sans)" }}>
+                                  {userProfile?.full_name || "Writer"}
+                                </span>
+                              </div>
+
+                              <h3 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 800, color: "var(--black)", margin: "0 0 8px" }}>
+                                {item.name}
+                              </h3>
+
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>
+                                <span>0 stories</span>
+                                <span>{item.private ? "🔒 Private" : "🌐 Public"}</span>
+                              </div>
+                            </div>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                              {/* Empty Cover mockup */}
+                              <div style={{ display: "flex", alignItems: "center", height: 80, width: 90, borderRadius: 6, background: "var(--bg-3)", border: "1px solid var(--border-2)", flexShrink: 0, fontSize: 20, fontFamily: "var(--sans)", justifyContent: "center" }}>
+                                📂
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteList(item.id);
+                                }}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "var(--muted)",
+                                  cursor: "pointer",
+                                  padding: 8,
+                                  borderRadius: 8,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  transition: "all 0.15s ease",
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--red)")}
+                                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
+                                title="Delete list"
+                              >
+                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div style={{ marginTop: 24, borderTop: "1px solid var(--border)", paddingTop: 24, paddingLeft: 16 }}>
+                              <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--brand)", marginBottom: 12 }}>
+                                {item.name} stories:
+                              </h4>
+                              <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", padding: "10px 0" }}>
+                                No stories in this list yet.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
@@ -885,6 +1180,68 @@ export default function LibraryPage() {
           )}
         </div>
       </main>
+
+      {/* New List Modal */}
+      {isNewListModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsNewListModalOpen(false)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-title">Create a new list</h3>
+            <p className="modal-desc">Organize your bookmarked stories or collections under a custom list folder.</p>
+            <form onSubmit={handleCreateList}>
+              <input
+                type="text"
+                className="modal-input"
+                placeholder="List name (e.g. My tech stack)"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                autoFocus
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+                <input
+                  type="checkbox"
+                  id="newListPrivate"
+                  checked={newListPrivate}
+                  onChange={(e) => setNewListPrivate(e.target.checked)}
+                  style={{ width: 16, height: 16, cursor: "pointer", accentColor: "var(--brand)" }}
+                />
+                <label htmlFor="newListPrivate" style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--ink-2)", cursor: "pointer" }}>
+                  Keep this list private
+                </label>
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="modal-btn modal-btn-cancel"
+                  onClick={() => {
+                    setIsNewListModalOpen(false);
+                    setNewListName("");
+                    setNewListPrivate(true);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="modal-btn modal-btn-confirm"
+                  disabled={!newListName.trim()}
+                >
+                  Create List
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Toast System */}
+      {toast && (
+        <div className="toast-container">
+          <div className={`toast ${toast.type === "err" ? "toast-error" : "toast-success"}`}>
+            {toast.type === "ok" ? "✓" : "✗"} {toast.msg}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

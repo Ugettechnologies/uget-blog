@@ -9,6 +9,23 @@ import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon } from "@/components/SidebarNav";
 
+function getAvatarGradient(name: string | null | undefined) {
+  const gradients = [
+    "linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)", // Violet to Pink
+    "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)", // Blue to Violet
+    "linear-gradient(135deg, #10b981 0%, #059669 100%)", // Emerald to Deep Emerald
+    "linear-gradient(135deg, #f59e0b 0%, #e11d48 100%)", // Amber to Rose
+    "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)", // Cyan to Blue
+    "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)", // Pink to Rose
+  ];
+  if (!name) return gradients[0];
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) {
+    sum += name.charCodeAt(i);
+  }
+  return gradients[sum % gradients.length];
+}
+
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -327,18 +344,48 @@ export default function ProfilePage() {
           top: 88px;
           align-self: start;
           background-color: var(--bg-2);
-          border: 1px solid var(--border-2);
-          border-radius: 16px;
-          padding: 24px;
+          border: 1px solid var(--border);
+          border-radius: 24px;
+          padding: 28px 24px;
+          box-shadow: var(--shadow-md);
         }
         .uget-profile-avatar-lg {
-          width: 88px;
-          height: 88px;
+          position: relative;
+          width: 96px;
+          height: 96px;
+          border-radius: 50%;
+          padding: 3px;
+          background: linear-gradient(135deg, var(--border) 0%, var(--border-2) 100%);
+          margin-bottom: 20px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: var(--shadow-sm);
+          display: inline-block;
+        }
+        .uget-profile-avatar-lg:hover {
+          transform: scale(1.04);
+          background: linear-gradient(135deg, var(--brand) 0%, #ec4899 100%);
+          box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.25), 0 8px 10px -6px rgba(124, 58, 237, 0.25);
+        }
+        .uget-profile-avatar-inner {
+          width: 100%;
+          height: 100%;
           border-radius: 50%;
           overflow: hidden;
-          background-color: var(--bg-3);
-          border: 1px solid var(--border);
-          margin-bottom: 16px;
+          position: relative;
+          background-color: var(--bg-2);
+        }
+        .uget-profile-avatar-initials {
+          font-family: var(--sans);
+          font-weight: 800;
+          font-size: 2rem;
+          color: white;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+          letter-spacing: -0.02em;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
         }
         .uget-profile-header-card {
           display: none;
@@ -380,6 +427,146 @@ export default function ProfilePage() {
           border-bottom-color: var(--black);
           font-weight: 600;
         }
+
+        /* Typography */
+        .uget-profile-name {
+          font-family: var(--sans);
+          font-size: 22px;
+          font-weight: 800;
+          color: var(--black);
+          line-height: 1.2;
+          margin-bottom: 2px;
+        }
+        .uget-profile-username {
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--muted);
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        /* Action Buttons */
+        .profile-action-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px 16px;
+          font-family: var(--sans);
+          font-size: 14px;
+          font-weight: 600;
+          border-radius: 999px;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+          border: 1px solid transparent;
+          text-decoration: none;
+        }
+        .profile-action-btn-primary {
+          background: linear-gradient(135deg, var(--brand) 0%, #6d28d9 100%);
+          color: white !important;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        }
+        .profile-action-btn-primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+        .profile-action-btn-secondary {
+          background: var(--bg-2);
+          border: 1px solid var(--border);
+          color: var(--ink);
+        }
+        .profile-action-btn-secondary:hover {
+          background: var(--bg-3);
+          border-color: var(--muted-2);
+          transform: translateY(-1px);
+        }
+
+        /* Metrics Grid */
+        .profile-metrics-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          margin-top: 16px;
+        }
+        .profile-metric-card {
+          background: var(--bg-2);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 14px 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .profile-metric-card:hover {
+          transform: translateY(-2px);
+          border-color: var(--brand);
+          background: var(--brand-light);
+          box-shadow: var(--shadow-sm);
+        }
+        .dark .profile-metric-card:hover {
+          background: rgba(124, 58, 237, 0.1);
+          border-color: rgba(124, 58, 237, 0.4);
+        }
+        .profile-metric-icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 10px;
+          margin-bottom: 2px;
+        }
+        .profile-metric-value {
+          font-size: 18px;
+          font-weight: 800;
+          color: var(--black);
+          line-height: 1.2;
+        }
+        .profile-metric-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        /* Icon wrapper themes */
+        .metric-stories-icon {
+          background-color: var(--brand-light);
+          color: var(--brand);
+        }
+        .metric-followers-icon {
+          background-color: rgba(244, 63, 94, 0.1);
+          color: #f43f5e;
+        }
+        .dark .metric-followers-icon {
+          background-color: rgba(244, 63, 94, 0.2);
+          color: #fb7185;
+        }
+        .metric-views-icon {
+          background-color: rgba(16, 185, 129, 0.1);
+          color: #10b981;
+        }
+        .dark .metric-views-icon {
+          background-color: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+        }
+        .metric-likes-icon {
+          background-color: rgba(245, 158, 11, 0.1);
+          color: #d97706;
+        }
+        .dark .metric-likes-icon {
+          background-color: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+        }
+
         @media (max-width: 1024px) {
           .uget-sidebar {
             display: none;
@@ -678,37 +865,40 @@ export default function ProfilePage() {
             </div>
 
             {/* Profile Card Header (Mobile only) */}
-            <div className="uget-profile-header-card" style={{ border: "1px solid var(--border-2)", borderRadius: 20, padding: 32, background: "var(--bg-2)", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", marginBottom: 32, display: "flex", flexDirection: "column", gap: 24 }}>
+            <div className="uget-profile-header-card" style={{ border: "1px solid var(--border)", borderRadius: 24, padding: 24, background: "var(--bg-2)", boxShadow: "var(--shadow-md)", marginBottom: 32, display: "flex", flexDirection: "column", gap: 20 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                  <div style={{ width: 80, height: 80, borderRadius: "50%", overflow: "hidden", background: "var(--bg-2)", border: "1px solid var(--border-2)", flexShrink: 0 }}>
-                    {profile.avatar_url ? (
-                      <Image src={profile.avatar_url} alt="" width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                    ) : (
-                      <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--sans)" }}>
-                        {getInitials(profile.full_name)}
-                      </div>
-                    )}
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <div className="uget-profile-avatar-lg" style={{ width: 80, height: 80, padding: '2px', marginBottom: 0 }}>
+                    <div className="uget-profile-avatar-inner">
+                      {profile.avatar_url ? (
+                        <Image src={profile.avatar_url} alt="" width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                      ) : (
+                        <div className="uget-profile-avatar-initials" style={{ background: getAvatarGradient(profile.full_name), fontSize: '1.6rem' }}>
+                          {getInitials(profile.full_name)}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
-                    <h1 style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 28, color: "var(--black)", margin: "0 0 4px 0", letterSpacing: "-0.01em" }}>
+                    <h1 className="uget-profile-name" style={{ fontSize: 24 }}>
                       {profile.full_name}
                     </h1>
-                    <div style={{ fontSize: 15, color: "var(--muted)", fontFamily: "var(--sans)" }}>
-                      {profile.follower_count ? profile.follower_count.toLocaleString() : 0} followers
+                    <div className="uget-profile-username" style={{ marginBottom: 0 }}>
+                      <span>@{profile.username || "writer"}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Follow/Following trigger button */}
-                <div className="relative following-dropdown-trigger flex-shrink-0" style={{ marginTop: 8 }}>
+                <div className="relative following-dropdown-trigger flex-shrink-0">
                   {currentUser && currentUser.id === profile.id ? (
                     <Link
                       href="/settings"
-                      className="btn btn-outline btn-sm"
-                      style={{ textDecoration: "none", borderRadius: 999, padding: "8px 20px" }}
+                      className="profile-action-btn profile-action-btn-secondary"
+                      style={{ padding: "8px 16px", width: "auto" }}
                     >
-                      Edit profile
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                      <span>Edit profile</span>
                     </Link>
                   ) : (
                     <>
@@ -716,9 +906,10 @@ export default function ProfilePage() {
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <button
                             onClick={() => setFollowingDropdownOpen(!followingDropdownOpen)}
-                            className="btn btn-outline btn-sm"
-                            style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 999 }}
+                            className="profile-action-btn profile-action-btn-secondary"
+                            style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: 6, width: "auto" }}
                           >
+                            <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <span>Following</span>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ opacity: 0.5 }}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -728,21 +919,22 @@ export default function ProfilePage() {
                       ) : (
                         <button
                           onClick={handleFollow}
-                          className="btn btn-primary btn-sm"
-                          style={{ borderRadius: 999, padding: "8px 24px" }}
+                          className="profile-action-btn profile-action-btn-primary"
+                          style={{ padding: "8px 20px", width: "auto" }}
                         >
-                          Follow
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                          <span>Follow</span>
                         </button>
                       )}
 
                       {followingDropdownOpen && (
-                        <div className="following-dropdown absolute right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1 w-48">
+                        <div className="following-dropdown absolute right-0 mt-2 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden py-1 w-48">
                           <button
                             onClick={() => {
                               handleFollow();
                               setFollowingDropdownOpen(false);
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-sans transition-colors"
+                            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 font-sans transition-colors"
                           >
                             Unfollow
                           </button>
@@ -751,7 +943,7 @@ export default function ProfilePage() {
                               showMsg(`Muted ${profile.full_name} successfully`, "ok");
                               setFollowingDropdownOpen(false);
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans transition-colors"
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
                           >
                             Mute this writer
                           </button>
@@ -760,7 +952,7 @@ export default function ProfilePage() {
                               showMsg(`Blocked ${profile.full_name} successfully`, "ok");
                               setFollowingDropdownOpen(false);
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans transition-colors"
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
                           >
                             Block this writer
                           </button>
@@ -769,7 +961,7 @@ export default function ProfilePage() {
                               showMsg("Reported successfully", "ok");
                               setFollowingDropdownOpen(false);
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-sans transition-colors"
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
                           >
                             Report profile
                           </button>
@@ -781,10 +973,54 @@ export default function ProfilePage() {
               </div>
 
               {profile.bio && (
-                <p className="text-base text-gray-600 font-serif leading-relaxed pt-4 border-t border-gray-100">
+                <p className="text-base text-gray-600 dark:text-gray-400 font-serif leading-relaxed pt-3 border-t border-gray-100 dark:border-zinc-800">
                   {profile.bio}
                 </p>
               )}
+
+              {/* Metrics Grid for Mobile View */}
+              <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 font-sans">Metrics</h3>
+                <div className="profile-metrics-grid">
+                  
+                  {/* Stories Card */}
+                  <div className="profile-metric-card">
+                    <div className="profile-metric-icon-wrapper metric-stories-icon">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                    </div>
+                    <span className="profile-metric-value">{posts.length}</span>
+                    <span className="profile-metric-label">Stories</span>
+                  </div>
+
+                  {/* Followers Card */}
+                  <div className="profile-metric-card">
+                    <div className="profile-metric-icon-wrapper metric-followers-icon">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                    </div>
+                    <span className="profile-metric-value">{profile.follower_count || 0}</span>
+                    <span className="profile-metric-label">Followers</span>
+                  </div>
+
+                  {/* Total Views Card */}
+                  <div className="profile-metric-card">
+                    <div className="profile-metric-icon-wrapper metric-views-icon">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
+                    <span className="profile-metric-value">{totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}k` : totalViews}</span>
+                    <span className="profile-metric-label">Views</span>
+                  </div>
+
+                  {/* Likes Received Card */}
+                  <div className="profile-metric-card">
+                    <div className="profile-metric-icon-wrapper metric-likes-icon">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                    </div>
+                    <span className="profile-metric-value">{totalLikes >= 1000 ? `${(totalLikes / 1000).toFixed(1)}k` : totalLikes}</span>
+                    <span className="profile-metric-label">Likes</span>
+                  </div>
+
+                </div>
+              </div>
             </div>
 
             {/* Profile sub tabs */}
@@ -950,77 +1186,99 @@ export default function ProfilePage() {
           {/* Desktop Right profile sidebar widget */}
           <aside className="uget-profile-sidebar">
             <div className="uget-profile-avatar-lg">
-              {profile.avatar_url ? (
-                <Image src={profile.avatar_url} alt="" width={88} height={88} className="object-cover w-full h-full" />
-              ) : (
-                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-3xl flex items-center justify-center font-sans">
-                  {getInitials(profile.full_name)}
-                </div>
-              )}
+              <div className="uget-profile-avatar-inner">
+                {profile.avatar_url ? (
+                  <Image src={profile.avatar_url} alt="" width={96} height={96} className="object-cover w-full h-full" />
+                ) : (
+                  <div className="uget-profile-avatar-initials" style={{ background: getAvatarGradient(profile.full_name) }}>
+                    {getInitials(profile.full_name)}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <h2 className="font-bold text-lg text-gray-900 dark:text-gray-100 font-sans" style={{ marginBottom: '2px' }}>{profile.full_name}</h2>
-            <p className="text-sm text-gray-500 font-sans" style={{ marginBottom: '6px' }}>@{profile.username || "writer"}</p>
+            <h2 className="uget-profile-name">{profile.full_name}</h2>
+            <div className="uget-profile-username">
+              <span>@{profile.username || "writer"}</span>
+            </div>
 
             {profile.bio && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-serif leading-relaxed" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", marginBottom: '12px' }}>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-serif leading-relaxed" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", marginBottom: '16px' }}>
                 {profile.bio}
               </p>
             )}
 
             {/* Follow/Edit trigger buttons */}
-            <div style={{ marginBottom: '12px' }}>
+            <div style={{ marginBottom: '20px' }}>
               {currentUser && currentUser.id === profile.id ? (
                 <Link
                   href="/settings"
-                  className="btn btn-outline btn-sm font-sans w-full text-center"
-                  style={{ borderRadius: 999, textDecoration: "none", display: "block" }}
+                  className="profile-action-btn profile-action-btn-secondary"
                 >
-                  Edit profile
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                  <span>Edit profile</span>
                 </Link>
               ) : (
                 <button
                   onClick={handleFollow}
-                  className={`btn btn-sm font-sans w-full justify-center ${isFollowing ? "btn-outline" : "btn-primary"}`}
-                  style={{ borderRadius: 999 }}
+                  className={`profile-action-btn ${isFollowing ? "profile-action-btn-secondary" : "profile-action-btn-primary"}`}
                 >
-                  {isFollowing ? "Following" : "Follow"}
+                  {isFollowing ? (
+                    <>
+                      <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span>Following</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                      <span>Follow</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>
 
             {/* User details stats */}
-            <div style={{ paddingTop: '8px' }}>
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 font-sans">Metrics</h3>
-              <div className="flex flex-col font-sans text-sm">
-                <div className="flex justify-between items-center py-2.5 border-b border-gray-100/60 dark:border-gray-850/40">
-                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                    Stories
-                  </span>
-                  <span className="font-bold text-gray-900 dark:text-gray-100">{posts.length}</span>
+            <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 font-sans">Metrics</h3>
+              <div className="profile-metrics-grid">
+                
+                {/* Stories Card */}
+                <div className="profile-metric-card">
+                  <div className="profile-metric-icon-wrapper metric-stories-icon">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                  </div>
+                  <span className="profile-metric-value">{posts.length}</span>
+                  <span className="profile-metric-label">Stories</span>
                 </div>
-                <div className="flex justify-between items-center py-2.5 border-b border-gray-100/60 dark:border-gray-850/40">
-                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
-                    Followers
-                  </span>
-                  <span className="font-bold text-gray-900 dark:text-gray-100">{profile.follower_count || 0}</span>
+
+                {/* Followers Card */}
+                <div className="profile-metric-card">
+                  <div className="profile-metric-icon-wrapper metric-followers-icon">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                  </div>
+                  <span className="profile-metric-value">{profile.follower_count || 0}</span>
+                  <span className="profile-metric-label">Followers</span>
                 </div>
-                <div className="flex justify-between items-center py-2.5 border-b border-gray-100/60 dark:border-gray-850/40">
-                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    Total Views
-                  </span>
-                  <span className="font-bold text-gray-900 dark:text-gray-100">{totalViews.toLocaleString()}</span>
+
+                {/* Total Views Card */}
+                <div className="profile-metric-card">
+                  <div className="profile-metric-icon-wrapper metric-views-icon">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  </div>
+                  <span className="profile-metric-value">{totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}k` : totalViews}</span>
+                  <span className="profile-metric-label">Views</span>
                 </div>
-                <div className="flex justify-between items-center py-2.5">
-                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-                    Likes Received
-                  </span>
-                  <span className="font-bold text-gray-900 dark:text-gray-100">{totalLikes.toLocaleString()}</span>
+
+                {/* Likes Received Card */}
+                <div className="profile-metric-card">
+                  <div className="profile-metric-icon-wrapper metric-likes-icon">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                  </div>
+                  <span className="profile-metric-value">{totalLikes >= 1000 ? `${(totalLikes / 1000).toFixed(1)}k` : totalLikes}</span>
+                  <span className="profile-metric-label">Likes</span>
                 </div>
+
               </div>
             </div>
           </aside>
