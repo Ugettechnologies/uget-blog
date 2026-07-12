@@ -151,6 +151,16 @@ export async function GET() {
     } catch (idxErr: any) {
       console.warn("Could not create indexes:", idxErr.message);
     }
+    // 7. Add custom_lists column to profiles table
+    try {
+      await sql`
+        ALTER TABLE public.profiles 
+        ADD COLUMN IF NOT EXISTS custom_lists jsonb DEFAULT '[]'::jsonb
+      `;
+      console.log("✓ Profiles custom_lists column added/checked");
+    } catch (colErr: any) {
+      console.warn("Could not alter profiles table directly for custom_lists:", colErr.message);
+    }
 
     return NextResponse.json({
       success: true,

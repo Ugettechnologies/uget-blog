@@ -42,9 +42,9 @@ export default function LibraryPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleCreateList = (e: React.FormEvent) => {
+  const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newListName.trim()) return;
+    if (!newListName.trim() || !user) return;
     
     const newList = {
       id: Math.random().toString(36).substring(2) + "-" + Math.random().toString(36).substring(2),
@@ -56,40 +56,50 @@ export default function LibraryPage() {
     
     const updated = [...customLists, newList];
     setCustomLists(updated);
-    localStorage.setItem("uget_custom_lists", JSON.stringify(updated));
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ custom_lists: updated })
+      .eq("id", user.id);
+      
+    if (error) {
+      showMsg("Failed to save list to database: " + error.message, "err");
+    } else {
+      showMsg(`List "${newList.name}" created successfully!`, "ok");
+    }
     
     setNewListName("");
     setNewListPrivate(true);
     setIsNewListModalOpen(false);
-    
-    showMsg(`List "${newList.name}" created successfully!`, "ok");
   };
 
-  const handleDeleteList = (id: string) => {
+  const handleDeleteList = async (id: string) => {
+    if (!user) return;
     const listToDelete = customLists.find(l => l.id === id);
     const updated = customLists.filter((l) => l.id !== id);
     setCustomLists(updated);
-    localStorage.setItem("uget_custom_lists", JSON.stringify(updated));
+    
     if (expandedListId === id) {
       setExpandedListId(null);
     }
-    if (listToDelete) {
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ custom_lists: updated })
+      .eq("id", user.id);
+      
+    if (error) {
+      showMsg("Failed to delete list from database: " + error.message, "err");
+    } else if (listToDelete) {
       showMsg(`List "${listToDelete.name}" deleted successfully!`, "ok");
     }
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("uget_custom_lists");
-      if (saved) {
-        try {
-          setCustomLists(JSON.parse(saved));
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    if (userProfile) {
+      setCustomLists(userProfile.custom_lists || []);
     }
-  }, []);
+  }, [userProfile]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -511,7 +521,7 @@ export default function LibraryPage() {
         }
         .toast {
           background-color: var(--black);
-          color: white;
+          color: var(--bg);
           padding: 12px 24px;
           border-radius: 12px;
           font-family: var(--sans);
