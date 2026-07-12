@@ -1227,7 +1227,7 @@ export default function SettingsPage() {
                     <div className="settings-row-action">
                       <button
                         onClick={() =>
-                          alert("Please contact support@uget.com to update your email address.")
+                          alert("Please contact support@echogist.com to update your email address.")
                         }
                         className="settings-action-btn"
                       >
@@ -1317,7 +1317,7 @@ export default function SettingsPage() {
                             </label>
                             <div className="flex items-center">
                               <span className="bg-gray-100 border border-gray-200 border-r-0 rounded-l-lg px-3 py-2 text-gray-500 font-sans text-sm">
-                                uget.com/@
+                                echogist.com/@
                               </span>
                               <input
                                 type="text"
@@ -2664,65 +2664,61 @@ export default function SettingsPage() {
  
           {/* Right sidebar help articles widget */}
           <aside className="settings-help-sidebar">
-            <div className="settings-help-card" style={{ border: "none", padding: "0 0 0 24px", background: "transparent", borderLeft: "1px solid #f2f2f2", borderRadius: 0 }}>
-              <h3 className="settings-help-title" style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "#242424", marginBottom: 20 }}>Suggested help articles</h3>
-              <a
-                href="https://help.uget.com"
-                target="_blank"
-                rel="noreferrer"
-                className="settings-help-link"
-                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
+            <div className="settings-help-card" style={{ border: "none", padding: "0 0 0 24px", background: "transparent", borderLeft: "1px solid var(--border)", borderRadius: 0 }}>
+              <h3 className="settings-help-title" style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--black)", marginBottom: 20 }}>Suggested help articles</h3>
+              <Link
+                href="/help"
+                className="settings-help-link hover:underline"
+                style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16, display: "block", textDecoration: "none" }}
               >
-                Sign in or sign up to UGET
-              </a>
-              <a
-                href="https://help.uget.com"
-                target="_blank"
-                rel="noreferrer"
-                className="settings-help-link"
-                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
+                Sign in or sign up to EchoGist
+              </Link>
+              <Link
+                href="/help"
+                className="settings-help-link hover:underline"
+                style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16, display: "block", textDecoration: "none" }}
               >
                 Your profile page
-              </a>
-              <a
-                href="https://help.uget.com"
-                target="_blank"
-                rel="noreferrer"
-                className="settings-help-link"
-                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
+              </Link>
+              <Link
+                href="/help"
+                className="settings-help-link hover:underline"
+                style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16, display: "block", textDecoration: "none" }}
               >
                 Writing and publishing your first story
-              </a>
-              <a
-                href="https://help.uget.com"
-                target="_blank"
-                rel="noreferrer"
-                className="settings-help-link"
-                style={{ fontSize: 14, color: "#757575", marginBottom: 16, display: "block" }}
+              </Link>
+              <Link
+                href="/help"
+                className="settings-help-link hover:underline"
+                style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16, display: "block", textDecoration: "none" }}
               >
-                About UGET's distribution system
-              </a>
-              <a
-                href="https://help.uget.com"
-                target="_blank"
-                rel="noreferrer"
-                className="settings-help-link"
-                style={{ fontSize: 14, color: "#757575", marginBottom: 24, display: "block" }}
+                About EchoGist's distribution system
+              </Link>
+              <Link
+                href="/help"
+                className="settings-help-link hover:underline"
+                style={{ fontSize: 14, color: "var(--muted)", marginBottom: 24, display: "block", textDecoration: "none" }}
               >
                 Get started with the Partner Program
-              </a>
+              </Link>
  
-              <div className="settings-help-footer" style={{ borderTop: "none", paddingTop: 0, marginTop: 40, color: "#9ca3af", fontSize: 12, lineHeight: 1.8, display: "flex", flexWrap: "wrap", gap: "8px 12px" }}>
-                <span>Help</span>
-                <span>Status</span>
-                <span>About</span>
-                <span>Careers</span>
-                <span>Press</span>
-                <span>Blog</span>
-                <span>Privacy</span>
-                <span>Rules</span>
-                <span>Terms</span>
-                <span>Text to speech</span>
+              <div className="settings-help-footer" style={{ borderTop: "none", paddingTop: 0, marginTop: 40, color: "var(--muted-2)", fontSize: 12, lineHeight: 1.8, display: "flex", flexWrap: "wrap", gap: "8px 12px" }}>
+                {[
+                  { label: "Help", href: "/help" },
+                  { label: "Status", href: "/status" },
+                  { label: "About", href: "/about" },
+                  { label: "Careers", href: "/careers" },
+                  { label: "Press", href: "/press" },
+                  { label: "Blog", href: "/blog" },
+                  { label: "Privacy", href: "/privacy" },
+                  { label: "Rules", href: "/rules" },
+                  { label: "Terms", href: "/terms" },
+                  { label: "Text to speech", href: "/text-to-speech" }
+                ].map((item) => (
+                  <Link key={item.label} href={item.href} style={{ color: "var(--muted-2)", textDecoration: "none" }} className="hover:underline">
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
           </aside>
