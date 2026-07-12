@@ -413,10 +413,24 @@ export default function RefineRecommendationsPage() {
         {/* Header bar */}
         <header className="uget-header">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors">
+            {/* Hamburger for desktop & mobile */}
+            <button
+              onClick={() => {
+                if (window.innerWidth > 1024) {
+                  const isCollapsed = document.documentElement.classList.toggle("sidebar-collapsed");
+                  localStorage.setItem("uget_sidebar_collapsed", String(isCollapsed));
+                } else {
+                  setSidebarOpen(true);
+                }
+              }}
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-gray-600 dark:text-zinc-400 transition-colors"
+              title="Toggle menu"
+            >
               <HamburgerIcon />
             </button>
-            <Link href="/" className="lg:hidden flex items-center gap-1.5" style={{ textDecoration: "none" }}>
+
+            {/* Logo for mobile / collapsed desktop header */}
+            <Link href="/" className="uget-header-logo flex items-center gap-1.5" style={{ textDecoration: "none" }}>
               <Image src="/favicon.png" alt="EchoGist" width={24} height={24} />
               <span className="font-bold text-lg text-violet-600 font-display">EchoGist</span>
             </Link>

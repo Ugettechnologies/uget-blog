@@ -402,18 +402,26 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   font-family: var(--sans); font-size: 12px; color: var(--muted-2);
 }
 .post-card-tag {
-  background: var(--bg-2); color: var(--muted);
-  padding: 3px 10px; border-radius: 999px; font-size: 11px;
-  font-family: var(--sans); font-weight: 600;
-  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--brand-light);
+  color: var(--brand);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-family: var(--sans);
+  font-weight: 700;
+  border: 1px solid rgba(124, 58, 237, 0.15);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  line-height: 1;
   transition: all 0.2s ease;
 }
 .post-card:hover .post-card-tag {
-  border-color: rgba(124, 58, 237, 0.25);
-  background-color: var(--brand-light);
-  color: var(--brand);
+  background: var(--brand);
+  color: white;
+  border-color: var(--brand);
 }
 .post-card-image {
   width: 160px; min-width: 160px; height: 108px;
@@ -1281,7 +1289,32 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
     max-width: 680px;
     margin: 0 auto;
   }
+}/* Persistent Desktop Left Sidebar toggle styles */
+.uget-sidebar {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.uget-main {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.sidebar-collapsed .uget-sidebar {
+  transform: translateX(-252px) !important;
+}
 
+.sidebar-collapsed .uget-main {
+  margin-left: 0 !important;
+}
 
+.uget-header-logo {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .uget-header-logo {
+    display: flex !important;
+  }
+}
+
+.sidebar-collapsed .uget-header-logo {
+  display: flex !important;
+}

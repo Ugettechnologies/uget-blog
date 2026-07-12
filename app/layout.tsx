@@ -25,6 +25,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         } else {
           document.documentElement.classList.remove('dark');
         }
+        
+        var sidebarCollapsed = localStorage.getItem('uget_sidebar_collapsed') === 'true';
+        if (sidebarCollapsed) {
+          document.documentElement.classList.add('sidebar-collapsed');
+        } else {
+          document.documentElement.classList.remove('sidebar-collapsed');
+        }
       } catch (e) {}
     })();
   `;
