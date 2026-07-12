@@ -1065,11 +1065,9 @@ export default function ProfilePage() {
                               <span>· {post.like_count} likes</span>
                             </div>
                           </div>
-                          {post.cover_image && (
-                            <Link href={`/post/${post.slug}`} className="post-card-image">
-                              <Image src={post.cover_image} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                            </Link>
-                          )}
+                          <Link href={`/post/${post.slug}`} className="post-card-image">
+                            <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/600/400`} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                          </Link>
                         </article>
                       );
                     })}

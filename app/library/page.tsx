@@ -988,14 +988,14 @@ export default function LibraryPage() {
 
                     {/* Miniature card cover blocks mock */}
                     <div style={{ display: "flex", gap: 2, height: 80, width: 90, borderRadius: 6, overflow: "hidden", border: "1px solid var(--border-2)", flexShrink: 0, marginLeft: 16 }}>
-                      <div style={{ flex: 1, background: bookmarks[0]?.cover_image ? "none" : "#f3f4f6", position: "relative" }}>
-                        {bookmarks[0]?.cover_image && <Image src={bookmarks[0].cover_image} alt="" fill style={{ objectFit: "cover" }} />}
+                      <div style={{ flex: 1, position: "relative" }}>
+                        {bookmarks[0] && <Image src={bookmarks[0].cover_image || `https://picsum.photos/seed/${bookmarks[0].id}/120/120`} alt="" fill style={{ objectFit: "cover" }} />}
                       </div>
-                      <div style={{ width: 28, background: bookmarks[1]?.cover_image ? "none" : "#e5e7eb", borderLeft: "1px solid var(--border-2)", position: "relative" }}>
-                        {bookmarks[1]?.cover_image && <Image src={bookmarks[1].cover_image} alt="" fill style={{ objectFit: "cover" }} />}
+                      <div style={{ width: 28, borderLeft: "1px solid var(--border-2)", position: "relative" }}>
+                        {bookmarks[1] && <Image src={bookmarks[1].cover_image || `https://picsum.photos/seed/${bookmarks[1].id}/120/120`} alt="" fill style={{ objectFit: "cover" }} />}
                       </div>
-                      <div style={{ width: 28, background: bookmarks[2]?.cover_image ? "none" : "#f3f4f6", borderLeft: "1px solid var(--border-2)", position: "relative" }}>
-                        {bookmarks[2]?.cover_image && <Image src={bookmarks[2].cover_image} alt="" fill style={{ objectFit: "cover" }} />}
+                      <div style={{ width: 28, borderLeft: "1px solid var(--border-2)", position: "relative" }}>
+                        {bookmarks[2] && <Image src={bookmarks[2].cover_image || `https://picsum.photos/seed/${bookmarks[2].id}/120/120`} alt="" fill style={{ objectFit: "cover" }} />}
                       </div>
                     </div>
                   </div>
@@ -1045,11 +1045,9 @@ export default function LibraryPage() {
                                     <span>{post.read_time || 1} min read</span>
                                   </div>
                                 </div>
-                                {post.cover_image && (
-                                  <Link href={`/post/${post.slug}`} style={{ width: 100, height: 66, position: "relative", flexShrink: 0, borderRadius: 4, overflow: "hidden" }}>
-                                    <Image src={post.cover_image} alt="" fill style={{ objectFit: "cover" }} />
-                                  </Link>
-                                )}
+                                <Link href={`/post/${post.slug}`} style={{ width: 100, height: 66, position: "relative", flexShrink: 0, borderRadius: 4, overflow: "hidden" }}>
+                                  <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/150/100`} alt="" fill style={{ objectFit: "cover" }} />
+                                </Link>
                               </article>
                             );
                           })}

@@ -286,11 +286,9 @@ export default function AdminPage() {
                           {p.excerpt && <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", margin: 0, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.excerpt}</p>}
                         </Link>
                       </div>
-                      {p.cover_image && (
-                        <Link href={`/post/${p.slug}`} style={{ width: 100, height: 100, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
-                          <Image src={p.cover_image} alt="" width={100} height={100} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                        </Link>
-                      )}
+                      <Link href={`/post/${p.slug}`} style={{ width: 100, height: 100, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
+                        <Image src={p.cover_image || `https://picsum.photos/seed/${p.id || p.slug}/150/150`} alt="" width={100} height={100} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                      </Link>
                     </article>
                   );
                 })

@@ -762,11 +762,7 @@ export default function DashboardPage() {
                         return (
                           <div key={post.id} className="story-row-wrapper">
                             <div className="post-thumb">
-                              {post.cover_image ? (
-                                <Image src={post.cover_image} alt="" width={80} height={60} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                              ) : (
-                                <span style={{ fontSize: 22 }}>{cat?.icon || "📝"}</span>
-                              )}
+                              <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/120/90`} alt="" width={80} height={60} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
@@ -1158,11 +1154,9 @@ export default function DashboardPage() {
                                 {cat && <span>· {cat.icon} {cat.label}</span>}
                               </div>
                             </div>
-                            {post.cover_image && (
-                              <Link href={`/post/${post.slug}`} style={{ width: 90, height: 90, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
-                                <Image src={post.cover_image} alt="" width={90} height={90} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                              </Link>
-                            )}
+                            <Link href={`/post/${post.slug}`} style={{ width: 90, height: 90, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
+                              <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/120/120`} alt="" width={90} height={90} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                            </Link>
                           </article>
                         );
                       })

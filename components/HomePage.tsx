@@ -52,11 +52,7 @@ function PostCard({ post }: { post: Post }) {
         </div>
       </div>
       <Link href={`/post/${post.slug}`} className="post-card-image">
-        {post.cover_image ? (
-          <Image src={post.cover_image} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-        ) : (
-          <div className="post-card-placeholder">{cat?.icon || "📝"}</div>
-        )}
+        <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/600/400`} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
       </Link>
     </article>
   );
@@ -67,13 +63,7 @@ function FeaturedCard({ post }: { post: Post }) {
   const authorName = (post.profiles as any)?.full_name || "Writer";
   return (
     <Link href={`/post/${post.slug}`} className="featured-card" style={{ textDecoration: "none", display: "block" }}>
-      {post.cover_image ? (
-        <Image src={post.cover_image} alt={post.title} fill className="featured-card-img" style={{ objectFit: "cover" }} />
-      ) : (
-        <div className="featured-card-img" style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #3d3d3d 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontSize: 80, opacity: 0.3 }}>{cat?.icon}</span>
-        </div>
-      )}
+      <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/1000/600`} alt={post.title} fill className="featured-card-img" style={{ objectFit: "cover" }} />
       <div className="featured-card-overlay" />
       <div className="featured-card-content">
         {cat && <span className="featured-card-tag">{cat.label}</span>}

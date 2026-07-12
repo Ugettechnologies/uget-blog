@@ -369,11 +369,9 @@ export default function StaffPage() {
                               {cat && <span style={{ background: "var(--bg-3)", padding: "2px 8px", borderRadius: 12 }}>{cat.icon} {cat.label}</span>}
                             </div>
                           </div>
-                          {post.cover_image && (
-                            <Link href={`/post/${post.slug}`} style={{ width: 112, height: 112, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
-                              <Image src={post.cover_image} alt="" width={112} height={112} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                            </Link>
-                          )}
+                          <Link href={`/post/${post.slug}`} style={{ width: 112, height: 112, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
+                            <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/150/150`} alt="" width={112} height={112} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                          </Link>
                         </article>
                       );
                     })}

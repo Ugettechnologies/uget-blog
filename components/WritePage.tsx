@@ -249,12 +249,14 @@ export default function WritePage() {
 
     const slug = slugify(title) + "-" + Math.random().toString(36).slice(2, 6);
     const readTime = estimateReadTime(content);
+    const imageSeed = postId || slug;
+    const finalCoverImage = coverImage || `https://picsum.photos/seed/${imageSeed}/800/500`;
     const payload = {
       title: title.trim(),
       slug: postId ? undefined : slug,
       excerpt: subtitle.trim() || content.replace(/<[^>]*>/g, "").slice(0, 160) + "…",
       content,
-      cover_image: coverImage || null,
+      cover_image: finalCoverImage,
       category,
       tags,
       author_id: publishAsStaff ? "c0de57af-f011-0e5a-ff55-c0de57aff555" : user.id,
