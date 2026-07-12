@@ -8,6 +8,7 @@ import { UserDropdown } from "@/components/UserDropdown";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import type { Post } from "@/lib/types";
 import { SidebarNav, SidebarFollowingList, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon } from "@/components/SidebarNav";
+import SafeImage from "../../components/SafeImage";
 
 export default function LibraryPage() {
   const [bookmarks, setBookmarks] = useState<any[]>([]);
@@ -1008,13 +1009,13 @@ export default function LibraryPage() {
                     {/* Miniature card cover blocks mock */}
                     <div style={{ display: "flex", gap: 2, height: 80, width: 90, borderRadius: 6, overflow: "hidden", border: "1px solid var(--border-2)", flexShrink: 0, marginLeft: 16 }}>
                       <div style={{ flex: 1, position: "relative" }}>
-                        {bookmarks[0] && <Image src={bookmarks[0].cover_image || `https://picsum.photos/seed/${bookmarks[0].id}/120/120`} alt="" fill style={{ objectFit: "cover" }} />}
+                        {bookmarks[0] && <SafeImage src={bookmarks[0].cover_image} alt="" fill fallbackSeed={bookmarks[0].id} />}
                       </div>
                       <div style={{ width: 28, borderLeft: "1px solid var(--border-2)", position: "relative" }}>
-                        {bookmarks[1] && <Image src={bookmarks[1].cover_image || `https://picsum.photos/seed/${bookmarks[1].id}/120/120`} alt="" fill style={{ objectFit: "cover" }} />}
+                        {bookmarks[1] && <SafeImage src={bookmarks[1].cover_image} alt="" fill fallbackSeed={bookmarks[1].id} />}
                       </div>
                       <div style={{ width: 28, borderLeft: "1px solid var(--border-2)", position: "relative" }}>
-                        {bookmarks[2] && <Image src={bookmarks[2].cover_image || `https://picsum.photos/seed/${bookmarks[2].id}/120/120`} alt="" fill style={{ objectFit: "cover" }} />}
+                        {bookmarks[2] && <SafeImage src={bookmarks[2].cover_image} alt="" fill fallbackSeed={bookmarks[2].id} />}
                       </div>
                     </div>
                   </div>
@@ -1065,7 +1066,7 @@ export default function LibraryPage() {
                                   </div>
                                 </div>
                                 <Link href={`/post/${post.slug}`} style={{ width: 100, height: 66, position: "relative", flexShrink: 0, borderRadius: 4, overflow: "hidden" }}>
-                                  <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/150/100`} alt="" fill style={{ objectFit: "cover" }} />
+                                  <SafeImage src={post.cover_image} alt="" fill fallbackSeed={post.id || post.slug} />
                                 </Link>
                               </article>
                             );

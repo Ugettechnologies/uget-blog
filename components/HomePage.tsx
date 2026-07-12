@@ -10,6 +10,7 @@ import type { Post } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon } from "./SidebarNav";
+import SafeImage from "./SafeImage";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -22,37 +23,32 @@ function PostCard({ post }: { post: Post }) {
         <div className="post-card-author">
           <Link href={`/profile/${authorUsername}`} className="post-card-author-avatar" style={{ textDecoration: "none" }}>
             {authorAvatar ? (
-              <Image src={authorAvatar} alt={authorName} width={24} height={24} style={{ objectFit: "cover" }} />
+              <SafeImage src={authorAvatar} alt={authorName} width={24} height={24} style={{ objectFit: "cover" }} />
             ) : (
               <span>{getInitials(authorName)}</span>
             )}
           </Link>
-          <Link href={`/profile/${authorUsername}`} className="post-card-author-name" style={{ textDecoration: "none" }}>
-            {authorName}
-          </Link>
-          <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)", fontWeight: 400, marginLeft: 2 }}>
-            @{authorUsername}
-          </span>
+          <div className="post-card-author-info">
+            <Link href={`/profile/${authorUsername}`} style={{ textDecoration: "none", color: "var(--ink)", fontWeight: 600 }}>{authorName}</Link>
+            <span>·</span>
+            <span>{formatDate(post.created_at)}</span>
+          </div>
         </div>
-        <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>
-          <h2 className="post-card-title">{post.title}</h2>
+        <Link href={`/post/${post.slug}`} className="post-card-title-link" style={{ textDecoration: "none" }}>
+          <h3 className="post-card-title">{post.title}</h3>
           {post.excerpt && <p className="post-card-excerpt">{post.excerpt}</p>}
         </Link>
-        <div className="post-card-meta">
+        <div className="post-card-footer">
           {cat && <span className="post-card-tag">{cat.label}</span>}
-          <span>{formatDate(post.created_at)}</span>
-          <span>·</span>
-          <span>{post.read_time || 1} min read</span>
-          <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+          <span>{post.read_time} min read</span>
+          <span className="flex items-center gap-1">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
             {post.like_count}
           </span>
         </div>
       </div>
       <Link href={`/post/${post.slug}`} className="post-card-image">
-        <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/600/400`} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+        <SafeImage src={post.cover_image} alt={post.title} width={160} height={108} fallbackSeed={post.id || post.slug} />
       </Link>
     </article>
   );
@@ -63,7 +59,7 @@ function FeaturedCard({ post }: { post: Post }) {
   const authorName = (post.profiles as any)?.full_name || "Writer";
   return (
     <Link href={`/post/${post.slug}`} className="featured-card" style={{ textDecoration: "none", display: "block" }}>
-      <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/1000/600`} alt={post.title} fill className="featured-card-img" style={{ objectFit: "cover" }} />
+      <SafeImage src={post.cover_image} alt={post.title} fill className="featured-card-img" fallbackSeed={post.id || post.slug} />
       <div className="featured-card-overlay" />
       <div className="featured-card-content">
         {cat && <span className="featured-card-tag">{cat.label}</span>}

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/db-client/client";
 import { UserDropdown } from "@/components/UserDropdown";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
+import SafeImage from "./SafeImage";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, OptionsIcon, SettingsIcon, HelpIcon, SignOutIcon } from "@/components/SidebarNav";
 
 type TabType = "stories" | "stats" | "followers" | "staff";
@@ -762,7 +763,7 @@ export default function DashboardPage() {
                         return (
                           <div key={post.id} className="story-row-wrapper">
                             <div className="post-thumb">
-                              <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/120/90`} alt="" width={80} height={60} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                              <SafeImage src={post.cover_image} alt="" width={80} height={60} fallbackSeed={post.id || post.slug} />
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
@@ -1155,7 +1156,7 @@ export default function DashboardPage() {
                               </div>
                             </div>
                             <Link href={`/post/${post.slug}`} style={{ width: 90, height: 90, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
-                              <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/120/120`} alt="" width={90} height={90} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                              <SafeImage src={post.cover_image} alt="" width={90} height={90} fallbackSeed={post.id || post.slug} />
                             </Link>
                           </article>
                         );

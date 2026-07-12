@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Comment } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
+import SafeImage from "./SafeImage";
 
 export default function PostPage() {
   const params = useParams();
@@ -309,9 +310,8 @@ export default function PostPage() {
         </div>
       </div>
 
-      {/* Cover image */}
       <div className="article-cover">
-        <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/1000/600`} alt={post.title} width={900} height={500} style={{ width: "100%", height: "auto", borderRadius: 8 }} />
+        <SafeImage src={post.cover_image} alt={post.title} width={900} height={500} style={{ width: "100%", height: "auto", borderRadius: 8 }} fallbackSeed={post.id || post.slug} />
       </div>
 
       {/* Article body */}
@@ -441,7 +441,7 @@ export default function PostPage() {
                   <Link key={r.id} href={`/post/${r.slug}`} style={{ textDecoration: "none", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", display: "block", transition: "box-shadow 0.2s" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "var(--shadow-md)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none"; }}>
-                    <Image src={r.cover_image || `https://picsum.photos/seed/${r.id || r.slug}/600/400`} alt={r.title} width={280} height={160} style={{ width: "100%", height: 160, objectFit: "cover" }} />
+                    <SafeImage src={r.cover_image} alt={r.title} width={280} height={160} style={{ width: "100%", height: 160, objectFit: "cover" }} fallbackSeed={r.id || r.slug} />
                     <div style={{ padding: 16 }}>
                       <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", marginBottom: 6 }}>{rAuthor?.full_name}</div>
                       <h4 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", lineHeight: 1.3 }} className="truncate-2">{r.title}</h4>

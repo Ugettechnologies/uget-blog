@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
+import SafeImage from "./SafeImage";
 
 type AdminTab = "overview" | "posts" | "users" | "payments" | "staff";
 
@@ -287,7 +288,7 @@ export default function AdminPage() {
                         </Link>
                       </div>
                       <Link href={`/post/${p.slug}`} style={{ width: 100, height: 100, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
-                        <Image src={p.cover_image || `https://picsum.photos/seed/${p.id || p.slug}/150/150`} alt="" width={100} height={100} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                        <SafeImage src={p.cover_image} alt="" width={100} height={100} fallbackSeed={p.id || p.slug} />
                       </Link>
                     </article>
                   );

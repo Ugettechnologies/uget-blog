@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
+import SafeImage from "@/components/SafeImage";
 
 export default function StaffPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -370,7 +371,7 @@ export default function StaffPage() {
                             </div>
                           </div>
                           <Link href={`/post/${post.slug}`} style={{ width: 112, height: 112, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
-                            <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/150/150`} alt="" width={112} height={112} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                            <SafeImage src={post.cover_image} alt="" width={112} height={112} fallbackSeed={post.id || post.slug} />
                           </Link>
                         </article>
                       );

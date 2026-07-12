@@ -8,6 +8,7 @@ import { UserDropdown } from "@/components/UserDropdown";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon } from "@/components/SidebarNav";
+import SafeImage from "./SafeImage";
 
 function getAvatarGradient(name: string | null | undefined) {
   const gradients = [
@@ -375,6 +376,9 @@ export default function ProfilePage() {
           border-radius: 24px;
           padding: 28px 24px;
           box-shadow: var(--shadow-md);
+        }
+        .uget-profile-header-card {
+          display: none !important;
         }
         .uget-profile-avatar-lg {
           position: relative;
@@ -1093,7 +1097,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <Link href={`/post/${post.slug}`} className="post-card-image">
-                            <Image src={post.cover_image || `https://picsum.photos/seed/${post.id || post.slug}/600/400`} alt={post.title} width={160} height={108} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                            <SafeImage src={post.cover_image} alt={post.title} width={160} height={108} fallbackSeed={post.id || post.slug} />
                           </Link>
                         </article>
                       );
