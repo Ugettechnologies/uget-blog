@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 
 export default function AboutPage() {
   return (
-    <div style={{ background: "#191919", minHeight: "100vh", color: "#ffffff", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)", display: "flex", flexDirection: "column" }}>
       <Navbar />
 
       <main style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "100px 24px 120px" }}>
@@ -15,7 +15,7 @@ export default function AboutPage() {
               fontSize: "clamp(44px, 8vw, 88px)", 
               fontWeight: 400, 
               lineHeight: 1.05, 
-              color: "#ffffff", 
+              color: "var(--black)", 
               letterSpacing: "-0.03em",
               marginBottom: 48,
               maxWidth: 750
@@ -30,7 +30,7 @@ export default function AboutPage() {
                 fontFamily: "var(--serif)", 
                 fontSize: 22, 
                 lineHeight: 1.6, 
-                color: "rgba(255, 255, 255, 0.95)",
+                color: "var(--ink-2)",
                 fontWeight: 300
               }}
             >
@@ -42,9 +42,9 @@ export default function AboutPage() {
                 fontFamily: "var(--serif)", 
                 fontSize: 22, 
                 lineHeight: 1.6, 
-                color: "rgba(255, 255, 255, 0.95)",
+                color: "var(--ink)",
                 fontWeight: 300,
-                borderLeft: "2px solid rgba(255, 255, 255, 0.3)",
+                borderLeft: "2.5px solid var(--black)",
                 paddingLeft: 24,
                 fontStyle: "italic"
               }}

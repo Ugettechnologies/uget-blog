@@ -17,9 +17,10 @@ export default function StorePage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 32 }}>
           {[
-            { name: "The EchoGist Minimalist Notebook", price: "$18.00", desc: "A hardbound, lay-flat journal with cream-colored acid-free pages, optimized for fountain pen drafting.", tag: "Notebook" },
-            { name: "Matte Metal Gel Ink Pen", price: "$12.00", desc: "Precision tip and quick-dry black ink for fluid, uninterrupted handwriting sessions.", tag: "Writing" },
-            { name: "Premium Cotton Tote Bag", price: "$22.00", desc: "Extra wide double-stitched canvas tote with custom embroidered brand logo for carrying books and laptops.", tag: "Apparel" }
+            { name: "The EchoGist Minimalist Notebook", price: "₦15,000.00", desc: "A hardbound, lay-flat journal with cream-colored acid-free pages, optimized for fountain pen drafting.", tag: "Notebook" },
+            { name: "Matte Metal Gel Ink Pen", price: "₦10,000.00", desc: "Precision tip and quick-dry black ink for fluid, uninterrupted handwriting sessions.", tag: "Writing" },
+            { name: "Premium Cotton Tote Bag", price: "₦18,000.00", desc: "Extra wide double-stitched canvas tote with custom embroidered brand logo for carrying books and laptops.", tag: "Apparel" },
+            { name: "EchoGist Signature T-Shirt", price: "₦20,000.00", desc: "Heavyweight 100% combed cotton t-shirt with premium embroidered brand logo on the left chest. Perfect fit and maximum comfort.", tag: "Apparel" }
           ].map((item) => (
             <div 
               key={item.name}
