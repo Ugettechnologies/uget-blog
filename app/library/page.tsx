@@ -106,7 +106,10 @@ export default function LibraryPage() {
           lists = [];
         }
       }
-      setCustomLists(lists || []);
+      if (!Array.isArray(lists)) {
+        lists = [];
+      }
+      setCustomLists(lists);
     }
   }, [userProfile]);
 
@@ -1086,7 +1089,7 @@ export default function LibraryPage() {
 
                   {/* Custom Lists rendering */}
                   <div className="custom-lists-container">
-                    {customLists.map((item) => {
+                    {Array.isArray(customLists) && customLists.filter(Boolean).map((item) => {
                       const isExpanded = expandedListId === item.id;
                       return (
                         <div key={item.id}>
