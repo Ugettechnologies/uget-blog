@@ -572,10 +572,10 @@ export default function HomePage() {
                     <div className="spinner" style={{ borderTopColor: "var(--ink)", borderColor: "var(--border)", margin: "0 auto" }} />
                     <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
                   </div>
-                ) : rest.length === 0 ? (
+                ) : posts.length === 0 ? (
                   <EmptyState />
                 ) : (
-                  rest.map((post) => <PostCard key={post.id} post={post} />)
+                  posts.map((post) => <PostCard key={post.id} post={post} />)
                 )}
               </main>
 
