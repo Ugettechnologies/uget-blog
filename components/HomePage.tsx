@@ -76,30 +76,197 @@ function FeaturedCard({ post }: { post: Post }) {
 }
 
 const MediumIllustration = () => (
-  <svg viewBox="0 0 400 400" width="100%" height="100%" style={{ maxWidth: 420 }}>
-    {/* Geometric diagram lines */}
-    <line x1="100" y1="50" x2="100" y2="350" stroke="rgba(124,58,237,0.08)" strokeWidth="1" strokeDasharray="4 4" />
-    <line x1="50" y1="300" x2="350" y2="300" stroke="rgba(124,58,237,0.08)" strokeWidth="1" strokeDasharray="4 4" />
-    
-    <circle cx="100" cy="300" r="120" stroke="rgba(124,58,237,0.15)" strokeWidth="1" fill="none" />
-    <circle cx="100" cy="300" r="180" stroke="rgba(124,58,237,0.08)" strokeWidth="1" fill="none" />
-    
-    {/* Math diagram arcs and lines */}
-    <path d="M 100 120 A 180 180 0 0 1 280 300" stroke="rgba(124,58,237,0.3)" strokeWidth="1.5" fill="none" />
-    <line x1="100" y1="300" x2="227" y2="173" stroke="rgba(124,58,237,0.2)" strokeWidth="1" />
-    <circle cx="227" cy="173" r="4" fill="var(--brand)" />
-    
-    {/* Brand purple flower elements */}
-    <g transform="translate(250, 150)">
-      {/* Central center circle */}
-      <circle cx="0" cy="0" r="28" fill="var(--brand)" />
-      {/* 5 Petals */}
-      <path d="M 0 -28 C -30 -80, 30 -80, 0 -28" fill="var(--brand)" opacity="0.95" />
-      <path d="M 26.6 -8.6 C 75 -35, 85 25, 26.6 -8.6" fill="var(--brand)" opacity="0.95" transform="rotate(72)" />
-      <path d="M 16.5 22.7 C 55 60, -15 85, 16.5 22.7" fill="var(--brand)" opacity="0.95" transform="rotate(144)" />
-      <path d="M -16.5 22.7 C -55 60, 15 85, -16.5 22.7" fill="var(--brand)" opacity="0.95" transform="rotate(216)" />
-      <path d="M -26.6 -8.6 C -75 -35, -85 25, -26.6 -8.6" fill="var(--brand)" opacity="0.95" transform="rotate(288)" />
+  <svg viewBox="0 0 400 400" width="100%" height="100%" style={{ maxWidth: 420 }} className="animated-head-svg">
+    <defs>
+      <linearGradient id="glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#8b5cf6" /> {/* Brand Purple */}
+        <stop offset="100%" stopColor="#ec4899" /> {/* Accent Pink */}
+      </linearGradient>
+      <linearGradient id="hair-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#c084fc" />
+        <stop offset="50%" stopColor="#8b5cf6" />
+        <stop offset="100%" stopColor="#3b82f6" />
+      </linearGradient>
+      <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="4" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+
+    {/* Abstract wireframe/neural connections in the background */}
+    <g opacity="0.15">
+      <circle cx="200" cy="200" r="180" fill="none" stroke="url(#glow-grad)" strokeWidth="0.8" strokeDasharray="3 6" />
+      <circle cx="200" cy="200" r="140" fill="none" stroke="url(#glow-grad)" strokeWidth="0.8" />
+      <line x1="20" y1="200" x2="380" y2="200" stroke="url(#glow-grad)" strokeWidth="0.5" strokeDasharray="4 4" />
+      <line x1="200" y1="20" x2="200" y2="380" stroke="url(#glow-grad)" strokeWidth="0.5" strokeDasharray="4 4" />
     </g>
+
+    {/* Glowing Outer Head Outline */}
+    <path 
+      d="M 120 120 C 100 200, 120 280, 200 320 C 280 280, 300 200, 280 120 C 270 80, 130 80, 120 120 Z" 
+      fill="none" 
+      stroke="url(#glow-grad)" 
+      strokeWidth="1.8" 
+      className="glow-path"
+      style={{ filter: "url(#neon-glow)", opacity: 0.85 }} 
+    />
+
+    {/* Abstract Face Contours for 3D Mesh Effect */}
+    <g fill="none" stroke="url(#glow-grad)" strokeWidth="0.8" opacity="0.45">
+      {/* Forehead */}
+      <path d="M 140 120 Q 200 135 260 120" />
+      <path d="M 150 140 Q 200 152 250 140" />
+      {/* Cheekbones */}
+      <path d="M 125 210 Q 160 225 185 215" />
+      <path d="M 275 210 Q 240 225 215 215" />
+      {/* Chin/Jaw */}
+      <path d="M 155 275 Q 200 292 245 275" />
+      {/* Vertical grid lines */}
+      <path d="M 200 85 Q 200 150 200 320" strokeWidth="1.2" opacity="0.6" />
+      <path d="M 165 90 Q 160 180 160 305" strokeDasharray="2 4" />
+      <path d="M 235 90 Q 240 180 240 305" strokeDasharray="2 4" />
+    </g>
+
+    {/* Nose */}
+    <path 
+      d="M 200 155 L 196 215 L 204 215" 
+      fill="none" 
+      stroke="url(#glow-grad)" 
+      strokeWidth="1.8" 
+      strokeLinejoin="round" 
+      opacity="0.8" 
+    />
+
+    {/* Left Eye Group */}
+    <g className="left-eye-group">
+      {/* Eyelash/Upper lid */}
+      <path d="M 142 176 Q 160 161 178 176" fill="none" stroke="url(#glow-grad)" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Lower lid */}
+      <path d="M 142 176 Q 160 186 178 176" fill="none" stroke="url(#glow-grad)" strokeWidth="1" opacity="0.5" />
+      {/* Iris */}
+      <circle cx="160" cy="174" r="7.5" fill="none" stroke="url(#glow-grad)" strokeWidth="1" opacity="0.7" />
+      {/* Pupil */}
+      <circle cx="160" cy="174" r="3.5" fill="#8b5cf6" className="pupil" />
+    </g>
+
+    {/* Right Eye Group */}
+    <g className="right-eye-group">
+      {/* Eyelash/Upper lid */}
+      <path d="M 222 176 Q 240 161 258 176" fill="none" stroke="url(#glow-grad)" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Lower lid */}
+      <path d="M 222 176 Q 240 186 258 176" fill="none" stroke="url(#glow-grad)" strokeWidth="1" opacity="0.5" />
+      {/* Iris */}
+      <circle cx="240" cy="174" r="7.5" fill="none" stroke="url(#glow-grad)" strokeWidth="1" opacity="0.7" />
+      {/* Pupil */}
+      <circle cx="240" cy="174" r="3.5" fill="#8b5cf6" className="pupil" />
+    </g>
+
+    {/* Mouth */}
+    <path 
+      d="M 175 255 Q 200 260 225 255" 
+      fill="none" 
+      stroke="url(#glow-grad)" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+      className="mouth" 
+    />
+
+    {/* Stylized Glowing Wireframe Hair */}
+    <g fill="none" strokeWidth="1" opacity="0.6">
+      <path d="M 140 90 C 110 50, 75 90, 80 180 C 85 250, 105 320, 135 350" stroke="url(#hair-grad)" />
+      <path d="M 160 80 C 130 30, 85 70, 90 180 C 95 260, 115 330, 145 365" stroke="url(#hair-grad)" strokeWidth="1.5" />
+      <path d="M 180 75 C 160 20, 95 40, 110 180 C 115 270, 135 340, 155 375" stroke="url(#hair-grad)" />
+      <path d="M 200 75 C 220 20, 305 40, 290 180 C 285 270, 265 340, 245 375" stroke="url(#hair-grad)" />
+      <path d="M 220 80 C 270 30, 315 70, 310 180 C 305 260, 285 330, 255 365" stroke="url(#hair-grad)" strokeWidth="1.5" />
+      <path d="M 260 90 C 290 50, 325 90, 320 180 C 315 250, 295 320, 265 350" stroke="url(#hair-grad)" />
+    </g>
+
+    {/* CSS Styles embedded within the SVG */}
+    <style dangerouslySetInnerHTML={{ __html: `
+      .animated-head-svg {
+        overflow: visible;
+      }
+      .left-eye-group {
+        transform-origin: 160px 174px;
+        animation: left-eye-blink 7s infinite ease-in-out;
+      }
+      .right-eye-group {
+        transform-origin: 240px 174px;
+        animation: right-eye-wink 7s infinite ease-in-out;
+      }
+      .pupil {
+        animation: pupils-move 7s infinite ease-in-out;
+      }
+      .mouth {
+        animation: mouth-smile 7s infinite ease-in-out;
+      }
+      .glow-path {
+        animation: wireframe-glow 3.5s infinite ease-in-out;
+      }
+
+      @keyframes left-eye-blink {
+        0%, 12%, 16%, 72%, 76%, 100% {
+          transform: scaleY(1);
+        }
+        14%, 74% {
+          transform: scaleY(0.05);
+        }
+      }
+
+      @keyframes right-eye-wink {
+        0%, 12%, 16%, 72%, 76%, 100% {
+          transform: scaleY(1);
+        }
+        14%, 74% {
+          transform: scaleY(0.05);
+        }
+        /* Wink synchronized with smile */
+        38%, 54% {
+          transform: scaleY(1);
+        }
+        41%, 51% {
+          transform: scaleY(0.05);
+        }
+      }
+
+      @keyframes pupils-move {
+        0%, 25%, 60%, 100% {
+          transform: translate(0, 0);
+        }
+        8% {
+          transform: translate(-2px, -0.5px);
+        }
+        18% {
+          transform: translate(2px, -0.5px);
+        }
+        41%, 51% {
+          transform: translate(0, 0.5px);
+        }
+      }
+
+      @keyframes mouth-smile {
+        0%, 35%, 57%, 100% {
+          d: path("M 175 255 Q 200 260 225 255");
+        }
+        41%, 51% {
+          d: path("M 175 250 Q 200 272 225 250");
+        }
+      }
+
+      @keyframes wireframe-glow {
+        0%, 100% {
+          opacity: 0.75;
+          stroke-width: 1.8px;
+        }
+        50% {
+          opacity: 1;
+          stroke-width: 2.2px;
+        }
+      }
+    `}} />
   </svg>
 );
 
