@@ -77,51 +77,68 @@ function FeaturedCard({ post }: { post: Post }) {
 
 const MediumIllustration = () => (
   <div className="three-d-container" style={{ position: "relative", width: "100%", height: "100%", minHeight: 380, display: "flex", justifyContent: "center", alignItems: "center" }}>
-    {/* 1. Base 3D Head image with brand gradient mask */}
-    <div className="three-d-head" />
-
-    {/* 2. Interactive SVG overlay for winking, smiling, and scanning */}
-    <svg viewBox="0 0 400 400" className="three-d-overlay" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+    {/* SVG Filter for precise color matrix mapping & glow */}
+    <svg width="0" height="0" style={{ position: "absolute" }}>
       <defs>
-        <linearGradient id="overlay-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#ec4899" />
-        </linearGradient>
-        <filter id="eye-glow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
+        <filter id="wireframe-glow-filter">
+          {/* Map white lines of grayscale image to brand purple #7c3aed (R=0.49, G=0.23, B=0.93) and black background to transparent */}
+          <feColorMatrix type="matrix" values="
+            0.49 0 0 0 0
+            0    0.23 0 0 0
+            0    0    0.93 0 0
+            1    0    0    0 0
+          " />
+          <feGaussianBlur stdDeviation="1" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
       </defs>
+    </svg>
 
-      {/* Mask/Cover for original static eye */}
-      <circle cx="268" cy="170" r="16" fill="var(--brand-light)" className="bg-patch" />
+    {/* 1. Base 3D Head image with glow filter */}
+    <Image 
+      src="/3d-head.jpg" 
+      alt="3D Wireframe Head" 
+      width={400} 
+      height={400} 
+      className="three-d-head" 
+      style={{
+        width: "100%",
+        height: "100%",
+        maxWidth: 400,
+        aspectRatio: 1,
+        objectFit: "contain",
+        filter: "url(#wireframe-glow-filter)",
+      }}
+    />
+
+    {/* 2. Interactive SVG overlay for winking and looking around */}
+    <svg viewBox="0 0 400 400" className="three-d-overlay" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+      {/* Mask/Cover for original static left eye */}
+      <circle cx="162" cy="165" r="14" fill="var(--brand-light)" className="bg-patch" />
+      {/* Mask/Cover for original static right eye */}
+      <circle cx="238" cy="165" r="14" fill="var(--brand-light)" className="bg-patch" />
       
-      {/* Animated Eye (Profile view, blinking and winking) */}
-      <g className="profile-eye" style={{ transformOrigin: "268px 170px" }}>
-        <path d="M 256 170 Q 268 158 280 170" fill="none" stroke="url(#overlay-glow)" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M 256 170 Q 268 178 280 170" fill="none" stroke="url(#overlay-glow)" strokeWidth="1" opacity="0.5" />
-        <circle cx="268" cy="170" r="5" fill="none" stroke="url(#overlay-glow)" strokeWidth="1.5" />
-        <circle cx="268" cy="170" r="2.5" fill="#8b5cf6" className="profile-pupil" />
+      {/* Animated Left Eye */}
+      <g className="front-left-eye" style={{ transformOrigin: "162px 165px" }}>
+        <path d="M 150 165 Q 162 154 174 165" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M 150 165 Q 162 173 174 165" fill="none" stroke="#7c3aed" strokeWidth="1" opacity="0.5" />
+        <circle cx="162" cy="165" r="5" fill="none" stroke="#7c3aed" strokeWidth="1.5" />
+        <circle cx="162" cy="165" r="2.5" fill="#7c3aed" className="front-pupil" />
       </g>
 
-      {/* Mask/Cover for original static mouth */}
-      <circle cx="295" cy="245" r="18" fill="var(--brand-light)" className="bg-patch" />
-
-      {/* Animated Smiling Mouth */}
-      <path 
-        d="M 282 245 Q 295 248 308 245" 
-        fill="none" 
-        stroke="url(#overlay-glow)" 
-        strokeWidth="3" 
-        strokeLinecap="round" 
-        className="profile-mouth" 
-      />
+      {/* Animated Right Eye (Winks) */}
+      <g className="front-right-eye" style={{ transformOrigin: "238px 165px" }}>
+        <path d="M 226 165 Q 238 154 250 165" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M 226 165 Q 238 173 250 165" fill="none" stroke="#7c3aed" strokeWidth="1" opacity="0.5" />
+        <circle cx="238" cy="165" r="5" fill="none" stroke="#7c3aed" strokeWidth="1.5" />
+        <circle cx="238" cy="165" r="2.5" fill="#7c3aed" className="front-pupil" />
+      </g>
 
       {/* 3D Scanning Line */}
-      <line x1="80" y1="0" x2="320" y2="0" stroke="rgba(139, 92, 246, 0.4)" strokeWidth="2" className="scan-line" style={{ filter: "url(#eye-glow)" }} />
+      <line x1="80" y1="0" x2="320" y2="0" stroke="rgba(139, 92, 246, 0.4)" strokeWidth="2" className="scan-line" />
     </svg>
 
     <style dangerouslySetInnerHTML={{ __html: `
@@ -133,17 +150,6 @@ const MediumIllustration = () => (
       }
       
       .three-d-head {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-        -webkit-mask-image: url('/3d-head.jpg');
-        mask-image: url('/3d-head.jpg');
-        -webkit-mask-size: contain;
-        mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-position: center;
         animation: head-float 6s infinite ease-in-out, head-tilt 12s infinite ease-in-out;
       }
 
@@ -171,44 +177,45 @@ const MediumIllustration = () => (
         100% { y1: 320; y2: 320; opacity: 0; }
       }
 
-      .profile-eye {
-        animation: profile-eye-wink 7s infinite ease-in-out;
+      .front-left-eye {
+        animation: front-left-blink 7s infinite ease-in-out;
       }
-      @keyframes profile-eye-wink {
-        0%, 12%, 16%, 72%, 76%, 100% {
+      .front-right-eye {
+        animation: front-right-wink 7s infinite ease-in-out;
+      }
+      .front-pupil {
+        animation: front-pupil-move 7s infinite ease-in-out;
+      }
+
+      @keyframes front-left-blink {
+        0%, 20%, 24%, 76%, 80%, 100% {
           transform: scaleY(1);
         }
-        14%, 74% {
-          transform: scaleY(0.05);
+        22%, 78% {
+          transform: scaleY(0.1);
+        }
+      }
+
+      @keyframes front-right-wink {
+        0%, 20%, 24%, 76%, 80%, 100% {
+          transform: scaleY(1);
+        }
+        22%, 78% {
+          transform: scaleY(0.1);
         }
         38%, 56% {
           transform: scaleY(1);
         }
         42%, 52% {
-          transform: scaleY(0.05);
+          transform: scaleY(0.1);
         }
       }
 
-      .profile-pupil {
-        animation: profile-pupil-move 7s infinite ease-in-out;
-      }
-      @keyframes profile-pupil-move {
+      @keyframes front-pupil-move {
         0%, 25%, 60%, 100% { transform: translate(0, 0); }
         8% { transform: translate(-1.5px, -0.5px); }
         18% { transform: translate(1.5px, -0.5px); }
         42%, 52% { transform: translate(0, 0); }
-      }
-
-      .profile-mouth {
-        animation: profile-mouth-smile 7s infinite ease-in-out;
-      }
-      @keyframes profile-mouth-smile {
-        0%, 35%, 57%, 100% {
-          d: path("M 282 245 Q 295 248 308 245");
-        }
-        42%, 52% {
-          d: path("M 282 242 Q 295 258 308 242");
-        }
       }
 
       .bg-patch {
