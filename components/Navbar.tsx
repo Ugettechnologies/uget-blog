@@ -187,10 +187,12 @@ function NavbarInner() {
         <div className="nav-links">
           {user ? (
             <>
+              {/* Commented out live feature
               <Link href="/live" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8 }}>
                 <span style={{ color: "#ef4444" }}>🔴</span>
                 <span>Live</span>
               </Link>
+              */}
               {(profile?.role === "admin" || profile?.role === "staff" || profile?.role === "writer") && (
                 <Link href="/write" className="nav-btn-write" style={{ marginRight: 8 }}>
                   <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -321,10 +323,12 @@ function NavbarInner() {
             </>
           ) : (
             <>
+              {/* Commented out live feature
               <Link href="/live" className="nav-link" style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8, color: linkColor }}>
                 <span style={{ color: "#ef4444" }}>🔴</span>
                 <span>Live</span>
               </Link>
+              */}
               <Link href="/about" className="nav-link hide-sm" style={{ marginRight: 8, color: linkColor }}>
                 Our story
               </Link>

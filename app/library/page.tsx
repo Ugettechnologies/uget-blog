@@ -724,11 +724,12 @@ export default function LibraryPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Live Indicator */}
+            {/* Live Indicator
             <Link href="/live" className="uget-live-pill" style={{ textDecoration: "none" }}>
               <span className="uget-live-dot" />
               <span className="hidden xs:inline">Live</span>
             </Link>
+            */}
 
             {/* Write button */}
             <Link href="/write" className="nav-write-btn" style={{ textDecoration: "none" }}>

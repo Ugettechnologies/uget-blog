@@ -438,10 +438,12 @@ export default function RefineRecommendationsPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Commented out live feature
             <Link href="/live" className="uget-live-pill" style={{ textDecoration: "none" }}>
               <span className="uget-live-dot" />
               <span className="hidden xs:inline">Live</span>
             </Link>
+            */}
             <Link href="/write" className="nav-write-btn" style={{ textDecoration: "none" }}>
               <span className="flex items-center justify-center"><WriteIcon /></span>
               <span className="hidden sm:inline">Write</span>
