@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "./Navbar";
@@ -75,47 +75,51 @@ function FeaturedCard({ post }: { post: Post }) {
   );
 }
 
-const MediumIllustration = () => (
-  <div className="three-d-container" style={{ position: "relative", width: "100%", height: "100%", minHeight: 380, display: "flex", justifyContent: "center", alignItems: "center" }}>
+const BrandIllustration = () => (
+  <div className="illustration-3d-container">
+    {/* Floating backdrop glow orb */}
+    <div className="hero-glow-orb hero-glow-orb-1" />
 
-    <style dangerouslySetInnerHTML={{ __html: `
-      .three-d-container {
-        perspective: 1000px;
-        width: 100%;
-        max-width: 420px;
-        aspect-ratio: 1;
-      }
+    {/* Concentric SVG Radar Arcs */}
+    <svg 
+      viewBox="0 0 400 400" 
+      style={{
+        position: "absolute",
+        width: "110%",
+        height: "110%",
+        pointerEvents: "none",
+        zIndex: 1
+      }}
+    >
+      {/* Dashed & solid arcs */}
+      <circle cx="200" cy="200" r="180" stroke="var(--hero-grid-color)" strokeWidth="1.5" fill="none" strokeDasharray="6 6" style={{ transition: "stroke 0.5s ease" }} />
+      <circle cx="200" cy="200" r="130" stroke="var(--hero-grid-color)" strokeWidth="1" fill="none" style={{ transition: "stroke 0.5s ease" }} />
+      <circle cx="200" cy="200" r="80" stroke="var(--hero-grid-color)" strokeWidth="1.5" fill="none" strokeDasharray="4 4" style={{ transition: "stroke 0.5s ease" }} />
       
-      .three-d-head {
-        animation: head-float 6s infinite ease-in-out, head-tilt 12s infinite ease-in-out;
-      }
+      {/* Grid lines */}
+      <line x1="200" y1="10" x2="200" y2="390" stroke="var(--hero-grid-color)" strokeWidth="1" strokeDasharray="6 6" style={{ transition: "stroke 0.5s ease" }} />
+      <line x1="10" y1="200" x2="390" y2="200" stroke="var(--hero-grid-color)" strokeWidth="1" strokeDasharray="6 6" style={{ transition: "stroke 0.5s ease" }} />
+      
+      {/* Diagonal line pointing towards the text (top-left) */}
+      <line x1="200" y1="200" x2="60" y2="60" stroke="var(--hero-grid-color)" strokeWidth="1.5" style={{ transition: "stroke 0.5s ease" }} />
+      <circle cx="60" cy="60" r="5" fill="var(--brand)" style={{ transition: "fill 0.5s ease" }} />
+    </svg>
 
-      .three-d-overlay {
-        animation: head-float 6s infinite ease-in-out, head-tilt 12s infinite ease-in-out;
-      }
+    {/* Floating visual elements (glassmorphic circle accents) */}
+    <div className="floating-circle floating-circle-1" />
+    <div className="floating-circle floating-circle-2" />
 
-      @keyframes head-float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-      }
-
-      @keyframes head-tilt {
-        0%, 100% { transform: rotateY(-8deg) rotateX(2deg); }
-        50% { transform: rotateY(8deg) rotateX(-4deg); }
-      }
-
-      .scan-line {
-        animation: scan-anim 4s infinite linear;
-      }
-      @keyframes scan-anim {
-        0% { y1: 80; y2: 80; opacity: 0; }
-        10% { opacity: 0.8; }
-        90% { opacity: 0.8; }
-        100% { y1: 320; y2: 320; opacity: 0; }
-      }
-
-
-    `}} />
+    {/* The main logo icon facing towards the text (horizontal flip via CSS animation class) */}
+    <div className="brand-logo-illustration">
+      <Image 
+        src="/logo-icon-transparent.png" 
+        alt="EchoGist Brand Icon" 
+        width={220} 
+        height={220} 
+        style={{ objectFit: "contain" }}
+        priority
+      />
+    </div>
   </div>
 );
 
@@ -483,68 +487,74 @@ export default function HomePage() {
 
   if (isLoggedOut) {
     return (
-      <div style={{ background: "var(--brand-light)", minHeight: "100vh" }}>
+      <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
         <Navbar />
 
-        {/* ── Logged-out Hero ── */}
-        <div className="home-hero-container" style={{ borderBottom: "1px solid var(--border)" }}>
-          <div 
-            style={{ 
-              maxWidth: 1192, 
-              margin: "0 auto", 
-              padding: "0 24px",
-              display: "grid",
-              gridTemplateColumns: "1fr 400px",
-              gap: 48,
-              alignItems: "center"
-            }}
-            className="hero-split"
-          >
-            <div>
+        {/* ── Logged-out Clean Hero ── */}
+        <div className="home-hero-3d">
+          <div className="home-hero-3d-inner">
+            <div style={{ position: "relative", zIndex: 10 }}>
               <h1 
                 style={{ 
-                  fontFamily: "var(--serif)", 
-                  fontSize: "clamp(42px, 7.5vw, 92px)", 
-                  fontWeight: 400, 
-                  lineHeight: 0.95, 
-                  color: "var(--black)",
-                  letterSpacing: "-0.045em",
+                  fontFamily: "var(--display)", 
+                  fontSize: "clamp(48px, 6.8vw, 86px)", 
+                  fontWeight: 800, 
+                  lineHeight: 1.0, 
+                  color: "var(--hero-text)",
+                  letterSpacing: "-0.04em",
                   marginBottom: 24
                 }}
-              >
-                Human stories<br />&amp; ideas
+               >
+                Curiosity in.<br />
+                <span style={{ 
+                  background: "linear-gradient(135deg, var(--brand) 0%, #ec4899 100%)", 
+                  WebkitBackgroundClip: "text", 
+                  WebkitTextFillColor: "transparent"
+                }}>
+                  Perspective out.
+                </span>
               </h1>
               <p 
                 style={{ 
                   fontFamily: "var(--serif)", 
                   fontSize: 22, 
-                  color: "var(--ink-2)", 
+                  color: "var(--hero-sub)", 
                   marginBottom: 36,
-                  lineHeight: 1.4,
-                  maxWidth: 460
+                  lineHeight: 1.45,
+                  maxWidth: 480
                 }}
               >
-                A place to read, write, and deepen your understanding.
+                EchoGist is the home for clean, human-written stories. No clickbait, no algorithmic fluff. Just real thoughts from creators on tech, design, and everything in between.
               </p>
-              <button
-                onClick={() => router.push("/?auth=signin")}
-                className="btn btn-primary btn-lg"
-                style={{
-                  backgroundColor: "var(--brand)",
-                  color: "#ffffff",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  padding: "14px 36px",
-                  borderRadius: "999px"
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--brand-hover)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--brand)")}
-              >
-                Start reading
-              </button>
+              <div style={{ display: "flex" }} className="hero-3d-cta-wrap">
+                <button
+                  onClick={() => router.push("/?auth=signin")}
+                  className="btn btn-primary btn-lg"
+                  style={{
+                    background: "linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%)",
+                    color: "#ffffff",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    padding: "14px 38px",
+                    borderRadius: "999px",
+                    boxShadow: "0 8px 24px var(--hero-head-glow)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 12px 30px var(--hero-head-glow)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 8px 24px var(--hero-head-glow)";
+                  }}
+                >
+                  Start reading
+                </button>
+              </div>
             </div>
-            <div className="hide-md" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-              <MediumIllustration />
+            <div className="hide-md" style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative", zIndex: 10 }}>
+              <BrandIllustration />
             </div>
           </div>
         </div>
