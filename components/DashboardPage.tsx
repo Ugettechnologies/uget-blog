@@ -1061,7 +1061,7 @@ export default function DashboardPage() {
                         if (!prof) return null;
                         const isFollowingBack = following.some((fol) => fol.following_id === prof.id);
                         return (
-                          <div key={f.id} className="dash-post-row" style={{ alignItems: "center" }}>
+                          <div key={f.id} className="dash-post-row" style={{ display: "flex", gap: 16, alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
                             <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
                               {prof.avatar_url ? <Image src={prof.avatar_url} alt="" width={40} height={40} style={{ objectFit: "cover" }} /> : getInitials(prof.full_name)}
                             </div>
@@ -1093,7 +1093,7 @@ export default function DashboardPage() {
                         const prof = f.following_profile || f.profiles;
                         if (!prof) return null;
                         return (
-                          <div key={f.id} className="dash-post-row" style={{ alignItems: "center" }}>
+                          <div key={f.id} className="dash-post-row" style={{ display: "flex", gap: 16, alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
                             <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
                               {prof.avatar_url ? <Image src={prof.avatar_url} alt="" width={40} height={40} style={{ objectFit: "cover" }} /> : getInitials(prof.full_name)}
                             </div>

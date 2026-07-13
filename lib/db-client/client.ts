@@ -106,7 +106,7 @@ export function createClient() {
     auth: {
       async getUser() {
         try {
-          const res = await fetch("/api/auth/me");
+          const res = await fetch("/api/auth/me", { cache: "no-store" });
           const data = await res.json();
           if (data && data.user) {
             return { data: { user: data.user }, error: null };
@@ -130,6 +130,9 @@ export function createClient() {
           });
           const data = await res.json();
           if (data.error) throw new Error(data.error);
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("uget-auth-change", { detail: { event: "SIGNED_IN", session: { user: data.user } } }));
+          }
           return { data: { user: data.user, session: data.session }, error: null };
         } catch (err: any) {
           return { data: { user: null, session: null }, error: { message: err.message } };
@@ -144,6 +147,9 @@ export function createClient() {
           });
           const data = await res.json();
           if (data.error) throw new Error(data.error);
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("uget-auth-change", { detail: { event: "SIGNED_IN", session: { user: data.user } } }));
+          }
           return { data: { user: data.user, session: data.session }, error: null };
         } catch (err: any) {
           return { data: { user: null, session: null }, error: { message: err.message } };
@@ -152,6 +158,9 @@ export function createClient() {
       async signOut() {
         try {
           await fetch("/api/auth/logout", { method: "POST" });
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("uget-auth-change", { detail: { event: "SIGNED_OUT", session: null } }));
+          }
           return { error: null };
         } catch (err: any) {
           return { error: err };
@@ -163,7 +172,7 @@ export function createClient() {
         return { data: null, error: null };
       },
       onAuthStateChange(callback: (event: string, session: any) => void) {
-        fetch("/api/auth/me")
+        fetch("/api/auth/me", { cache: "no-store" })
           .then((res) => res.json())
           .then((data) => {
             if (data && data.user) {
@@ -175,7 +184,29 @@ export function createClient() {
           .catch(() => {
             callback("SIGNED_OUT", null);
           });
-        return { data: { subscription: { unsubscribe() {} } } };
+
+        const handler = (e: Event) => {
+          const detail = (e as CustomEvent).detail;
+          if (detail) {
+            callback(detail.event, detail.session);
+          }
+        };
+
+        if (typeof window !== "undefined") {
+          window.addEventListener("uget-auth-change", handler);
+        }
+
+        return {
+          data: {
+            subscription: {
+              unsubscribe() {
+                if (typeof window !== "undefined") {
+                  window.removeEventListener("uget-auth-change", handler);
+                }
+              }
+            }
+          }
+        };
       },
     },
     storage: {
