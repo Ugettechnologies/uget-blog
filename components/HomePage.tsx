@@ -573,7 +573,7 @@ export default function HomePage() {
                     <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
                   </div>
                 ) : posts.length === 0 ? (
-                  <EmptyState />
+                  null
                 ) : (
                   posts.map((post) => <PostCard key={post.id} post={post} />)
                 )}
@@ -1242,7 +1242,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : feedPosts.length === 0 ? (
-              <EmptyState showWriteButton={userProfile?.role === "admin" || userProfile?.role === "staff"} />
+              null
             ) : (
               feedPosts.map((post) => <PostCard key={post.id} post={post} />)
             )}
