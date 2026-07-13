@@ -77,45 +77,6 @@ function FeaturedCard({ post }: { post: Post }) {
 
 const MediumIllustration = () => (
   <div className="three-d-container" style={{ position: "relative", width: "100%", height: "100%", minHeight: 380, display: "flex", justifyContent: "center", alignItems: "center" }}>
-    {/* SVG Filter for precise color matrix mapping & glow */}
-    <svg width="0" height="0" style={{ position: "absolute" }}>
-      <defs>
-        <filter id="wireframe-glow-filter">
-          {/* Map white lines of grayscale image to brand purple #7c3aed (R=0.49, G=0.23, B=0.93) and black background to transparent */}
-          <feColorMatrix type="matrix" values="
-            0.49 0 0 0 0
-            0    0.23 0 0 0
-            0    0    0.93 0 0
-            1    0    0    0 0
-          " />
-          <feGaussianBlur stdDeviation="1" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-    </svg>
-
-    {/* 1. Base 3D Head image with glow filter */}
-    <Image 
-      src="/3d-head.jpg" 
-      alt="3D Wireframe Head" 
-      width={400} 
-      height={400} 
-      className="three-d-head" 
-      style={{
-        width: "100%",
-        height: "100%",
-        maxWidth: 400,
-        aspectRatio: 1,
-        objectFit: "contain",
-        filter: "url(#wireframe-glow-filter)",
-      }}
-    />
-      <svg viewBox="0 0 400 400" className="three-d-overlay" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
-        <line x1="80" y1="0" x2="320" y2="0" stroke="rgba(139, 92, 246, 0.4)" strokeWidth="2" className="scan-line" />
-      </svg>
 
     <style dangerouslySetInnerHTML={{ __html: `
       .three-d-container {
