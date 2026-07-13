@@ -113,33 +113,9 @@ const MediumIllustration = () => (
         filter: "url(#wireframe-glow-filter)",
       }}
     />
-
-    {/* 2. Interactive SVG overlay for winking and looking around */}
-    <svg viewBox="0 0 400 400" className="three-d-overlay" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
-      {/* Mask/Cover for original static left eye */}
-      <circle cx="162" cy="165" r="14" fill="var(--brand-light)" className="bg-patch" />
-      {/* Mask/Cover for original static right eye */}
-      <circle cx="238" cy="165" r="14" fill="var(--brand-light)" className="bg-patch" />
-      
-      {/* Animated Left Eye */}
-      <g className="front-left-eye" style={{ transformOrigin: "162px 165px" }}>
-        <path d="M 150 165 Q 162 154 174 165" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M 150 165 Q 162 173 174 165" fill="none" stroke="#7c3aed" strokeWidth="1" opacity="0.5" />
-        <circle cx="162" cy="165" r="5" fill="none" stroke="#7c3aed" strokeWidth="1.5" />
-        <circle cx="162" cy="165" r="2.5" fill="#7c3aed" className="front-pupil" />
-      </g>
-
-      {/* Animated Right Eye (Winks) */}
-      <g className="front-right-eye" style={{ transformOrigin: "238px 165px" }}>
-        <path d="M 226 165 Q 238 154 250 165" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M 226 165 Q 238 173 250 165" fill="none" stroke="#7c3aed" strokeWidth="1" opacity="0.5" />
-        <circle cx="238" cy="165" r="5" fill="none" stroke="#7c3aed" strokeWidth="1.5" />
-        <circle cx="238" cy="165" r="2.5" fill="#7c3aed" className="front-pupil" />
-      </g>
-
-      {/* 3D Scanning Line */}
-      <line x1="80" y1="0" x2="320" y2="0" stroke="rgba(139, 92, 246, 0.4)" strokeWidth="2" className="scan-line" />
-    </svg>
+      <svg viewBox="0 0 400 400" className="three-d-overlay" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+        <line x1="80" y1="0" x2="320" y2="0" stroke="rgba(139, 92, 246, 0.4)" strokeWidth="2" className="scan-line" />
+      </svg>
 
     <style dangerouslySetInnerHTML={{ __html: `
       .three-d-container {
@@ -177,53 +153,7 @@ const MediumIllustration = () => (
         100% { y1: 320; y2: 320; opacity: 0; }
       }
 
-      .front-left-eye {
-        animation: front-left-blink 7s infinite ease-in-out;
-      }
-      .front-right-eye {
-        animation: front-right-wink 7s infinite ease-in-out;
-      }
-      .front-pupil {
-        animation: front-pupil-move 7s infinite ease-in-out;
-      }
 
-      @keyframes front-left-blink {
-        0%, 20%, 24%, 76%, 80%, 100% {
-          transform: scaleY(1);
-        }
-        22%, 78% {
-          transform: scaleY(0.1);
-        }
-      }
-
-      @keyframes front-right-wink {
-        0%, 20%, 24%, 76%, 80%, 100% {
-          transform: scaleY(1);
-        }
-        22%, 78% {
-          transform: scaleY(0.1);
-        }
-        38%, 56% {
-          transform: scaleY(1);
-        }
-        42%, 52% {
-          transform: scaleY(0.1);
-        }
-      }
-
-      @keyframes front-pupil-move {
-        0%, 25%, 60%, 100% { transform: translate(0, 0); }
-        8% { transform: translate(-1.5px, -0.5px); }
-        18% { transform: translate(1.5px, -0.5px); }
-        42%, 52% { transform: translate(0, 0); }
-      }
-
-      .bg-patch {
-        fill: var(--brand-light);
-      }
-      :global(.dark) .bg-patch {
-        fill: #191919;
-      }
     `}} />
   </div>
 );
