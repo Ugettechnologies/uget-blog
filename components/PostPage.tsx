@@ -143,6 +143,7 @@ export default function PostPage() {
   };
 
   const handleCrossPost = () => {
+    if (!post) return;
     const newCategory = prompt("Enter category name to cross-post to:", post.category);
     if (!newCategory) return;
     alert(`Successfully cross-posted to "${newCategory}"!`);
