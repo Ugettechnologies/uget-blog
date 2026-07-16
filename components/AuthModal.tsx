@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/db-client/client";
@@ -58,13 +58,14 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
   const [showPw, setShowPw] = useState(false);
 
   // New verification states
-  const [verificationStep, setVerificationStep] = useState<"none" | "verify_code" | "forgot_password" | "reset_password">("none");
+  const [verificationStep, setVerificationStep] = useState<"none" | "verify_code" | "forgot_password" | "reset_password" | "check_email">("none");
   const [verificationCode, setVerificationCode] = useState("");
   const [userInputCode, setUserInputCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [toastCode, setToastCode] = useState<string | null>(null);
   
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   useEffect(() => {
@@ -93,6 +94,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
       setUserInputCode("");
       setNewPassword("");
       setToastCode(null);
+
+      const urlError = searchParams?.get("error");
+      if (urlError) {
+        setError(urlError);
+        setShowEmailForm(true);
+      }
     } else {
       document.body.style.overflow = "";
     }
@@ -128,8 +135,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!email || !password) {
-      setError("Please fill all fields");
+    if (!email) {
+      setError("Please enter your email address");
       return;
     }
     if (mode === "signup" && !name.trim()) {
@@ -138,17 +145,20 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     }
     setLoading(true);
     try {
-      // Simulate sending verification code
-      const generated = Math.floor(100000 + Math.random() * 900000).toString();
-      setVerificationCode(generated);
-      setToastCode(generated);
-      console.log(`\n==================================================`);
-      console.log(`[EchoGist AUTH] Verification Code for ${email} is: ${generated}`);
-      console.log(`==================================================\n`);
-      setVerificationStep("verify_code");
-      setSuccess("A verification code has been sent to your email!");
+      localStorage.setItem("uget_remember_me", rememberMe ? "true" : "false");
+      const res = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name: mode === "signup" ? name : "", mode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send magic link");
+      }
+      setVerificationStep("check_email");
+      setSuccess(`A sign-in link has been sent to ${email}!`);
     } catch (err: any) {
-      setError(err.message || "Failed to send code.");
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -805,6 +815,60 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             ) : (
               /* Email/Password Form and Verification Flow Container */
               <div style={{ textAlign: "left" }}>
+                {verificationStep === "check_email" && (
+                  /* ─── CHECK EMAIL STEP ─── */
+                  <div style={{ textAlign: "center", padding: "16px 8px" }}>
+                    <div style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: "50%",
+                      backgroundColor: "#f3eeff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 20px",
+                      color: "#7c3aed"
+                    }}>
+                      <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                      </svg>
+                    </div>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 26, fontWeight: 700, color: "var(--black)", marginBottom: 10, letterSpacing: "-0.015em" }}>
+                      Check your email
+                    </h2>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", marginBottom: 28, lineHeight: 1.6 }}>
+                      We sent a login link to <strong>{email}</strong>.<br />
+                      Click the link in your inbox to sign in automatically.
+                    </p>
+                    <button 
+                      type="button"
+                      onClick={() => { setVerificationStep("none"); setError(""); setSuccess(""); }} 
+                      style={{
+                        fontFamily: "var(--sans)",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "var(--brand)",
+                        border: "1px solid var(--border)",
+                        padding: "8px 20px",
+                        borderRadius: 999,
+                        background: "none",
+                        cursor: "pointer",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = "var(--ink)";
+                        e.currentTarget.style.color = "var(--ink)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "var(--border)";
+                        e.currentTarget.style.color = "var(--brand)";
+                      }}
+                    >
+                      ← Back to form
+                    </button>
+                  </div>
+                )}
+
                 {verificationStep === "verify_code" && (
                   /* ─── VERIFY CODE STEP ─── */
                   <div>
@@ -1033,7 +1097,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                           />
                         </div>
                       )}
-                      <div className="form-group" style={{ marginBottom: 12 }}>
+                      <div className="form-group" style={{ marginBottom: 16 }}>
                         <label className="form-label">Email</label>
                         <input 
                           type="email" 
@@ -1043,54 +1107,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                           onChange={(e) => setEmail(e.target.value)} 
                           required 
                         />
-                      </div>
-                      <div className="form-group" style={{ marginBottom: 16 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                          <label className="form-label" style={{ margin: 0 }}>Password</label>
-                          {mode === "login" && (
-                            <button 
-                              type="button" 
-                              onClick={() => { setVerificationStep("forgot_password"); setError(""); setSuccess(""); }}
-                              style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--brand)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                            >
-                              Forgot password?
-                            </button>
-                          )}
-                        </div>
-                        <div style={{ position: "relative" }}>
-                          <input 
-                            type={showPw ? "text" : "password"} 
-                            className="form-input" 
-                            placeholder={mode === "signup" ? "Min 6 characters" : "Your password"} 
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)} 
-                            style={{ paddingRight: 44 }} 
-                            required 
-                          />
-                          <button 
-                            type="button" 
-                            onClick={() => setShowPw(!showPw)}
-                            style={{ 
-                              position: "absolute", 
-                              right: 12, 
-                              top: "50%", 
-                              transform: "translateY(-50%)", 
-                              background: "none", 
-                              border: "none", 
-                              cursor: "pointer", 
-                              color: "var(--muted-2)", 
-                              padding: 4,
-                              display: "flex",
-                              alignItems: "center"
-                            }}
-                          >
-                            {showPw ? (
-                              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
-                            ) : (
-                              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                            )}
-                          </button>
-                        </div>
                       </div>
                       <button 
                         type="submit" 
