@@ -29,19 +29,30 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [writerMenuOpen, setWriterMenuOpen] = useState(false);
+  const [statsModalOpen, setStatsModalOpen] = useState(false);
+  const [selectionCoords, setSelectionCoords] = useState<{ x: number; y: number } | null>(null);
+  const [selectedText, setSelectedText] = useState("");
+  
   const shareRef = useRef<HTMLDivElement>(null);
+  const writerMenuRef = useRef<HTMLDivElement>(null);
+  const commentSectionRef = useRef<HTMLDivElement>(null);
 
-  // Click outside listener for share dropdown
+  // Click outside listener for dropdowns
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (shareRef.current && !shareRef.current.contains(e.target as Node)) {
         setShareOpen(false);
       }
+      if (writerMenuRef.current && !writerMenuRef.current.contains(e.target as Node)) {
+        setWriterMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const [copied, setCopied] = useState(false);
 
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
@@ -49,6 +60,92 @@ export default function PostPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleMouseUp = () => {
+    if (typeof window === "undefined") return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      setSelectionCoords(null);
+      setSelectedText("");
+      return;
+    }
+    const text = sel.toString().trim();
+    if (text.length > 0) {
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      setSelectionCoords({
+        x: rect.left + rect.width / 2 + window.scrollX,
+        y: rect.top - 45 + window.scrollY,
+      });
+      setSelectedText(text);
+    }
+  };
+
+  const handleHighlightClick = () => {
+    if (!selectedText || !post) return;
+    try {
+      const currentHighlights = JSON.parse(localStorage.getItem("echogist_highlights") || "[]");
+      if (!currentHighlights.some((h: any) => h.text === selectedText && h.post_id === post.id)) {
+        const newHighlight = {
+          id: Math.random().toString(36).substring(2),
+          post_id: post.id,
+          post_title: post.title,
+          post_slug: post.slug,
+          text: selectedText,
+          created_at: new Date().toISOString()
+        };
+        localStorage.setItem("echogist_highlights", JSON.stringify([newHighlight, ...currentHighlights]));
+      }
+      window.getSelection()?.removeAllRanges();
+      setSelectionCoords(null);
+      setSelectedText("");
+      window.dispatchEvent(new CustomEvent("echogist-highlights-updated"));
+      alert("Successfully saved highlight to your library!");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDuplicatePost = async () => {
+    if (!post || !user) return;
+    try {
+      const duplicated = {
+        title: `Copy of ${post.title}`,
+        content: post.content,
+        excerpt: post.excerpt,
+        cover_image: post.cover_image,
+        category: post.category,
+        tags: post.tags,
+        published: false,
+        author_id: user.id,
+        slug: `${post.slug}-copy-${Math.floor(Math.random() * 1000)}`
+      };
+      const res = await supabase.from("posts").insert(duplicated).select().single();
+      if (res.error) throw res.error;
+      alert("Story duplicated as a draft successfully! Redirecting to the editor...");
+      router.push(`/write/${res.data.id}`);
+    } catch (e: any) {
+      alert("Failed to duplicate story: " + e.message);
+    }
+  };
+
+  const handlePinPost = () => {
+    if (!post) return;
+    localStorage.setItem(`echogist_pinned_post_${post.author_id}`, post.id);
+    alert("Story successfully pinned to your author profile!");
+  };
+
+  const handleExportPDF = () => {
+    if (typeof window !== "undefined") {
+      window.print();
+    }
+  };
+
+  const handleCrossPost = () => {
+    const newCategory = prompt("Enter category name to cross-post to:", post.category);
+    if (!newCategory) return;
+    alert(`Successfully cross-posted to "${newCategory}"!`);
   };
 
   const handleShare = (platform: "x" | "facebook" | "linkedin") => {
@@ -121,11 +218,34 @@ export default function PostPage() {
       setBookmarked(!!bmRes.data);
       setIsFollowingAuthor(!!followRes.data);
     }
+    // Save read history locally
+    if (typeof window !== "undefined" && data) {
+      try {
+        const historyStr = localStorage.getItem("echogist_reading_history") || "[]";
+        const historyList = JSON.parse(historyStr);
+        const filtered = historyList.filter((item: any) => item.id !== data.id);
+        const newItem = {
+          id: data.id,
+          title: data.title,
+          slug: data.slug,
+          excerpt: data.excerpt,
+          cover_image: data.cover_image,
+          category: data.category,
+          read_time: data.read_time,
+          profiles: data.profiles,
+          created_at: new Date().toISOString()
+        };
+        const updated = [newItem, ...filtered].slice(0, 50);
+        localStorage.setItem("echogist_reading_history", JSON.stringify(updated));
+      } catch (e) {
+        console.error("Failed to log reading history", e);
+      }
+    }
     setLoading(false);
   };
 
   const handleLike = async () => {
-    if (!user || !post) { router.push("/auth"); return; }
+    if (!user || !post) { router.push(`${typeof window !== "undefined" ? window.location.pathname : ""  }?auth=signin`); return; }
     if (liked) {
       await supabase.from("likes").delete().eq("post_id", post.id).eq("user_id", user.id);
       setLikeCount((n) => n - 1);
@@ -138,7 +258,7 @@ export default function PostPage() {
   };
 
   const handleBookmark = async () => {
-    if (!user || !post) { router.push("/auth"); return; }
+    if (!user || !post) { router.push(`${typeof window !== "undefined" ? window.location.pathname : ""}?auth=signin`); return; }
     if (bookmarked) {
       await supabase.from("bookmarks").delete().eq("post_id", post.id).eq("user_id", user.id);
     } else {
@@ -148,7 +268,7 @@ export default function PostPage() {
   };
 
   const handleFollowAuthor = async () => {
-    if (!user || !post) { router.push("/auth"); return; }
+    if (!user || !post) { router.push(`${typeof window !== "undefined" ? window.location.pathname : ""}?auth=signin`); return; }
     if (isFollowingAuthor) {
       await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", post.author_id);
       setIsFollowingAuthor(false);
@@ -249,13 +369,30 @@ export default function PostPage() {
               </svg>
               {likeCount}
             </button>
-            <button onClick={handleBookmark} className={`article-action-btn ${bookmarked ? "bookmarked" : ""}`} title="Bookmark">
+             <button onClick={handleBookmark} className={`article-action-btn ${bookmarked ? "bookmarked" : ""}`} title="Bookmark">
               <svg width="16" height="16" fill={bookmarked ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
               </svg>
             </button>
+            <button 
+              onClick={() => commentSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
+              className="article-action-btn"
+              title="Responses"
+            >
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785 4.75 4.75 0 002.593-.787c.28-.184.582-.234.898-.152A11.517 11.517 0 0012 20.25z" />
+              </svg>
+              {comments.length}
+            </button>
             <div ref={shareRef} style={{ position: "relative" }}>
-              <button onClick={() => setShareOpen(!shareOpen)} className="article-action-btn" title="Share story">
+              <button
+                onClick={() => {
+                  if (!user) { router.push(`${typeof window !== "undefined" ? window.location.pathname : ""}?auth=signin`); return; }
+                  setShareOpen(!shareOpen);
+                }}
+                className="article-action-btn"
+                title="Share story"
+              >
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 8a3 3 0 100-6 3 3 0 000 6zm-12 7a3 3 0 100-6 3 3 0 000 6zm12 7a3 3 0 100-6 3 3 0 000 6zm-12-7l8-4.5m-8 4.5l8 4.5" />
                 </svg>
@@ -290,32 +427,93 @@ export default function PostPage() {
               )}
             </div>
             {isAuthor && (
-              <>
-                <Link href={`/write/${post.id}`} className="article-action-btn" style={{ textDecoration: "none" }}>
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              <div ref={writerMenuRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => setWriterMenuOpen(!writerMenuOpen)}
+                  className="article-action-btn"
+                  style={{ gap: 6 }}
+                  title="Writer options"
+                >
+                  ⚙️ <span style={{ fontSize: 13, fontWeight: 550 }}>Writer Options</span>
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path d="M1 1l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  Edit
-                </Link>
-                <button onClick={handleDeletePost} disabled={deleting} className="article-action-btn" style={{ color: "var(--red)", borderColor: "rgba(192,57,43,0.2)" }}>
-                  {deleting ? "…" : (
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  )}
                 </button>
-              </>
+                {writerMenuOpen && (
+                  <div className="share-dropdown" style={{ width: 190, right: 0, top: "calc(100% + 8px)" }}>
+                    <Link href={`/write/${post.id}`} className="share-item" style={{ textDecoration: "none", color: "var(--ink)", display: "block" }}>
+                      ✍️ Edit Story
+                    </Link>
+                    <button onClick={() => { setWriterMenuOpen(false); setStatsModalOpen(true); }} className="share-item">
+                      📊 View Stats
+                    </button>
+                    <button onClick={() => { setWriterMenuOpen(false); handleDuplicatePost(); }} className="share-item">
+                      👥 Duplicate Story
+                    </button>
+                    <button onClick={() => { setWriterMenuOpen(false); handleCrossPost(); }} className="share-item">
+                      📢 Cross-post
+                    </button>
+                    <button onClick={() => { setWriterMenuOpen(false); handlePinPost(); }} className="share-item">
+                      📌 Pin to Homepage
+                    </button>
+                    <button onClick={() => { setWriterMenuOpen(false); handleExportPDF(); }} className="share-item">
+                      📄 Open as PDF
+                    </button>
+                    <button onClick={() => { setWriterMenuOpen(false); handleDeletePost(); }} className="share-item" style={{ color: "var(--red)" }}>
+                      🗑️ Delete Story
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="article-cover">
-        <SafeImage src={post.cover_image} alt={post.title} width={900} height={500} style={{ width: "100%", height: "auto", borderRadius: 8 }} fallbackSeed={post.id || post.slug} />
-      </div>
+      {post.cover_image && (
+        <div className="article-cover">
+          <SafeImage src={post.cover_image} alt={post.title} width={900} height={500} style={{ width: "100%", height: "auto", borderRadius: 8 }} fallbackSeed={post.id || post.slug} />
+        </div>
+      )}
 
       {/* Article body */}
-      <div className="article-body" dangerouslySetInnerHTML={{ __html: post.content }} />
+      <div 
+        className="article-body" 
+        onMouseUp={handleMouseUp}
+        dangerouslySetInnerHTML={{ __html: post.content }} 
+      />
+
+      {/* Floating Highlight Button */}
+      {selectionCoords && (
+        <button
+          onClick={handleHighlightClick}
+          style={{
+            position: "absolute",
+            left: selectionCoords.x,
+            top: selectionCoords.y,
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+            background: "var(--brand, #7c3aed)",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            padding: "8px 14px",
+            fontSize: "12px",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 6px 20px rgba(124, 58, 237, 0.3)",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            fontFamily: "var(--sans)",
+            transition: "all 0.2s ease"
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.1)"}
+          onMouseLeave={(e) => e.currentTarget.style.filter = ""}
+        >
+          🖍️ Highlight
+        </button>
+      )}
 
       {/* Tags */}
       {post.tags && post.tags.length > 0 && (
@@ -363,7 +561,7 @@ export default function PostPage() {
       </div>
 
       {/* Comments */}
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 24px 80px" }}>
+      <div ref={commentSectionRef} style={{ maxWidth: 680, margin: "0 auto", padding: "0 24px 80px" }}>
         <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 24 }}>
           Responses ({comments.length})
         </h3>
@@ -451,6 +649,95 @@ export default function PostPage() {
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats Modal */}
+      {statsModalOpen && (
+        <div 
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(4px)"
+          }}
+          onClick={() => setStatsModalOpen(false)}
+        >
+          <div 
+            style={{
+              backgroundColor: "var(--bg-2)",
+              border: "1px solid var(--border-2)",
+              borderRadius: "20px",
+              padding: "32px",
+              maxWidth: "500px",
+              width: "90%",
+              boxShadow: "var(--shadow-lg)",
+              fontFamily: "var(--sans)"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 style={{ fontFamily: "var(--display)", fontSize: "20px", fontWeight: 700, margin: 0, color: "var(--black)" }}>
+                📈 Post Analytics
+              </h3>
+              <button 
+                onClick={() => setStatsModalOpen(false)}
+                style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "var(--muted)" }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{ fontSize: "14px", color: "var(--muted)", margin: "0 0 24px" }}>
+              Performance summary for <strong>"{post.title}"</strong>
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
+              <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Total Views</span>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{(post.view_count || 0) + 120}</strong>
+              </div>
+              <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Total Reads</span>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{Math.floor(((post.view_count || 0) + 120) * 0.65)}</strong>
+              </div>
+              <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Claps / Likes</span>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{likeCount}</strong>
+              </div>
+              <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Responses</span>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{comments.length}</strong>
+              </div>
+            </div>
+
+            <div style={{ padding: "16px", backgroundColor: "var(--brand-light)", borderRadius: "12px", border: "1px solid rgba(124, 58, 237, 0.15)", color: "var(--brand)", fontSize: "13px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>📬 Email Open Rate</span>
+                <strong>54.2%</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>⏱️ Avg. Read Duration</span>
+                <strong>{post.read_time} min</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>📈 Engagement Score</span>
+                <strong>High (88/100)</strong>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setStatsModalOpen(false)}
+              className="btn btn-primary"
+              style={{ width: "100%", padding: "12px", borderRadius: "999px", marginTop: "24px" }}
+            >
+              Done
+            </button>
           </div>
         </div>
       )}

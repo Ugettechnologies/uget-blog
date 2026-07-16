@@ -411,6 +411,20 @@ async function triggerNotification(sql: any, table: string, result: any) {
         INSERT INTO notifications (user_id, type, actor_id, content)
         VALUES ($1, 'follow', $2, 'started following you')
       `, [followingId, followerId]);
+    } else if (table === "posts") {
+      const authorId = result.author_id;
+      const postId = result.id;
+      const postTitle = result.title;
+      if (result.published) {
+        const shortTitle = postTitle.length > 25 ? postTitle.substring(0, 25) + "..." : postTitle;
+        const followers = await sql(`SELECT follower_id FROM follows WHERE following_id = $1`, [authorId]);
+        for (const f of followers) {
+          await sql(`
+            INSERT INTO notifications (user_id, type, actor_id, post_id, content)
+            VALUES ($1, 'post', $2, $3, $4)
+          `, [f.follower_id, 'post', authorId, postId, `published a new story: "${shortTitle}"`]);
+        }
+      }
     }
   } catch (err) {
     console.error("Failed to trigger notification:", err);

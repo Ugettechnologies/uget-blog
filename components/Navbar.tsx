@@ -49,7 +49,7 @@ function NavbarInner() {
     if (data) {
       setNotifications(data.map((n: any) => {
         const actor = n.actor_profile;
-        const iconMap: any = { like: "💖", comment: "💬", follow: "👤" };
+        const iconMap: any = { like: "💖", comment: "💬", follow: "👤", post: "✍️" };
         return {
           id: n.id,
           text: actor ? `${actor.full_name} ${n.content}` : n.content,

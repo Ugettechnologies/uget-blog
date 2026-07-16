@@ -692,7 +692,22 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   display: none !important;
 }
 .auth-right {
+  /* Force light-mode palette inside the auth card regardless of OS dark mode */
+  --bg: #ffffff;
+  --bg-2: #fafafa;
+  --bg-3: #f3f3f3;
+  --ink: #1a1a1a;
+  --ink-2: #292929;
+  --ink-3: #3d3d3d;
+  --muted: #6b6b6b;
+  --muted-2: #9b9b9b;
+  --border: #e8e8e8;
+  --border-2: #f0f0f0;
+  --black: #0d0d0d;
+  --input-bg: #ffffff;
+  --btn-outline-bg: #ffffff;
   background: white;
+  color: #1a1a1a;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -700,7 +715,7 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   padding: 48px 40px;
   border-radius: 20px;
   box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.08), 0 8px 12px -6px rgba(124, 58, 237, 0.04);
-  border: 1px solid var(--border);
+  border: 1px solid #e8e8e8;
   width: 100%;
   max-width: 460px;
 }
@@ -742,17 +757,100 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   background: var(--input-bg, white); outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.form-input:focus { border-color: var(--ink-3); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
-.form-input::placeholder { color: var(--muted-2); }
+.form-input:hover {
+  border-color: var(--ink-3);
+  background: var(--input-bg, white);
+  color: var(--ink);
+}
+.form-input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+  background: var(--input-bg, white);
+  color: var(--ink);
+}
+.form-input::placeholder { color: var(--muted-2); opacity: 1; }
+.form-input:hover::placeholder { color: var(--muted-2); opacity: 1; }
+.form-input:focus::placeholder { color: var(--muted-2); opacity: 1; }
 .form-input.error { border-color: var(--red); }
+/* Light-mode lock for inputs rendered inside the AuthModal and /auth page card.
+   Scoping to .auth-modal-light and .auth-right ensures inputs are ALWAYS readable
+   regardless of OS/browser dark-mode preference. */
+.auth-modal-light, .auth-right {
+  --bg:        #ffffff;
+  --bg-2:      #fafafa;
+  --bg-3:      #f3f3f3;
+  --ink:       #1a1a1a;
+  --ink-2:     #292929;
+  --ink-3:     #3d3d3d;
+  --muted:     #6b6b6b;
+  --muted-2:   #9b9b9b;
+  --border:    #e8e8e8;
+  --border-2:  #f0f0f0;
+  --black:     #0d0d0d;
+  --input-bg:  #f7f7f7;
+  --btn-outline-bg: #ffffff;
+  color: #1a1a1a;
+}
+/* Prevent the global dark-mode .dark [class*="modal"] override from re-darkening the modal */
+.dark .auth-modal-light {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+/* Ensure inputs inside the locked containers always show readable text */
+.auth-modal-light input,
+.auth-modal-light textarea,
+.auth-right input,
+.auth-right textarea {
+  background: #f7f7f7 !important;
+  color: #1a1a1a !important;
+  border-color: #e8e8e8;
+}
+.auth-modal-light input::placeholder,
+.auth-modal-light textarea::placeholder,
+.auth-right input::placeholder,
+.auth-right textarea::placeholder {
+  color: #9b9b9b !important;
+  opacity: 1;
+}
+.auth-modal-light input:hover,
+.auth-modal-light textarea:hover,
+.auth-right input:hover,
+.auth-right textarea:hover {
+  border-color: #3d3d3d;
+  background: #f7f7f7 !important;
+  color: #1a1a1a !important;
+}
+.auth-modal-light input:hover::placeholder,
+.auth-modal-light textarea:hover::placeholder,
+.auth-right input:hover::placeholder,
+.auth-right textarea:hover::placeholder {
+  color: #9b9b9b !important;
+  opacity: 1;
+}
+.auth-modal-light input:focus,
+.auth-modal-light textarea:focus,
+.auth-right input:focus,
+.auth-right textarea:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+}
+.auth-modal-light input:focus::placeholder,
+.auth-modal-light textarea:focus::placeholder,
+.auth-right input:focus::placeholder,
+.auth-right textarea:focus::placeholder {
+  color: #9b9b9b !important;
+  opacity: 1;
+}
 .form-error { font-family: var(--sans); font-size: 12px; color: var(--red); margin-top: 4px; }
-.auth-tabs { display: flex; background: var(--bg-3); border-radius: 999px; padding: 4px; margin-bottom: 28px; }
+.auth-tabs { display: flex; background: #f3f3f3; border-radius: 999px; padding: 4px; margin-bottom: 28px; }
 .auth-tab {
   flex: 1; padding: 9px; text-align: center; border-radius: 999px;
-  font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--muted);
-  transition: all 0.2s; cursor: pointer;
+  font-family: var(--sans); font-size: 14px; font-weight: 500; color: #6b6b6b;
+  transition: all 0.2s; cursor: pointer; background: none; border: none;
 }
-.auth-tab.active { background: white; color: var(--brand); box-shadow: var(--shadow-sm); }
+.auth-tab.active { background: #ffffff; color: var(--brand); box-shadow: 0 1px 3px rgba(124,58,237,0.08); }
 .auth-submit {
   width: 100%; padding: 14px; border-radius: 999px;
   background: var(--brand); color: white;
@@ -807,9 +905,9 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   display: flex; align-items: center; gap: 6px;
   font-family: var(--sans); font-size: 13px; color: var(--muted);
   padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border);
-  transition: all 0.2s; background: white; cursor: pointer;
+  transition: all 0.2s; background: var(--bg); cursor: pointer;
 }
-.article-action-btn:hover { border-color: var(--ink-3); color: var(--ink); }
+.article-action-btn:hover { border-color: var(--ink-3); color: var(--ink); background: var(--bg-2); }
 .article-action-btn.liked { background: #fef0e0; border-color: #f4a535; color: #b37c00; }
 .article-action-btn.bookmarked { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
 .article-cover { max-width: 900px; margin: 0 auto; padding: 0 24px 40px; }

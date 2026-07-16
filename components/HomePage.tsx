@@ -48,9 +48,11 @@ function PostCard({ post }: { post: Post }) {
           </span>
         </div>
       </div>
-      <Link href={`/post/${post.slug}`} className="post-card-image">
-        <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
-      </Link>
+      {post.cover_image ? (
+        <Link href={`/post/${post.slug}`} className="post-card-image">
+          <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
+        </Link>
+      ) : null}
     </article>
   );
 }
@@ -261,6 +263,7 @@ export default function HomePage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [followingProfiles, setFollowingProfiles] = useState<any[]>([]);
+  const [searchedProfiles, setSearchedProfiles] = useState<any[]>([]);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const loadNotifications = async (userId: string) => {
@@ -273,7 +276,7 @@ export default function HomePage() {
       if (data) {
         setNotifications(data.map((n: any) => {
           const actor = n.actor_profile || n.profiles;
-          const iconMap: any = { like: "💖", comment: "💬", follow: "👤" };
+          const iconMap: any = { like: "💖", comment: "💬", follow: "👤", post: "✍️" };
           return {
             id: n.id,
             text: actor ? `${actor.full_name} ${n.content}` : n.content,
@@ -443,6 +446,20 @@ export default function HomePage() {
     if (activeCategory !== "all") q = q.eq("category", activeCategory);
     if (query) q = q.ilike("title", `%${query}%`);
     
+    if (query) {
+      const [nameRes, userRes] = await Promise.all([
+        supabase.from("profiles").select("*").ilike("full_name", `%${query}%`).limit(5),
+        supabase.from("profiles").select("*").ilike("username", `%${query}%`).limit(5)
+      ]);
+      const merged = [...((nameRes.data as any[]) || []), ...((userRes.data as any[]) || [])];
+      const unique = merged.filter((item, index, self) =>
+        self.findIndex(t => t.id === item.id) === index
+      ).slice(0, 8);
+      setSearchedProfiles(unique);
+    } else {
+      setSearchedProfiles([]);
+    }
+    
     if (activeFeedTab === "following" && followingProfiles.length === 0) {
       setPosts([]);
       setLoading(false);
@@ -468,6 +485,75 @@ export default function HomePage() {
 
     setPosts(fetchedPosts);
     setLoading(false);
+  };
+
+  const renderSearchedProfiles = () => {
+    if (!query || searchedProfiles.length === 0) return null;
+    return (
+      <div style={{ marginBottom: 36, background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 16, padding: "20px 24px" }}>
+        <h3 style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 16 }}>
+          People matching your search
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {searchedProfiles.map((prof) => {
+            const isF = followingProfiles.some((p) => p.id === prof.id);
+            const isSelf = user?.id === prof.id;
+            return (
+              <div key={prof.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1, minWidth: 0 }}>
+                  <Link href={`/profile/${prof.username || prof.id}`} style={{ textDecoration: "none", display: "block", width: 44, height: 44, borderRadius: "50%", overflow: "hidden", background: "var(--border)", flexShrink: 0, position: "relative" }}>
+                    {prof.avatar_url ? (
+                      <Image src={prof.avatar_url} alt="" width={44} height={44} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {getInitials(prof.full_name || "?")}
+                      </div>
+                    )}
+                  </Link>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <Link href={`/profile/${prof.username || prof.id}`} style={{ textDecoration: "none", display: "block" }}>
+                      <span style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--black)" }}>{prof.full_name}</span>
+                    </Link>
+                    {prof.bio && (
+                      <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {prof.bio}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {!isSelf && user && (
+                  <button
+                    onClick={async () => {
+                      if (isF) {
+                        const { error } = await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", prof.id);
+                        if (!error) loadFollowingProfiles(user.id);
+                      } else {
+                        const { error } = await supabase.from("follows").insert({ follower_id: user.id, following_id: prof.id });
+                        if (!error) loadFollowingProfiles(user.id);
+                      }
+                    }}
+                    style={{
+                      border: "1px solid var(--brand)",
+                      color: isF ? "white" : "var(--brand)",
+                      backgroundColor: isF ? "var(--brand)" : "transparent",
+                      borderRadius: 999,
+                      padding: "6px 16px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontFamily: "var(--sans)",
+                      marginLeft: 16
+                    }}
+                  >
+                    {isF ? "Following" : "Follow"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   const featured = posts.filter((p) => p.featured).slice(0, 1)[0] || posts[0];
@@ -567,13 +653,30 @@ export default function HomePage() {
           <div style={{ maxWidth: 1192, margin: "0 auto", padding: "0 24px" }}>
             <div className="home-grid">
               <main className="home-feed">
+                {query && (
+                  <div style={{ marginBottom: 24 }}>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 700, color: "var(--black)" }}>
+                      Results for "{query}"
+                    </h2>
+                  </div>
+                )}
+                {renderSearchedProfiles()}
+                {query && posts.length > 0 && (
+                  <h3 style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 20 }}>
+                    Stories
+                  </h3>
+                )}
                 {loading ? (
                   <div style={{ padding: "60px 0", textAlign: "center" }}>
                     <div className="spinner" style={{ borderTopColor: "var(--ink)", borderColor: "var(--border)", margin: "0 auto" }} />
                     <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)", marginTop: 16 }}>Loading stories…</p>
                   </div>
                 ) : posts.length === 0 ? (
-                  null
+                  searchedProfiles.length === 0 && (
+                    <div style={{ padding: "40px 0", textAlign: "center" }}>
+                      <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No matches found for "{query}".</p>
+                    </div>
+                  )
                 ) : (
                   posts.map((post) => <PostCard key={post.id} post={post} />)
                 )}
@@ -964,6 +1067,17 @@ export default function HomePage() {
               <span className="font-bold text-lg text-violet-600 font-display">EchoGist</span>
             </Link>
 
+            <form onSubmit={handleSearchSubmit} className="uget-header-search hidden sm:flex">
+              <span style={{ color: "var(--muted)", display: "flex" }}><SearchIcon /></span>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search..."
+                style={{ background: "transparent", border: "none", outline: "none", fontSize: 14, width: "100%", color: "var(--ink)", fontFamily: "var(--sans)", marginLeft: 6 }}
+              />
+            </form>
+
 
           </div>
 
@@ -1087,37 +1201,53 @@ export default function HomePage() {
         <div className="uget-content-grid">
           {/* Feed Column */}
           <div className="uget-feed-column">
+            {query && (
+              <div style={{ marginBottom: 24 }}>
+                <h2 style={{ fontFamily: "var(--display)", fontSize: 24, fontWeight: 700, color: "var(--black)" }}>
+                  Results for "{query}"
+                </h2>
+              </div>
+            )}
+            {renderSearchedProfiles()}
+            {query && feedPosts.length > 0 && (
+              <h3 style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 20 }}>
+                Stories
+              </h3>
+            )}
+
             {/* Unified Feed & Category Navigation Tabs */}
-            <div style={{ borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, marginBottom: 20, overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }} className="feed-nav-scroll">
-              <button
-                onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); }}
-                style={tabStyle(activeFeedTab === "foryou" && activeCategory === "all")}
-              >
-                For you
-              </button>
-              <button
-                onClick={() => { setActiveCategory("all"); setActiveFeedTab("following"); }}
-                style={tabStyle(activeFeedTab === "following")}
-              >
-                Following
-              </button>
-              <button
-                onClick={() => { setActiveCategory("all"); setActiveFeedTab("featured"); }}
-                style={tabStyle(activeFeedTab === "featured")}
-              >
-                Featured
-              </button>
-              <div style={{ width: 1, backgroundColor: "var(--border)", margin: "12px 0", alignSelf: "stretch", flexShrink: 0 }} />
-              {CATEGORIES.map((cat) => (
+            {!query && (
+              <div style={{ borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, marginBottom: 20, overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }} className="feed-nav-scroll">
                 <button
-                  key={cat.id}
-                  onClick={() => { setActiveCategory(cat.id); setActiveFeedTab("foryou"); }}
-                  style={tabStyle(activeFeedTab === "foryou" && activeCategory === cat.id)}
+                  onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); }}
+                  style={tabStyle(activeFeedTab === "foryou" && activeCategory === "all")}
                 >
-                  {cat.label}
+                  For you
                 </button>
-              ))}
-            </div>
+                <button
+                  onClick={() => { setActiveCategory("all"); setActiveFeedTab("following"); }}
+                  style={tabStyle(activeFeedTab === "following")}
+                >
+                  Following
+                </button>
+                <button
+                  onClick={() => { setActiveCategory("all"); setActiveFeedTab("featured"); }}
+                  style={tabStyle(activeFeedTab === "featured")}
+                >
+                  Featured
+                </button>
+                <div style={{ width: 1, backgroundColor: "var(--border)", margin: "12px 0", alignSelf: "stretch", flexShrink: 0 }} />
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => { setActiveCategory(cat.id); setActiveFeedTab("foryou"); }}
+                    style={tabStyle(activeFeedTab === "foryou" && activeCategory === cat.id)}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Sub-tabs row when Following is active */}
             {activeFeedTab === "following" && (
@@ -1242,7 +1372,11 @@ export default function HomePage() {
                 </div>
               </div>
             ) : feedPosts.length === 0 ? (
-              null
+              query && searchedProfiles.length === 0 ? (
+                <div style={{ padding: "40px 0", textAlign: "center" }}>
+                  <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)" }}>No matches found for "{query}".</p>
+                </div>
+              ) : null
             ) : (
               feedPosts.map((post) => <PostCard key={post.id} post={post} />)
             )}

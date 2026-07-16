@@ -19,6 +19,12 @@ export async function GET(request: Request) {
 
   const state = encodeURIComponent(next);
 
+  // On localhost / local dev, always use the mock OAuth flow to avoid
+  // redirect_uri mismatch errors from GitHub / Google developer consoles.
+  if (isLocal) {
+    return NextResponse.redirect(new URL(`/auth/oauth-mock?provider=${provider}&next=${state}`, request.url));
+  }
+
   if (provider === "google") {
     const googleClientId = process.env.GOOGLE_CLIENT_ID;
     if (!googleClientId) {

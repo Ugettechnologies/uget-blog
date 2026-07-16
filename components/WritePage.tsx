@@ -250,7 +250,8 @@ export default function WritePage() {
     const slug = slugify(title) + "-" + Math.random().toString(36).slice(2, 6);
     const readTime = estimateReadTime(content);
     const imageSeed = postId || slug;
-    const finalCoverImage = coverImage || `https://picsum.photos/seed/${imageSeed}/800/500`;
+    void imageSeed; // not used — cover image is author-controlled only
+    const finalCoverImage = coverImage || null;
     const payload = {
       title: title.trim(),
       slug: postId ? undefined : slug,
@@ -382,48 +383,32 @@ export default function WritePage() {
                   minHeight: 280,
                   justifyContent: "space-between"
                 }}>
-                  {/* Card cover image / default gradient */}
-                  <div style={{ position: "relative", width: "100%", height: 130, overflow: "hidden" }}>
-                    {coverImage ? (
+                  {/* Card cover image / default gradient - ONLY render if coverImage exists */}
+                  {coverImage ? (
+                    <div style={{ position: "relative", width: "100%", height: 130, overflow: "hidden" }}>
                       <Image src={coverImage} alt="Preview" width={280} height={130} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                    ) : (
-                      <div style={{ 
-                        width: "100%", 
-                        height: "100%", 
-                        background: "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)",
-                        display: "flex", 
-                        alignItems: "center", 
-                        justifyContent: "center",
-                        position: "relative"
+                      
+                      {/* Category tag on image */}
+                      <span style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        background: "rgba(0, 0, 0, 0.65)",
+                        backdropFilter: "blur(6px)",
+                        color: "white",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: "3px 8px",
+                        borderRadius: 999,
+                        fontFamily: "var(--sans)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4
                       }}>
-                        <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.15)", filter: "blur(10px)" }} />
-                        <div style={{ position: "absolute", bottom: -20, left: -20, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.15)", filter: "blur(10px)" }} />
-                        <div style={{ zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                          <span style={{ fontSize: 32, filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.15))" }}>📝</span>
-                          <span style={{ fontSize: 9, fontFamily: "var(--sans)", color: "rgba(255,255,255,0.85)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>EchoGist Story Preview</span>
-                        </div>
-                      </div>
-                    )}
-                    {/* Category tag on image */}
-                    <span style={{
-                      position: "absolute",
-                      top: 10,
-                      left: 10,
-                      background: "rgba(0, 0, 0, 0.65)",
-                      backdropFilter: "blur(6px)",
-                      color: "white",
-                      fontSize: 10,
-                      fontWeight: 700,
-                      padding: "3px 8px",
-                      borderRadius: 999,
-                      fontFamily: "var(--sans)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4
-                    }}>
-                      {CATEGORIES.find(c => c.id === category)?.icon} {CATEGORIES.find(c => c.id === category)?.label || category}
-                    </span>
-                  </div>
+                        {CATEGORIES.find(c => c.id === category)?.icon} {CATEGORIES.find(c => c.id === category)?.label || category}
+                      </span>
+                    </div>
+                  ) : null}
 
                   {/* Card body content */}
                   <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 8, flexGrow: 1, justifyContent: "space-between" }}>

@@ -167,7 +167,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                 <div style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--black)", lineHeight: 1.6 }}>
                   <div style={{ marginBottom: 4 }}>Bank: <strong>Moniepoint</strong></div>
                   <div style={{ marginBottom: 4 }}>Account Number: <strong style={{ letterSpacing: 0.5 }}>674 362 0799</strong></div>
-                  <div>Account Name: <strong>uget technologies</strong></div>
+                  <div>Account Name: <strong>EchoGist Technologies</strong></div>
                 </div>
               </div>
 
@@ -248,7 +248,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
               Transfer Verification Pending!
             </h3>
             <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
-              Thank you! We've received your Moniepoint transaction proof. Our administrators will verify the transfer, and you'll receive a confirmation email at ugettechnologies@gmail.com once activated.
+              Thank you! We've received your Moniepoint transaction proof. Our administrators will verify the transfer, and you'll receive a confirmation email at echogist@gmail.com once activated.
             </p>
             <button 
               onClick={onClose} 
@@ -270,8 +270,6 @@ export default function MembershipPage() {
   const plans = [
     {
       name: "EchoGist Member",
-      price: "$5/month",
-      yearlyPrice: "$50/year",
       features: [
         "Read member-only stories",
         "Support writers you read most",
@@ -284,8 +282,6 @@ export default function MembershipPage() {
     },
     {
       name: "Friend of EchoGist",
-      price: "$15/month",
-      yearlyPrice: "$150/year",
       isPremium: true,
       features: [
         "Give 4x more to the writers you read",
@@ -346,7 +342,7 @@ export default function MembershipPage() {
             </p>
             <div style={{ display: "flex", gap: 16 }}>
               <button 
-                onClick={() => setCheckoutPlan({ name: "EchoGist Member", price: "$5/mo" })}
+                onClick={() => setCheckoutPlan({ name: "EchoGist Member", price: "Coming Soon" })}
                 className="btn btn-primary btn-lg"
                 style={{ backgroundColor: "var(--brand)", color: "white", padding: "12px 28px", fontSize: 15, borderRadius: "999px" }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--brand-hover)")}
@@ -454,12 +450,12 @@ export default function MembershipPage() {
                   <h3 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, color: "var(--black)", marginBottom: 8 }}>
                     {plan.name}
                   </h3>
-                  <div style={{ fontFamily: "var(--sans)", fontSize: 15, color: "var(--black)", fontWeight: 600 }}>
-                    {plan.price} or {plan.yearlyPrice}
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg, #7c3aed22, #a78bfa22)", border: "1px solid #7c3aed44", borderRadius: 999, padding: "4px 14px", marginBottom: 12 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--sans)", letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--brand)" }}>⏳ Coming Soon</span>
                   </div>
-                  
+
                   <button 
-                    onClick={() => setCheckoutPlan({ name: plan.name, price: plan.price })}
+                    onClick={() => setCheckoutPlan({ name: plan.name, price: "Coming Soon" })}
                     className="btn btn-primary"
                     style={{ 
                       width: "100%", 

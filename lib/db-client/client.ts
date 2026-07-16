@@ -172,19 +172,12 @@ export function createClient() {
         return { data: null, error: null };
       },
       onAuthStateChange(callback: (event: string, session: any) => void) {
-        fetch("/api/auth/me", { cache: "no-store" })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data && data.user) {
-              callback("SIGNED_IN", { user: data.user });
-            } else {
-              callback("SIGNED_OUT", null);
-            }
-          })
-          .catch(() => {
-            callback("SIGNED_OUT", null);
-          });
-
+        // NOTE: We intentionally do NOT do an initial /api/auth/me fetch here.
+        // Doing so causes a race condition: if the cookie isn't readable yet
+        // (e.g. milliseconds after signIn sets it), the fetch returns null and
+        // fires SIGNED_OUT — immediately logging the user back out.
+        // Components that need the initial user state call getUser() directly.
+        // This listener only reacts to explicit sign-in / sign-out events.
         const handler = (e: Event) => {
           const detail = (e as CustomEvent).detail;
           if (detail) {

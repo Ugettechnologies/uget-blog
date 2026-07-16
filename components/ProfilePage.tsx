@@ -74,22 +74,26 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
 
-      if (user) {
-        // Fetch current user profile with follower/following counts
-        const [cProfRes, cFollowersRes, cFollowingRes] = await Promise.all([
-          supabase.from("profiles").select("*").eq("id", user.id).single(),
-          supabase.from("follows").select("*").eq("following_id", user.id),
-          supabase.from("follows").select("*").eq("follower_id", user.id),
-        ]);
-        const cProf = cProfRes.data ? {
-          ...cProfRes.data,
-          follower_count: cFollowersRes.data ? cFollowersRes.data.length : 0,
-          following_count: cFollowingRes.data ? cFollowingRes.data.length : 0,
-        } : null;
-        setCurrentUserProfile(cProf);
-        loadNotifications(user.id);
-        loadFollowingProfiles(user.id);
+      // Profiles are private — guests must sign in first
+      if (!user) {
+        router.replace(`/?auth=signin`);
+        return;
       }
+
+      // Fetch current user profile with follower/following counts
+      const [cProfRes, cFollowersRes, cFollowingRes] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).single(),
+        supabase.from("follows").select("*").eq("following_id", user.id),
+        supabase.from("follows").select("*").eq("follower_id", user.id),
+      ]);
+      const cProf = cProfRes.data ? {
+        ...cProfRes.data,
+        follower_count: cFollowersRes.data ? cFollowersRes.data.length : 0,
+        following_count: cFollowingRes.data ? cFollowingRes.data.length : 0,
+      } : null;
+      setCurrentUserProfile(cProf);
+      loadNotifications(user.id);
+      loadFollowingProfiles(user.id);
 
       // Try by username first, then by ID
       let { data: prof } = await supabase.from("profiles").select("*").eq("username", rawUsername).single();
@@ -160,7 +164,7 @@ export default function ProfilePage() {
       if (data) {
         setNotifications(data.map((n: any) => {
           const actor = n.actor_profile || n.profiles;
-          const iconMap: any = { like: "💖", comment: "💬", follow: "👤" };
+          const iconMap: any = { like: "💖", comment: "💬", follow: "👤", post: "✍️" };
           return {
             id: n.id,
             text: actor ? `${actor.full_name} ${n.content}` : n.content,

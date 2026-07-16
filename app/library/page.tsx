@@ -38,6 +38,44 @@ export default function LibraryPage() {
   const [expandedListId, setExpandedListId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
 
+  const [localHighlights, setLocalHighlights] = useState<any[]>([]);
+  const [localHistory, setLocalHistory] = useState<any[]>([]);
+
+  const loadLocalData = () => {
+    if (typeof window !== "undefined") {
+      try {
+        const highlightsStr = localStorage.getItem("echogist_highlights") || "[]";
+        setLocalHighlights(JSON.parse(highlightsStr));
+        const historyStr = localStorage.getItem("echogist_reading_history") || "[]";
+        setLocalHistory(JSON.parse(historyStr));
+      } catch (e) {
+        console.error("Failed to load local highlights / history", e);
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadLocalData();
+    const handleUpdate = () => {
+      loadLocalData();
+    };
+    window.addEventListener("echogist-highlights-updated", handleUpdate);
+    return () => window.removeEventListener("echogist-highlights-updated", handleUpdate);
+  }, []);
+
+  const handleDeleteHighlight = (id: string) => {
+    const updated = localHighlights.filter(h => h.id !== id);
+    setLocalHighlights(updated);
+    localStorage.setItem("echogist_highlights", JSON.stringify(updated));
+    showMsg("Highlight removed");
+  };
+
+  const handleClearHistory = () => {
+    setLocalHistory([]);
+    localStorage.removeItem("echogist_reading_history");
+    showMsg("Reading history cleared");
+  };
+
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -193,7 +231,7 @@ export default function LibraryPage() {
       if (data) {
         setNotifications(data.map((n: any) => {
           const actor = n.actor_profile || n.profiles;
-          const iconMap: any = { like: "💖", comment: "💬", follow: "👤" };
+          const iconMap: any = { like: "💖", comment: "💬", follow: "👤", post: "✍️" };
           return {
             id: n.id,
             text: actor ? `${actor.full_name} ${n.content}` : n.content,
@@ -1184,18 +1222,91 @@ export default function LibraryPage() {
               )}
 
               {libraryTab === "highlights" && (
-                <div style={{ padding: "60px 0", textAlign: "center" }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>🖍️</div>
-                  <h3 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>No highlights yet</h3>
-                  <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>When you highlight text on UGET articles, they will be archived here.</p>
+                <div>
+                  {localHighlights.length === 0 ? (
+                    <div style={{ padding: "60px 0", textAlign: "center" }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>🖍️</div>
+                      <h3 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>No highlights yet</h3>
+                      <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>When you highlight text on EchoGist articles, they will be archived here.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                      {localHighlights.map((h) => (
+                        <div key={h.id} style={{ padding: 20, border: "1px solid var(--border)", borderRadius: 12, background: "var(--bg-2)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontFamily: "var(--serif)", fontSize: 16, fontStyle: "italic", margin: "0 0 10px", paddingLeft: 12, borderLeft: "3px solid var(--brand)", lineHeight: 1.6, color: "var(--ink)" }}>
+                              "{h.text}"
+                            </p>
+                            <span style={{ fontSize: 13, fontFamily: "var(--sans)", color: "var(--muted-2)" }}>
+                              Highlighted from <Link href={`/post/${h.post_slug}`} style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}>{h.post_title}</Link> · {formatDate(h.created_at)}
+                            </span>
+                          </div>
+                          <button 
+                            onClick={() => handleDeleteHighlight(h.id)}
+                            style={{ background: "none", border: "none", color: "var(--muted-2)", cursor: "pointer", fontSize: 16 }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = "var(--red)"}
+                            onMouseLeave={(e) => e.currentTarget.style.color = "var(--muted-2)"}
+                            title="Remove highlight"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
               {libraryTab === "history" && (
-                <div style={{ padding: "60px 0", textAlign: "center" }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>⏱️</div>
-                  <h3 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>History is empty</h3>
-                  <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>Articles you read on UGET will be logged in your reading history.</p>
+                <div>
+                  {localHistory.length === 0 ? (
+                    <div style={{ padding: "60px 0", textAlign: "center" }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>⏱️</div>
+                      <h3 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>History is empty</h3>
+                      <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)" }}>Articles you read on EchoGist will be logged in your reading history.</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                        <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>Recently read posts</span>
+                        <button onClick={handleClearHistory} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "var(--sans)" }}>
+                          Clear all history
+                        </button>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                        {localHistory.map((post) => {
+                          const cat = CATEGORIES.find((c) => c.id === post.category);
+                          const authorName = post.profiles?.full_name || "Writer";
+                          return (
+                            <article key={post.id} className="post-card" style={{ paddingBottom: 24, borderBottom: "1px solid var(--border)" }}>
+                              <div className="post-card-content">
+                                <div className="post-card-author">
+                                  <div className="post-card-author-info">
+                                    <span style={{ fontWeight: 600, color: "var(--ink)" }}>{authorName}</span>
+                                    <span>·</span>
+                                    <span>{formatDate(post.created_at)}</span>
+                                  </div>
+                                </div>
+                                <Link href={`/post/${post.slug}`} className="post-card-title-link" style={{ textDecoration: "none" }}>
+                                  <h3 className="post-card-title">{post.title}</h3>
+                                  {post.excerpt && <p className="post-card-excerpt">{post.excerpt}</p>}
+                                </Link>
+                                <div className="post-card-meta">
+                                  {cat && <span className="post-card-tag">{cat.label}</span>}
+                                  <span>{post.read_time} min read</span>
+                                </div>
+                              </div>
+                              {post.cover_image && (
+                                <Link href={`/post/${post.slug}`} className="post-card-image">
+                                  <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
+                                </Link>
+                              )}
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

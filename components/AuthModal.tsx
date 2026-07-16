@@ -342,21 +342,23 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
       {/* Modal Container */}
       <div 
-        className="modal" 
+        className="modal auth-modal-light" 
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "var(--modal-bg, white)",
+          background: "#ffffff",
           borderRadius: "20px",
           padding: "40px 24px 32px",
           maxWidth: 480,
           width: "100%",
-          boxShadow: "var(--shadow-xl)",
+          boxShadow: "0 24px 64px rgba(124,58,237,0.16)",
           position: "relative",
           zIndex: 1010,
           animation: "modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-          border: "1px solid var(--border)",
+          border: "1px solid #e8e8e8",
           textAlign: "center",
-          margin: "auto"
+          margin: "auto",
+          /* Force light palette so inputs/labels are always readable */
+          color: "#1a1a1a",
         }}
       >
         {/* Close [X] Button */}

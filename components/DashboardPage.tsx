@@ -141,7 +141,7 @@ export default function DashboardPage() {
       if (data) {
         setNotifications(data.map((n: any) => {
           const actor = n.actor_profile || n.profiles;
-          const iconMap: any = { like: "💖", comment: "💬", follow: "👤" };
+          const iconMap: any = { like: "💖", comment: "💬", follow: "👤", post: "✍️" };
           return {
             id: n.id,
             text: actor ? `${actor.full_name} ${n.content}` : n.content,
@@ -226,6 +226,55 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(`${origin}/post/${post.slug}`);
     setActiveStoryMenuId(null);
     showMsg("Link copied to clipboard!");
+  };
+
+  const handleDuplicate = async (post: Post) => {
+    setActiveStoryMenuId(null);
+    const newSlug = post.slug + "-copy-" + Math.random().toString(36).slice(2, 5);
+    const { data, error } = await supabase.from("posts").insert({
+      title: post.title + " (copy)",
+      slug: newSlug,
+      excerpt: post.excerpt,
+      content: post.content,
+      cover_image: post.cover_image,
+      category: post.category,
+      tags: post.tags,
+      author_id: post.author_id,
+      published: false,
+      featured: false,
+      read_time: post.read_time,
+    }).select().single();
+    if (data) {
+      setPosts([data as Post, ...posts]);
+      showMsg("Story duplicated as draft!");
+    } else if (error) {
+      showMsg("Failed to duplicate: " + error.message);
+    }
+  };
+
+  const handleSharePost = (post: Post, platform: "x" | "facebook" | "linkedin") => {
+    setActiveStoryMenuId(null);
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/post/${post.slug}`;
+    const title = post.title || "";
+    let shareUrl = "";
+    if (platform === "x") shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+    else if (platform === "facebook") shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    else if (platform === "linkedin") shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    const w = 600, h = 450;
+    const left = window.screen.width / 2 - w / 2;
+    const top = window.screen.height / 2 - h / 2;
+    window.open(shareUrl, "share", `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+  };
+
+  const handleTogglePin = async (post: Post) => {
+    setActiveStoryMenuId(null);
+    const newPinned = !(post as any).pinned;
+    const { data } = await supabase.from("posts").update({ pinned: newPinned }).eq("id", post.id).select().single();
+    if (data) {
+      setPosts(posts.map((p) => p.id === post.id ? { ...p, ...(data as Post) } : p));
+      showMsg(newPinned ? "📌 Pinned to homepage!" : "Unpinned from homepage");
+    }
   };
 
   const handleFollowToggle = async (targetId: string, isFollowing: boolean) => {
@@ -397,7 +446,7 @@ export default function DashboardPage() {
           border-radius: 8px;
           box-shadow: 0 4px 12px rgba(0,0,0,0.08);
           z-index: 80;
-          min-width: 160px;
+          min-width: 200px;
           overflow: hidden;
           padding: 4px 0;
         }
@@ -794,16 +843,61 @@ export default function DashboardPage() {
 
                               {activeStoryMenuId === post.id && (
                                 <div className="story-options-menu">
-                                  <button onClick={() => copyPostLink(post)} className="story-options-item">
-                                    Copy link
+                                  {/* Stats */}
+                                  <button onClick={() => { setActiveStoryMenuId(null); handleTabChange("stats"); }} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                    View stats
                                   </button>
-                                  <Link href={`/write/${post.id}`} className="story-options-item">
+
+                                  {/* Edit */}
+                                  <Link href={`/write/${post.id}`} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                     Edit story
                                   </Link>
-                                  <button onClick={() => handleTogglePublish(post)} className="story-options-item">
+
+                                  {/* Duplicate */}
+                                  <button onClick={() => handleDuplicate(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    Duplicate
+                                  </button>
+
+                                  {/* Pin to homepage */}
+                                  <button onClick={() => handleTogglePin(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                    {(post as any).pinned ? "Unpin from homepage" : "Pin to homepage"}
+                                  </button>
+
+                                  <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
+
+                                  {/* Share sub-section */}
+                                  <button onClick={() => handleSharePost(post, "x")} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                    Share on X
+                                  </button>
+                                  <button onClick={() => handleSharePost(post, "facebook")} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                    Share on Facebook
+                                  </button>
+                                  <button onClick={() => handleSharePost(post, "linkedin")} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                    Share on LinkedIn
+                                  </button>
+                                  <button onClick={() => copyPostLink(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                    Copy link
+                                  </button>
+
+                                  <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
+
+                                  {/* Publish toggle */}
+                                  <button onClick={() => handleTogglePublish(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                     {post.published ? "Unpublish story" : "Publish story"}
                                   </button>
-                                  <button onClick={() => handleDelete(post.id)} className="story-options-item" style={{ color: "var(--red)" }}>
+
+                                  {/* Delete */}
+                                  <button onClick={() => handleDelete(post.id)} className="story-options-item" style={{ color: "var(--red)", display: "flex", alignItems: "center", gap: 8 }}>
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     Delete story
                                   </button>
                                 </div>
