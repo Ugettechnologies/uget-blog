@@ -67,8 +67,17 @@ export async function GET(request: Request) {
     }
 
     const post = posts[0];
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com";
+    
+    // Resolve the public-facing site URL dynamically, prioritizing the request host header
+    // if it is not localhost. Fall back to NEXT_PUBLIC_SITE_URL or the production domain.
+    const host = request.headers.get("host");
+    const isHostLocal = host?.includes("localhost") || host?.includes("127.0.0.1") || host?.includes("::1");
+    const siteUrl = (host && !isHostLocal)
+      ? `https://${host}`
+      : (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes("localhost")
+          ? process.env.NEXT_PUBLIC_SITE_URL
+          : "https://echo-gist.com");
+          
     const postUrl = `${siteUrl}/post/${post.slug}`;
 
     // ── 4. Build HTML once, reuse for all recipients ──────────────────────────
