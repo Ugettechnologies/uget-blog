@@ -76,7 +76,7 @@ export async function GET(request: Request) {
       ? `https://${host}`
       : (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes("localhost")
           ? process.env.NEXT_PUBLIC_SITE_URL
-          : "https://echo-gist.com");
+          : "https://www.echo-gist.com");
           
     const postUrl = `${siteUrl}/post/${post.slug}`;
 

@@ -10,7 +10,175 @@ import type { Post, Comment } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import SafeImage from "./SafeImage";
 
+// ── Guest CTA Banner ─────────────────────────────────────────────────────────
+// Shown to unauthenticated visitors (e.g. arriving from newsletter email).
+// Slides up from the bottom after a short delay and can be dismissed.
+function GuestCtaBanner({ postSlug }: { postSlug: string }) {
+  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    // Check if user already dismissed this session
+    if (typeof window !== "undefined" && sessionStorage.getItem("echogist_cta_dismissed")) {
+      return;
+    }
+    // Slide up after 3 seconds of reading
+    const timer = setTimeout(() => setVisible(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("echogist_cta_dismissed", "1");
+    }
+  };
+
+  if (dismissed || !visible) return null;
+
+  const returnPath = encodeURIComponent(`/post/${postSlug}`);
+
+  return (
+    <>
+      <style>{`
+        @keyframes slideUpCta {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
+      <div
+        id="guest-cta-banner"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 999,
+          animation: "slideUpCta 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+          background: "linear-gradient(135deg, #7c3aed 0%, #a855f7 60%, #c084fc 100%)",
+          boxShadow: "0 -4px 32px rgba(124, 58, 237, 0.35)",
+          padding: "20px 24px",
+        }}
+      >
+        {/* Dismiss button */}
+        <button
+          onClick={handleDismiss}
+          aria-label="Dismiss"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 16,
+            background: "rgba(255,255,255,0.15)",
+            border: "none",
+            borderRadius: "50%",
+            width: 28,
+            height: 28,
+            cursor: "pointer",
+            color: "#fff",
+            fontSize: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
+
+        <div
+          style={{
+            maxWidth: 680,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 24,
+            flexWrap: "wrap",
+          }}
+        >
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <p
+              style={{
+                fontFamily: "'Segoe UI', Roboto, sans-serif",
+                fontWeight: 700,
+                fontSize: 17,
+                color: "#fff",
+                margin: "0 0 4px",
+                lineHeight: 1.3,
+              }}
+            >
+              Enjoying this story? Join Echo Gist — it&rsquo;s free.
+            </p>
+            <p
+              style={{
+                fontFamily: "'Segoe UI', Roboto, sans-serif",
+                fontSize: 13,
+                color: "rgba(255,255,255,0.8)",
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
+              Like, comment, bookmark &amp; get the latest stories delivered to your inbox.
+            </p>
+          </div>
+
+          {/* CTA buttons */}
+          <div style={{ display: "flex", gap: 12, flexShrink: 0, flexWrap: "wrap" }}>
+            <Link
+              id="guest-cta-signup"
+              href={`/?auth=signup`}
+              style={{
+                display: "inline-block",
+                background: "#ffffff",
+                color: "#7c3aed",
+                fontFamily: "'Segoe UI', Roboto, sans-serif",
+                fontWeight: 700,
+                fontSize: 14,
+                padding: "10px 24px",
+                borderRadius: 9999,
+                textDecoration: "none",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                whiteSpace: "nowrap",
+                transition: "filter 0.15s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(0.95)")}
+              onMouseLeave={(e) => (e.currentTarget.style.filter = "")}
+            >
+              Sign Up Free
+            </Link>
+            <Link
+              id="guest-cta-signin"
+              href={`/?auth=signin`}
+              style={{
+                display: "inline-block",
+                background: "rgba(255,255,255,0.15)",
+                color: "#ffffff",
+                fontFamily: "'Segoe UI', Roboto, sans-serif",
+                fontWeight: 600,
+                fontSize: 14,
+                padding: "10px 20px",
+                borderRadius: 9999,
+                textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.4)",
+                whiteSpace: "nowrap",
+                backdropFilter: "blur(4px)",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.25)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.15)")}
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function PostPage() {
+
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
@@ -744,6 +912,9 @@ export default function PostPage() {
       )}
 
       <Footer />
+
+      {/* ── Sticky Sign-Up CTA Banner (unauthenticated visitors only) ── */}
+      {!user && <GuestCtaBanner postSlug={post.slug} />}
     </div>
   );
 }

@@ -108,6 +108,64 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     };
   }, [isOpen, mode]);
 
+  // Handle automatic callback/redirect when magic link is verified in another tab/device
+  useEffect(() => {
+    if (verificationStep !== "check_email" || !isOpen) return;
+
+    let isMounted = true;
+    let intervalId: any;
+
+    const checkAuthentication = async () => {
+      try {
+        // Poll our own JWT-based session endpoint (not Supabase)
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!res.ok) return;
+        const { user } = await res.json();
+
+        if (user && isMounted) {
+          // Stop polling immediately
+          clearInterval(intervalId);
+
+          // Notify other components (e.g. Navbar) that the user is now signed in.
+          // This triggers fetchUserFromSession() in the Navbar so the avatar appears.
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("uget-auth-change", {
+                detail: { event: "SIGNED_IN", session: { user } },
+              })
+            );
+          }
+
+          // Refresh server components first so Next.js re-reads the cookie,
+          // then navigate to the dashboard.
+          router.refresh();
+          onClose();
+          router.push("/dashboard");
+        }
+      } catch (err) {
+        console.error("Auto-check authentication error:", err);
+      }
+    };
+
+    // 1. Initial check immediately
+    checkAuthentication();
+
+    // 2. Poll every 2.5 seconds
+    intervalId = setInterval(checkAuthentication, 2500);
+
+    // 3. Check immediately when the user switches back to this tab
+    const handleFocus = () => {
+      checkAuthentication();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [verificationStep, isOpen, onClose, router]);
+
   if (!isOpen) return null;
 
   const handleOAuth = async (provider: "google" | "github" | "facebook") => {

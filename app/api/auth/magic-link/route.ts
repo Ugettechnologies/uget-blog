@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       ? `https://${host}`
       : (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes("localhost")
           ? process.env.NEXT_PUBLIC_SITE_URL
-          : "https://echo-gist.com");
+          : "https://www.echo-gist.com");
 
     const magicLink = `${siteUrl}/api/auth/verify?token=${encodeURIComponent(token)}`;
 

@@ -61,7 +61,36 @@ function NavbarInner() {
     }
   };
 
+  // ── fetchUserFromSession ─────────────────────────────────────────────────
+  // Reads the custom JWT session cookie via /api/auth/me and updates Navbar state.
+  // Used when the Supabase auth state change won't fire (e.g. magic-link flow).
+  const fetchUserFromSession = async () => {
+    try {
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      if (!res.ok) return;
+      const { user: sessionUser } = await res.json();
+      if (sessionUser) {
+        // Build a minimal user object matching the shape Navbar expects
+        const u = { id: sessionUser.id, email: sessionUser.email };
+        setUser(u);
+        // Fetch the profile from Supabase using the user id
+        supabase.from("profiles").select("*").eq("id", sessionUser.id).single()
+          .then(({ data }) => {
+            setProfile(data);
+            if (data) {
+              const remember = localStorage.getItem("uget_remember_me") !== "false";
+              if (remember) saveUserToSavedList(u as any, data);
+            }
+          });
+        loadNotifications(sessionUser.id);
+      }
+    } catch (err) {
+      console.error("[Navbar] fetchUserFromSession error:", err);
+    }
+  };
+
   useEffect(() => {
+    // ── 1. Supabase client-side auth (OAuth / Supabase magic link) ────────
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
       if (user) {
@@ -76,6 +105,9 @@ function NavbarInner() {
             }
           });
         loadNotifications(user.id);
+      } else {
+        // No Supabase session — check for custom JWT session (email magic link)
+        fetchUserFromSession();
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: string, session: any) => {
@@ -98,7 +130,27 @@ function NavbarInner() {
         loadNotifications(u.id);
       }
     });
-    return () => subscription.unsubscribe();
+
+    // ── 2. Custom JWT auth change event (fired by AuthModal after email magic-link polling) ──
+    const handleAuthChange = () => {
+      fetchUserFromSession();
+    };
+    window.addEventListener("uget-auth-change", handleAuthChange);
+
+    // ── 3. Tab visibility change — re-check session when user returns to this tab ──
+    // This handles the case where the user clicked the magic link in another tab/window.
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchUserFromSession();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("uget-auth-change", handleAuthChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -202,106 +254,132 @@ function NavbarInner() {
                 </Link>
               )}
 
-              {/* Notification bell button */}
+              {/* ── Notification Bell ── */}
               <div style={{ position: "relative", marginRight: 8 }} ref={notifRef}>
-                <button 
+                <button
+                  id="navbar-notif-btn"
                   onClick={() => setNotifOpen(!notifOpen)}
-                  style={{ 
-                    background: "none", 
-                    border: "none", 
-                    cursor: "pointer", 
-                    color: "var(--ink-2)", 
-                    padding: 6, 
+                  style={{
+                    background: notifOpen ? "var(--bg-3)" : "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: notifOpen ? "var(--brand)" : "var(--ink-2)",
+                    padding: 8,
                     borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    position: "relative"
+                    position: "relative",
+                    transition: "background 0.2s, color 0.2s",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-3)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--bg-3)";
+                    e.currentTarget.style.color = "var(--brand)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!notifOpen) {
+                      e.currentTarget.style.background = "none";
+                      e.currentTarget.style.color = "var(--ink-2)";
+                    }
+                  }}
+                  aria-label="Open notifications"
                   title="Notifications"
                 >
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                   {unreadNotifCount > 0 && (
-                    <span style={{
-                      position: "absolute",
-                      top: 2,
-                      right: 2,
-                      background: "#ef4444",
-                      color: "white",
-                      fontSize: 9,
-                      fontWeight: "bold",
-                      borderRadius: "50%",
-                      width: 14,
-                      height: 14,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: "1px solid var(--bg)"
-                    }}>
-                      {unreadNotifCount}
-                    </span>
+                    <span className="notif-badge">{unreadNotifCount > 9 ? "9+" : unreadNotifCount}</span>
                   )}
                 </button>
 
-                {/* Notifications dropdown menu */}
+                {/* ── Notifications Dropdown Panel ── */}
                 {notifOpen && (
-                  <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
-                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-3)" }}>
-                      <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
-                      <div style={{ display: "flex", gap: 12 }}>
+                  <div className="notif-dropdown notif-dropdown--animated">
+                    {/* Header */}
+                    <div className="notif-header">
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ color: "var(--brand)" }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>Notifications</span>
                         {unreadNotifCount > 0 && (
-                          <button onClick={markAllAsRead} style={{ fontSize: 13, color: "var(--brand)", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)", padding: 0 }}>
+                          <span style={{ background: "var(--brand)", color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 99, padding: "1px 7px", letterSpacing: "0.02em" }}>
+                            {unreadNotifCount} new
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {unreadNotifCount > 0 && (
+                          <button onClick={markAllAsRead} className="notif-action-btn notif-action-btn--primary">
                             Mark read
                           </button>
                         )}
                         {notifications.length > 0 && (
-                          <button onClick={clearAllNotifications} style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)", padding: 0 }}>
+                          <button onClick={clearAllNotifications} className="notif-action-btn">
                             Clear
                           </button>
                         )}
                       </div>
                     </div>
-                    <div style={{ maxHeight: 360, overflowY: "auto", background: "var(--bg-2)" }}>
+
+                    {/* Body */}
+                    <div className="notif-body">
                       {notifications.length === 0 ? (
-                        <div style={{ padding: "48px 20px", textAlign: "center", fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)" }}>
-                          No notifications yet
+                        <div className="notif-empty">
+                          <div className="notif-empty-icon">
+                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "var(--muted-2)" }}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                          </div>
+                          <p style={{ margin: 0, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>All caught up!</p>
+                          <p style={{ margin: "4px 0 0", fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>New activity will appear here</p>
                         </div>
                       ) : (
-                        notifications.map((item) => (
-                          <div 
-                            key={item.id} 
-                            onClick={() => handleNotificationClick(item.id)}
-                            style={{ 
-                              display: "flex", 
-                              gap: 12, 
-                              padding: "12px 16px", 
-                              borderBottom: "1px solid var(--border-2)",
-                              cursor: "pointer",
-                              background: item.unread ? "var(--bg-3)" : "none",
-                              position: "relative"
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(0.95)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.filter = "")}
-                          >
-                            <span style={{ fontSize: 18, alignSelf: "flex-start" }}>{item.icon}</span>
-                            <div style={{ flex: 1 }}>
-                              <p style={{ margin: 0, fontFamily: "var(--sans)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.4, fontWeight: item.unread ? 500 : 400 }}>{item.text}</p>
-                              <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted-2)", marginTop: 4, display: "block" }}>{item.time}</span>
+                        notifications.map((item) => {
+                          const typeColors: Record<string, string> = {
+                            "💖": "#f43f5e", "💬": "#8b5cf6", "👤": "#3b82f6",
+                            "✍️": "#10b981", "🎉": "#f59e0b",
+                          };
+                          const chipColor = typeColors[item.icon] || "var(--brand)";
+                          return (
+                            <div
+                              key={item.id}
+                              className={`notif-item${item.unread ? " notif-item--unread" : ""}`}
+                              onClick={() => handleNotificationClick(item.id)}
+                            >
+                              {/* Coloured icon chip */}
+                              <div className="notif-icon-chip" style={{ background: `${chipColor}18`, color: chipColor }}>
+                                <span style={{ fontSize: 14 }}>{item.icon}</span>
+                              </div>
+
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p className="notif-text">{item.text}</p>
+                                <span className="notif-time">{item.time}</span>
+                              </div>
+
+                              {item.unread && <span className="notif-unread-dot" />}
                             </div>
-                            {item.unread && (
-                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--primary)", alignSelf: "center", flexShrink: 0 }} />
-                            )}
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
+
+                    {/* Footer */}
+                    {notifications.length > 0 && (
+                      <div className="notif-footer">
+                        <Link href="/settings#notifications" onClick={() => setNotifOpen(false)} className="notif-footer-link">
+                          Notification settings
+                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
+
 
               <div style={{ position: "relative" }} ref={menuRef}>
                 <button className="nav-avatar" onClick={() => setMenuOpen(!menuOpen)}>
