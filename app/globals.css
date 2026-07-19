@@ -84,6 +84,13 @@
   --hero-grid-color: rgba(167, 139, 250, 0.2);
 }
 
+/* Ensure brand logo favicon/icons blend perfectly in dark mode */
+.dark img[src*="favicon"],
+.dark img[src*="logo-icon-transparent"],
+.dark img[src*="logo-transparent"] {
+  filter: brightness(0) invert(1);
+}
+
 /* Global Dark Mode overrides for inline background colors */
 .dark [style*="background: white"],
 .dark [style*="background:white"],
