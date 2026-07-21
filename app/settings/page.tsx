@@ -161,10 +161,10 @@ export default function SettingsPage() {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest(".avatar-dropdown-trigger") && !target.closest(".avatar-dropdown")) {
+      if (!target.closest(".avatar-dropdown-trigger")) {
         setUserDropdownOpen(false);
       }
-      if (!target.closest(".notif-dropdown-trigger") && !target.closest(".notif-dropdown")) {
+      if (!target.closest(".notif-dropdown-trigger")) {
         setNotifDropdownOpen(false);
       }
     };
@@ -191,6 +191,9 @@ export default function SettingsPage() {
               time: new Date(n.created_at).toLocaleDateString() || "Just now",
               unread: !n.read,
               icon: iconMap[n.type] || "🎉",
+              type: n.type,
+              actor_username: actor?.username,
+              post_slug: n.posts?.slug
             };
           })
         );
@@ -223,10 +226,16 @@ export default function SettingsPage() {
     setUnreadNotifCount(0);
   };
 
-  const handleNotificationClick = async (id: any) => {
-    await supabase.from("notifications").update({ read: true }).eq("id", id);
-    setNotifications(notifications.map((n) => (n.id === id ? { ...n, unread: false } : n)));
+  const handleNotificationClick = async (item: any) => {
+    await supabase.from("notifications").update({ read: true }).eq("id", item.id);
+    setNotifications(notifications.map((n) => (n.id === item.id ? { ...n, unread: false } : n)));
     setUnreadNotifCount((prev) => Math.max(0, prev - 1));
+    setNotifDropdownOpen(false);
+    if (item.type === "follow" && item.actor_username) {
+      router.push(`/profile/${item.actor_username}`);
+    } else if (item.post_slug) {
+      router.push(`/post/${item.post_slug}`);
+    }
   };
 
   const clearAllNotifications = async () => {
@@ -1114,7 +1123,7 @@ export default function SettingsPage() {
                       notifications.map((item) => (
                         <div
                           key={item.id}
-                          onClick={() => handleNotificationClick(item.id)}
+                          onClick={() => handleNotificationClick(item)}
                           className={`flex gap-3 px-4 py-3 border-b border-gray-55 cursor-pointer transition-colors ${
                             item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"
                           }`}

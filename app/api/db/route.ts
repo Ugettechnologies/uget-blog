@@ -213,9 +213,14 @@ export async function POST(request: Request) {
               'full_name', actor.full_name,
               'avatar_url', actor.avatar_url,
               'username', actor.username
-            ) as actor_profile
+            ) as actor_profile,
+            CASE 
+              WHEN p.id IS NOT NULL THEN json_build_object('id', p.id, 'slug', p.slug, 'title', p.title)
+              ELSE NULL
+            END as posts
           FROM notifications
           LEFT JOIN profiles actor ON notifications.actor_id = actor.id
+          LEFT JOIN posts p ON notifications.post_id = p.id
           ${whereString}
           ${orderString}
           ${limitString}
@@ -351,6 +356,12 @@ export async function POST(request: Request) {
         result = joinedRows[0] || result;
       }
 
+      if (result) {
+        if (table === "posts" && result.published) {
+          await triggerNotification(sql, table, result);
+        }
+      }
+
       return NextResponse.json({ data: result, error: null });
     } 
     
@@ -416,13 +427,17 @@ async function triggerNotification(sql: any, table: string, result: any) {
       const postId = result.id;
       const postTitle = result.title;
       if (result.published) {
+        // Prevent duplicate notifications
+        const existing = await sql(`SELECT id FROM notifications WHERE post_id = $1 AND type = 'post' LIMIT 1`, [postId]);
+        if (existing.length > 0) return;
+
         const shortTitle = postTitle.length > 25 ? postTitle.substring(0, 25) + "..." : postTitle;
         const followers = await sql(`SELECT follower_id FROM follows WHERE following_id = $1`, [authorId]);
         for (const f of followers) {
           await sql(`
             INSERT INTO notifications (user_id, type, actor_id, post_id, content)
             VALUES ($1, 'post', $2, $3, $4)
-          `, [f.follower_id, 'post', authorId, postId, `published a new story: "${shortTitle}"`]);
+          `, [f.follower_id, authorId, postId, `published a new story: "${shortTitle}"`]);
         }
       }
     }

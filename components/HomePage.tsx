@@ -282,7 +282,10 @@ export default function HomePage() {
             text: actor ? `${actor.full_name} ${n.content}` : n.content,
             time: new Date(n.created_at).toLocaleDateString() || "Just now",
             unread: !n.read,
-            icon: iconMap[n.type] || "🎉"
+            icon: iconMap[n.type] || "🎉",
+            type: n.type,
+            actor_username: actor?.username,
+            post_slug: n.posts?.slug
           };
         }));
         setUnreadNotifCount(data.filter((n: any) => !n.read).length);
@@ -309,13 +312,23 @@ export default function HomePage() {
   const loadSuggestedWriters = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let q = supabase.from("profiles").select("*").limit(10);
+      let q = supabase.from("profiles").select("*").limit(15);
       if (user) {
         q = q.neq("id", user.id);
-      }
-      const { data } = await q;
-      if (data) {
-        setSuggestedWriters(data);
+        const [followsRes, profilesRes] = await Promise.all([
+          supabase.from("follows").select("following_id").eq("follower_id", user.id),
+          q
+        ]);
+        const followingIds = followsRes.data ? followsRes.data.map((f: any) => f.following_id) : [];
+        if (profilesRes.data) {
+          const filtered = profilesRes.data.filter((p: any) => !followingIds.includes(p.id));
+          setSuggestedWriters(filtered.slice(0, 5));
+        }
+      } else {
+        const { data } = await q;
+        if (data) {
+          setSuggestedWriters(data.slice(0, 5));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -339,10 +352,16 @@ export default function HomePage() {
     setUnreadNotifCount(0);
   };
 
-  const handleNotificationClick = async (id: any) => {
-    await supabase.from("notifications").update({ read: true }).eq("id", id);
-    setNotifications(notifications.map(n => n.id === id ? { ...n, unread: false } : n));
+  const handleNotificationClick = async (item: any) => {
+    await supabase.from("notifications").update({ read: true }).eq("id", item.id);
+    setNotifications(notifications.map(n => n.id === item.id ? { ...n, unread: false } : n));
     setUnreadNotifCount(prev => Math.max(0, prev - 1));
+    setNotifDropdownOpen(false);
+    if (item.type === "follow" && item.actor_username) {
+      router.push(`/profile/${item.actor_username}`);
+    } else if (item.post_slug) {
+      router.push(`/post/${item.post_slug}`);
+    }
   };
 
   const clearAllNotifications = async () => {
@@ -430,7 +449,24 @@ export default function HomePage() {
     });
     return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);  useEffect(() => {
+  }, []);
+
+  // Click outside listener for all dropdowns
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".avatar-dropdown-trigger")) {
+        setUserDropdownOpen(false);
+      }
+      if (!target.closest(".notif-dropdown-trigger")) {
+        setNotifDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     loadPosts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCategory, query, userProfile, activeFeedTab, followingProfiles]);
@@ -1154,7 +1190,7 @@ export default function HomePage() {
                       notifications.map((item) => (
                         <div
                           key={item.id}
-                          onClick={() => handleNotificationClick(item.id)}
+                          onClick={() => handleNotificationClick(item)}
                           className={`flex gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer transition-colors ${item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"}`}
                         >
                           <span className="text-lg flex-shrink-0">{item.icon}</span>

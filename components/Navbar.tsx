@@ -42,20 +42,23 @@ function NavbarInner() {
 
   const loadNotifications = async (userId: string) => {
     const { data } = await supabase.from("notifications")
-      .select("*, profiles(*)")
+      .select("*, actor_profile:profiles(*)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(20);
     if (data) {
       setNotifications(data.map((n: any) => {
-        const actor = n.actor_profile;
+        const actor = n.actor_profile || n.profiles;
         const iconMap: any = { like: "💖", comment: "💬", follow: "👤", post: "✍️" };
         return {
           id: n.id,
           text: actor ? `${actor.full_name} ${n.content}` : n.content,
           time: new Date(n.created_at).toLocaleDateString() || "Just now",
           unread: !n.read,
-          icon: iconMap[n.type] || "🎉"
+          icon: iconMap[n.type] || "🎉",
+          type: n.type,
+          actor_username: actor?.username,
+          post_slug: n.posts?.slug
         };
       }));
     }
@@ -174,9 +177,15 @@ function NavbarInner() {
     setNotifications(notifications.map(n => ({ ...n, unread: false })));
   };
 
-  const handleNotificationClick = async (id: any) => {
-    await supabase.from("notifications").update({ read: true }).eq("id", id);
-    setNotifications(notifications.map(n => n.id === id ? { ...n, unread: false } : n));
+  const handleNotificationClick = async (item: any) => {
+    await supabase.from("notifications").update({ read: true }).eq("id", item.id);
+    setNotifications(notifications.map(n => n.id === item.id ? { ...n, unread: false } : n));
+    setNotifOpen(false);
+    if (item.type === "follow" && item.actor_username) {
+      router.push(`/profile/${item.actor_username}`);
+    } else if (item.post_slug) {
+      router.push(`/post/${item.post_slug}`);
+    }
   };
 
   const clearAllNotifications = async () => {
@@ -346,7 +355,7 @@ function NavbarInner() {
                             <div
                               key={item.id}
                               className={`notif-item${item.unread ? " notif-item--unread" : ""}`}
-                              onClick={() => handleNotificationClick(item.id)}
+                              onClick={() => handleNotificationClick(item)}
                             >
                               {/* Coloured icon chip */}
                               <div className="notif-icon-chip" style={{ background: `${chipColor}18`, color: chipColor }}>

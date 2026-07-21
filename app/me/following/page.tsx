@@ -61,10 +61,10 @@ export default function RefineRecommendationsPage() {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest(".avatar-dropdown-trigger") && !target.closest(".avatar-dropdown")) {
+      if (!target.closest(".avatar-dropdown-trigger")) {
         setUserDropdownOpen(false);
       }
-      if (!target.closest(".notif-dropdown-trigger") && !target.closest(".notif-dropdown")) {
+      if (!target.closest(".notif-dropdown-trigger")) {
         setNotifDropdownOpen(false);
       }
     };
@@ -87,13 +87,18 @@ export default function RefineRecommendationsPage() {
 
   const loadSuggestedWriters = async (userId: string) => {
     try {
-      // Get all profiles except user
-      const { data } = await supabase.from("profiles")
+      // Get all follows
+      const { data: follows } = await supabase.from("follows").select("following_id").eq("follower_id", userId);
+      const followingIds = follows ? follows.map((f: any) => f.following_id) : [];
+      
+      const { data: profiles } = await supabase.from("profiles")
         .select("*")
         .neq("id", userId)
-        .limit(10);
-      if (data) {
-        setSuggestedWriters(data);
+        .limit(20);
+        
+      if (profiles) {
+        const filtered = profiles.filter((p: any) => !followingIds.includes(p.id));
+        setSuggestedWriters(filtered.slice(0, 5));
       }
     } catch (err) {
       console.error("Error loading suggestions:", err);
@@ -116,7 +121,10 @@ export default function RefineRecommendationsPage() {
             text: actor ? `${actor.full_name} ${n.content}` : n.content,
             time: new Date(n.created_at).toLocaleDateString() || "Just now",
             unread: !n.read,
-            icon: iconMap[n.type] || "🎉"
+            icon: iconMap[n.type] || "🎉",
+            type: n.type,
+            actor_username: actor?.username,
+            post_slug: n.posts?.slug
           };
         }));
         setUnreadNotifCount(data.filter((n: any) => !n.read).length);
@@ -147,10 +155,16 @@ export default function RefineRecommendationsPage() {
     setUnreadNotifCount(0);
   };
 
-  const handleNotificationClick = async (id: any) => {
-    await supabase.from("notifications").update({ read: true }).eq("id", id);
-    setNotifications(notifications.map(n => n.id === id ? { ...n, unread: false } : n));
+  const handleNotificationClick = async (item: any) => {
+    await supabase.from("notifications").update({ read: true }).eq("id", item.id);
+    setNotifications(notifications.map(n => n.id === item.id ? { ...n, unread: false } : n));
     setUnreadNotifCount(prev => Math.max(0, prev - 1));
+    setNotifDropdownOpen(false);
+    if (item.type === "follow" && item.actor_username) {
+      router.push(`/profile/${item.actor_username}`);
+    } else if (item.post_slug) {
+      router.push(`/post/${item.post_slug}`);
+    }
   };
 
   const clearAllNotifications = async () => {
@@ -486,7 +500,7 @@ export default function RefineRecommendationsPage() {
                       </div>
                     ) : (
                       notifications.map((item) => (
-                        <div key={item.id} onClick={() => handleNotificationClick(item.id)} className={`flex gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer ${item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"}`}>
+                        <div key={item.id} onClick={() => handleNotificationClick(item)} className={`flex gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer ${item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"}`}>
                           <span className="text-lg">{item.icon}</span>
                           <div className="flex-1 min-w-0">
                             <p className={`text-xs text-gray-700 leading-relaxed font-sans ${item.unread ? "font-semibold" : ""}`}>{item.text}</p>
