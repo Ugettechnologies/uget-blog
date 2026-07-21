@@ -477,8 +477,8 @@ export default function RefineRecommendationsPage() {
                 )}
               </button>
               {notifDropdownOpen && (
-                <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "white", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
-                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fcfcfc" }}>
+                <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-3)" }}>
                     <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
                     <div style={{ display: "flex", gap: 12 }}>
                       {unreadNotifCount > 0 && (
@@ -493,18 +493,18 @@ export default function RefineRecommendationsPage() {
                       )}
                     </div>
                   </div>
-                  <div style={{ maxHeight: 360, overflowY: "auto", background: "white" }}>
+                  <div style={{ maxHeight: 360, overflowY: "auto", background: "var(--bg-2)" }}>
                     {notifications.length === 0 ? (
                       <div style={{ padding: "48px 20px", textAlign: "center", fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)" }}>
                         No notifications yet
                       </div>
                     ) : (
                       notifications.map((item) => (
-                        <div key={item.id} onClick={() => handleNotificationClick(item)} className={`flex gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer ${item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"}`}>
+                        <div key={item.id} onClick={() => handleNotificationClick(item)} className={`flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-[var(--border)] cursor-pointer ${item.unread ? "bg-violet-500/10" : "hover:bg-[var(--bg-3)]"}`}>
                           <span className="text-lg">{item.icon}</span>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-xs text-gray-700 leading-relaxed font-sans ${item.unread ? "font-semibold" : ""}`}>{item.text}</p>
-                            <span className="text-[10px] text-gray-400 mt-1 block font-sans">{item.time}</span>
+                            <p className={`text-xs text-[var(--ink)] leading-relaxed font-sans ${item.unread ? "font-semibold" : ""}`}>{item.text}</p>
+                            <span className="text-[10px] text-[var(--muted)] mt-1 block font-sans">{item.time}</span>
                           </div>
                         </div>
                       ))

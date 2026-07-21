@@ -204,7 +204,7 @@ export function buildNewsletterHtml({
   siteUrl,
 }: NewsletterPayload): string {
   const coverImg = coverImage
-    ? `<img src="${coverImage}" alt="${title}" width="560" style="width:100%;height:240px;object-fit:cover;border-radius:10px;margin-bottom:24px;display:block;" />`
+    ? `<a href="${postUrl}" style="text-decoration:none;display:block;"><img src="${coverImage}" alt="${title}" width="560" style="width:100%;height:240px;object-fit:cover;border-radius:10px;margin-bottom:24px;display:block;" /></a>`
     : "";
 
   const categoryTag = category
@@ -236,7 +236,9 @@ export function buildNewsletterHtml({
     <!-- Body -->
     <div style="padding:32px 28px;">
       ${categoryTag}
-      <h1 style="font-size:26px;font-weight:700;margin:0 0 12px;line-height:1.25;color:#1a1a1a;">${title}</h1>
+      <h1 style="font-size:26px;font-weight:700;margin:0 0 12px;line-height:1.25;color:#1a1a1a;">
+        <a href="${postUrl}" style="color:#1a1a1a;text-decoration:none;">${title}</a>
+      </h1>
       <div style="font-family:'Segoe UI',Roboto,sans-serif;font-size:13px;color:#6b7280;margin-bottom:24px;">${meta}</div>
       ${coverImg}
       <p style="font-size:16px;line-height:1.7;color:#374151;margin-bottom:30px;">${excerpt}</p>

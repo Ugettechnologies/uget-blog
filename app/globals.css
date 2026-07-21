@@ -110,6 +110,14 @@
   background-color: var(--bg) !important;
 }
 
+.dark [style*="#fcfcfc"],
+.dark [style*="#fafafa"],
+.dark [style*="#f9fafb"],
+.dark [style*="#f3f4f6"] {
+  background: var(--bg-3) !important;
+  background-color: var(--bg-3) !important;
+}
+
 /* Dropdowns, cards, and modals should use the elevated dark color */
 .dark [class*="dropdown"],
 .dark [class*="modal"],

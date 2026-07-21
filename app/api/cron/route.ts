@@ -11,10 +11,10 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   try {
-    return NextResponse.json({
-      success: true,
-      message: "Cron job notifications are currently paused.",
-    });
+    // return NextResponse.json({
+    //   success: true,
+    //   message: "Cron job notifications are currently paused.",
+    // });
     // ── 1. Auth check (Vercel Cron standard) ──────────────────────────────────
     const authHeader = request.headers.get("authorization");
     const isLocal = process.env.NODE_ENV === "development";
@@ -72,18 +72,23 @@ export async function GET(request: Request) {
 
     const post = posts[0];
     
-    // Resolve the public-facing site URL dynamically, prioritizing the request host header
-    // if it is not localhost. Fall back to NEXT_PUBLIC_SITE_URL or the production domain.
+    // Resolve public-facing site URL dynamically
     const host = request.headers.get("host");
     const isHostLocal = host?.includes("localhost") || host?.includes("127.0.0.1") || host?.includes("::1");
-    const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+    const customSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
     let siteUrl = "https://www.echo-gist.com";
-    if (host && !isHostLocal) {
+    if (customSiteUrl && !customSiteUrl.includes("localhost")) {
+      siteUrl = customSiteUrl.startsWith("http") ? customSiteUrl : `https://${customSiteUrl}`;
+    } else if (host && !isHostLocal) {
       siteUrl = `https://${host}`;
-    } else if (publicSiteUrl && !publicSiteUrl.includes("localhost")) {
-      siteUrl = publicSiteUrl;
+    } else if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+      siteUrl = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
     }
-          
+
+    // Ensure siteUrl has no trailing slash
+    siteUrl = siteUrl.replace(/\/$/, "");
+
     const postUrl = `${siteUrl}/post/${post.slug}`;
 
     // ── 4. Build HTML once, reuse for all recipients ──────────────────────────
