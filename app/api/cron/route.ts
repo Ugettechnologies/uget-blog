@@ -11,10 +11,13 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   try {
-    // return NextResponse.json({
-    //   success: true,
-    //   message: "Cron job notifications are currently paused.",
-    // });
+    // Cron notifications are explicitly paused to prevent emails from sending
+    return NextResponse.json({
+      success: true,
+      message: "Cron job notifications are currently paused.",
+    });
+
+    /*
     // ── 1. Auth check (Vercel Cron standard) ──────────────────────────────────
     const authHeader = request.headers.get("authorization");
     const isLocal = process.env.NODE_ENV === "development";
@@ -128,10 +131,9 @@ export async function GET(request: Request) {
       success: true,
       post: post.title,
       total: users.length,
-      sent,
-      failed,
       ...(errors.length > 0 ? { errors } : {}),
     });
+    */
   } catch (err: any) {
     console.error("[cron] Fatal error:", err);
     return NextResponse.json(
