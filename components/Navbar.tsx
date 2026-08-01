@@ -8,6 +8,7 @@ import { UserDropdown } from "./UserDropdown";
 import { createClient } from "@/lib/db-client/client";
 import type { Profile } from "@/lib/types";
 import { getInitials, saveUserToSavedList } from "@/lib/types";
+import { NavNotificationButton } from "./SidebarNav";
 
 function NavbarInner() {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -264,130 +265,7 @@ function NavbarInner() {
               )}
 
               {/* ── Notification Bell ── */}
-              <div style={{ position: "relative", marginRight: 8 }} ref={notifRef}>
-                <button
-                  id="navbar-notif-btn"
-                  onClick={() => setNotifOpen(!notifOpen)}
-                  style={{
-                    background: notifOpen ? "var(--bg-3)" : "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: notifOpen ? "var(--brand)" : "var(--ink-2)",
-                    padding: 8,
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                    transition: "background 0.2s, color 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "var(--bg-3)";
-                    e.currentTarget.style.color = "var(--brand)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!notifOpen) {
-                      e.currentTarget.style.background = "none";
-                      e.currentTarget.style.color = "var(--ink-2)";
-                    }
-                  }}
-                  aria-label="Open notifications"
-                  title="Notifications"
-                >
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  {unreadNotifCount > 0 && (
-                    <span className="notif-badge">{unreadNotifCount > 9 ? "9+" : unreadNotifCount}</span>
-                  )}
-                </button>
-
-                {/* ── Notifications Dropdown Panel ── */}
-                {notifOpen && (
-                  <div className="notif-dropdown notif-dropdown--animated">
-                    {/* Header */}
-                    <div className="notif-header">
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ color: "var(--brand)" }}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <span style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>Notifications</span>
-                        {unreadNotifCount > 0 && (
-                          <span style={{ background: "var(--brand)", color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 99, padding: "1px 7px", letterSpacing: "0.02em" }}>
-                            {unreadNotifCount} new
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        {unreadNotifCount > 0 && (
-                          <button onClick={markAllAsRead} className="notif-action-btn notif-action-btn--primary">
-                            Mark read
-                          </button>
-                        )}
-                        {notifications.length > 0 && (
-                          <button onClick={clearAllNotifications} className="notif-action-btn">
-                            Clear
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Body */}
-                    <div className="notif-body">
-                      {notifications.length === 0 ? (
-                        <div className="notif-empty">
-                          <div className="notif-empty-icon">
-                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "var(--muted-2)" }}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                          </div>
-                          <p style={{ margin: 0, fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>All caught up!</p>
-                          <p style={{ margin: "4px 0 0", fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>New activity will appear here</p>
-                        </div>
-                      ) : (
-                        notifications.map((item) => {
-                          const typeColors: Record<string, string> = {
-                            "💖": "#f43f5e", "💬": "#8b5cf6", "👤": "#3b82f6",
-                            "✍️": "#10b981", "🎉": "#f59e0b",
-                          };
-                          const chipColor = typeColors[item.icon] || "var(--brand)";
-                          return (
-                            <div
-                              key={item.id}
-                              className={`notif-item${item.unread ? " notif-item--unread" : ""}`}
-                              onClick={() => handleNotificationClick(item)}
-                            >
-                              {/* Coloured icon chip */}
-                              <div className="notif-icon-chip" style={{ background: `${chipColor}18`, color: chipColor }}>
-                                <span style={{ fontSize: 14 }}>{item.icon}</span>
-                              </div>
-
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <p className="notif-text">{item.text}</p>
-                                <span className="notif-time">{item.time}</span>
-                              </div>
-
-                              {item.unread && <span className="notif-unread-dot" />}
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-
-                    {/* Footer */}
-                    {notifications.length > 0 && (
-                      <div className="notif-footer">
-                        <Link href="/settings#notifications" onClick={() => setNotifOpen(false)} className="notif-footer-link">
-                          Notification settings
-                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <NavNotificationButton unreadCount={unreadNotifCount} active={pathname === "/notifications"} />
 
 
               <div style={{ position: "relative" }} ref={menuRef}>
@@ -403,7 +281,7 @@ function NavbarInner() {
                   user={user}
                   userProfile={profile}
                   onClose={() => setMenuOpen(false)}
-                  onOpenNotifs={() => { setMenuOpen(false); /* Navbar doesn't have internal notifs yet, but handled */ }}
+                  onOpenNotifs={() => { setMenuOpen(false); router.push("/notifications"); }}
                   onSignOut={handleSignOut}
                 />
               </div>

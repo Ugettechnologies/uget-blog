@@ -7,7 +7,7 @@ import { createClient } from "@/lib/db-client/client";
 import { UserDropdown } from "@/components/UserDropdown";
 import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
-import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon } from "@/components/SidebarNav";
+import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon, NavNotificationButton } from "@/components/SidebarNav";
 import SafeImage from "./SafeImage";
 
 function getAvatarGradient(name: string | null | undefined) {
@@ -797,77 +797,8 @@ export default function ProfilePage() {
             </Link>
 
             {/* Notification bell trigger */}
-            <div className="relative notif-dropdown-trigger">
-              <button
-                onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-                className="p-1.5 hover:bg-gray-100 rounded-full text-gray-700 transition-colors relative flex items-center justify-center"
-                title="Notifications"
-              >
-                <BellIcon />
-                {unreadNotifCount > 0 && (
-                  <span style={{
-                    position: "absolute",
-                    top: 2,
-                    right: 2,
-                    backgroundColor: "#ef4444",
-                    color: "white",
-                    fontSize: 9,
-                    fontWeight: "bold",
-                    borderRadius: "50%",
-                    width: 14,
-                    height: 14,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "1.5px solid #ffffff"
-                  }}>
-                    {unreadNotifCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Bell dropdown */}
-              {notifDropdownOpen && (
-                <div className="notif-dropdown" style={{ position: "absolute", right: 0, top: "calc(100% + 12px)", background: "var(--bg-2)", border: "1px solid var(--border-2)", borderRadius: 20, boxShadow: "0 12px 48px rgba(0,0,0,0.1)", zIndex: 100, width: 340, overflow: "hidden" }}>
-                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-3)" }}>
-                    <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>Notifications</span>
-                    <div style={{ display: "flex", gap: 12 }}>
-                      {unreadNotifCount > 0 && (
-                        <button onClick={markAllAsRead} style={{ fontSize: 13, color: "var(--brand)", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)" }}>
-                          Mark read
-                        </button>
-                      )}
-                      {notifications.length > 0 && (
-                        <button onClick={clearAllNotifications} style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--sans)" }}>
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ maxHeight: 360, overflowY: "auto", background: "var(--bg-2)" }}>
-                    {notifications.length === 0 ? (
-                      <div style={{ padding: "48px 20px", textAlign: "center", fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)" }}>
-                        No notifications yet
-                      </div>
-                    ) : (
-                      notifications.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleNotificationClick(item)}
-                          className={`flex gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer transition-colors ${item.unread ? "bg-violet-50/30" : "hover:bg-gray-50"}`}
-                        >
-                          <span className="text-lg flex-shrink-0">{item.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-xs text-gray-700 leading-relaxed font-sans ${item.unread ? "font-semibold" : ""}`}>{item.text}</p>
-                            <span className="text-[10px] text-gray-400 mt-1 block font-sans">{item.time}</span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Notification bell trigger */}
+            <NavNotificationButton unreadCount={unreadNotifCount} active={false} />
 
             {/* Avatar Dropdown trigger */}
             <div className="relative avatar-dropdown-trigger">
@@ -888,7 +819,7 @@ export default function ProfilePage() {
                 user={currentUser}
                 userProfile={currentUserProfile}
                 onClose={() => setUserDropdownOpen(false)}
-                onOpenNotifs={() => { setUserDropdownOpen(false); setNotifDropdownOpen(true); }}
+                onOpenNotifs={() => { setUserDropdownOpen(false); router.push("/notifications"); }}
                 onSignOut={handleSignOut}
               />
             </div>

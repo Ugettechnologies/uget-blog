@@ -154,11 +154,12 @@ interface SidebarNavProps {
 
 export function SidebarNav({ activePage, profileHref = "/profile", onItemClick }: SidebarNavProps) {
   const items = [
-    { key: "home",    href: "/",                        label: "Home",    Icon: HomeIcon },
-    { key: "library", href: "/library",                 label: "Library", Icon: LibraryIcon },
-    { key: "profile", href: profileHref,                label: "Profile", Icon: ProfileIcon },
-    { key: "stories", href: "/dashboard?tab=stories",   label: "Stories", Icon: StoriesIcon },
-    { key: "stats",   href: "/dashboard?tab=stats",     label: "Stats",   Icon: StatsIcon },
+    { key: "home",          href: "/",                        label: "Home",          Icon: HomeIcon },
+    { key: "notifications", href: "/notifications",           label: "Notifications", Icon: BellIcon },
+    { key: "library",       href: "/library",                 label: "Library",       Icon: LibraryIcon },
+    { key: "profile",       href: profileHref,                label: "Profile",       Icon: ProfileIcon },
+    { key: "stories",       href: "/dashboard?tab=stories",   label: "Stories",       Icon: StoriesIcon },
+    { key: "stats",         href: "/dashboard?tab=stats",     label: "Stats",         Icon: StatsIcon },
   ];
 
   return (
@@ -172,13 +173,24 @@ export function SidebarNav({ activePage, profileHref = "/profile", onItemClick }
             style={getLinkStyle(active)}
             onClick={onItemClick}
             onMouseEnter={(e) => {
-              if (!active) Object.assign((e.currentTarget as HTMLElement).style, { background: "var(--bg-3)", color: "var(--ink)" });
+              if (!active) {
+                const el = e.currentTarget as HTMLElement;
+                el.style.background = "var(--bg-3)";
+                el.style.color = "var(--ink)";
+                const iconSpan = el.querySelector(".sidebar-icon-wrap") as HTMLElement;
+                if (iconSpan) iconSpan.style.color = "var(--brand)";
+              }
             }}
             onMouseLeave={(e) => {
-              if (!active) Object.assign((e.currentTarget as HTMLElement).style, getLinkStyle(false));
+              if (!active) {
+                const el = e.currentTarget as HTMLElement;
+                Object.assign(el.style, getLinkStyle(false));
+                const iconSpan = el.querySelector(".sidebar-icon-wrap") as HTMLElement;
+                if (iconSpan) iconSpan.style.color = "var(--muted)";
+              }
             }}
           >
-            <span style={{ display: "flex", alignItems: "center", color: active ? "var(--brand)" : "var(--muted)", transition: "color 0.15s" }}>
+            <span className="sidebar-icon-wrap" style={{ display: "flex", alignItems: "center", color: active ? "var(--brand)" : "var(--muted)", transition: "color 0.15s, transform 0.15s" }}>
               <Icon active={active} />
             </span>
             <span>{label}</span>
@@ -196,12 +208,89 @@ export const WriteIcon = () => (
   </svg>
 );
 
-export const BellIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+export const BellIcon = ({ active }: { active?: boolean } = {}) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+    {active ? (
+      <path d="M12 2a6 6 0 0 0-6 6v3.586l-.707.707A1 1 0 0 0 5 14h14a1 1 0 0 0 .707-1.707L19 11.586V8a6 6 0 0 0-6-6zm0 19a3 3 0 0 1-2.83-2h5.66A3 3 0 0 1 12 21z" />
+    ) : (
+      <>
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </>
+    )}
   </svg>
 );
+
+export function NavNotificationButton({ unreadCount, active = false }: { unreadCount: number; active?: boolean }) {
+  return (
+    <Link
+      href="/notifications"
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        textDecoration: "none",
+        background: active ? "var(--brand)" : "var(--brand-light)",
+        color: active ? "#ffffff" : "var(--brand)",
+        boxShadow: active ? "0 2px 10px rgba(124, 58, 237, 0.3)" : "none",
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        cursor: "pointer",
+        flexShrink: 0,
+      }}
+      title="Notifications"
+      onMouseEnter={(e) => {
+        if (!active) {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "var(--brand)";
+          el.style.color = "#ffffff";
+          el.style.transform = "scale(1.06)";
+          el.style.boxShadow = "0 4px 14px rgba(124, 58, 237, 0.3)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "var(--brand-light)";
+          el.style.color = "var(--brand)";
+          el.style.transform = "none";
+          el.style.boxShadow = "none";
+        }
+      }}
+    >
+      <BellIcon active={active} />
+      {unreadCount > 0 && (
+        <span
+          style={{
+            position: "absolute",
+            top: -1,
+            right: -1,
+            backgroundColor: "var(--brand)",
+            color: "#ffffff",
+            fontSize: 10,
+            fontWeight: 800,
+            borderRadius: 99,
+            minWidth: 16,
+            height: 16,
+            padding: "0 4px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "2px solid var(--bg)",
+            fontFamily: "var(--sans)",
+            lineHeight: 1,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          }}
+        >
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 export const SearchIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
