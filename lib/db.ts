@@ -73,7 +73,8 @@ function getMockDb() {
       follows: [],
       bookmarks: [],
       comments: [],
-      subscriptions: []
+      subscriptions: [],
+      profile_views: []
     };
     fs.writeFileSync(mockDbPath, JSON.stringify(initialData, null, 2));
     return initialData;
@@ -81,7 +82,7 @@ function getMockDb() {
   try {
     return JSON.parse(fs.readFileSync(mockDbPath, "utf-8"));
   } catch {
-    return { users: [], profiles: [], notifications: [], posts: [], follows: [], bookmarks: [], comments: [], subscriptions: [] };
+    return { users: [], profiles: [], notifications: [], posts: [], follows: [], bookmarks: [], comments: [], subscriptions: [], profile_views: [] };
   }
 }
 
@@ -271,6 +272,24 @@ export function getSql() {
         db.subscriptions.push(newSub);
         saveMockDb(db);
         return [newSub];
+      }
+
+      // 11. SELECT * FROM profile_views
+      if (query.includes("FROM profile_views")) {
+        return db.profile_views || [];
+      }
+
+      // 12. INSERT INTO profile_views
+      if (query.startsWith("INSERT INTO profile_views")) {
+        const newView = {
+          id: Math.random().toString(36).substring(7),
+          profile_id: params[0],
+          created_at: new Date().toISOString()
+        };
+        if (!db.profile_views) db.profile_views = [];
+        db.profile_views.push(newView);
+        saveMockDb(db);
+        return [newView];
       }
 
       return [];

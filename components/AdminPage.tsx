@@ -8,7 +8,7 @@ import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import SafeImage from "./SafeImage";
 
-type AdminTab = "overview" | "posts" | "users" | "payments" | "staff";
+type AdminTab = "overview" | "posts" | "users" | "payments" | "staff" | "analytics";
 
 function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
   return (
@@ -32,6 +32,9 @@ export default function AdminPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<Profile[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [allProfileViews, setAllProfileViews] = useState<any[]>([]);
+  const [allFollows, setAllFollows] = useState<any[]>([]);
+  const [allLikes, setAllLikes] = useState<any[]>([]);
   const [staffSearchQuery, setStaffSearchQuery] = useState("");
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -157,14 +160,20 @@ export default function AdminPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [postsRes, usersRes, subsRes] = await Promise.all([
+    const [postsRes, usersRes, subsRes, viewsRes, followsRes, likesRes] = await Promise.all([
       supabase.from("posts").select("*, profiles(full_name, avatar_url, username)").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("*").order("created_at", { ascending: false }),
+      supabase.from("profile_views").select("*").order("created_at", { ascending: false }),
+      supabase.from("follows").select("*").order("created_at", { ascending: false }),
+      supabase.from("likes").select("*").order("created_at", { ascending: false }),
     ]);
     setPosts(postsRes.data as Post[] || []);
     setUsers(usersRes.data as Profile[] || []);
     setSubscriptions(subsRes.data as any[] || []);
+    setAllProfileViews(viewsRes.data || []);
+    setAllFollows(followsRes.data || []);
+    setAllLikes(likesRes.data || []);
     setLoading(false);
   };
 
@@ -214,6 +223,7 @@ export default function AdminPage() {
     { id: "users", label: "Users", icon: "👥" },
     { id: "payments", label: "Payments", icon: "💳" },
     { id: "staff", label: "Staff", icon: "🛡️" },
+    { id: "analytics", label: "Analytics", icon: "📈" },
   ];
 
   if (isNotAdmin) {
@@ -399,6 +409,54 @@ export default function AdminPage() {
             </div>
           ) : (
             <>
+              {/* ── ANALYTICS ── */}
+              {tab === "analytics" && (() => {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const thisWeek = new Date(today);
+                thisWeek.setDate(today.getDate() - today.getDay());
+                const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const thisYear = new Date(now.getFullYear(), 0, 1);
+
+                const filterByDate = (arr: any[], date: Date) => arr.filter(item => new Date(item.created_at) >= date);
+
+                return (
+                  <div>
+                    <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, marginBottom: 24, color: "var(--black)" }}>Analytics & Tracking</h3>
+                    
+                    <div style={{ marginBottom: 32 }}>
+                      <h4 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "var(--black)", marginBottom: 12 }}>Profile Impressions (Visited Users)</h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+                        <StatCard label="Today" value={filterByDate(allProfileViews, today).length} icon="👀" color="#8b5cf6" />
+                        <StatCard label="This Week" value={filterByDate(allProfileViews, thisWeek).length} icon="👀" color="#8b5cf6" />
+                        <StatCard label="This Month" value={filterByDate(allProfileViews, thisMonth).length} icon="👀" color="#8b5cf6" />
+                        <StatCard label="This Year" value={filterByDate(allProfileViews, thisYear).length} icon="👀" color="#8b5cf6" />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: 32 }}>
+                      <h4 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "var(--black)", marginBottom: 12 }}>New Followers</h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+                        <StatCard label="Today" value={filterByDate(allFollows, today).length} icon="👥" color="#10b981" />
+                        <StatCard label="This Week" value={filterByDate(allFollows, thisWeek).length} icon="👥" color="#10b981" />
+                        <StatCard label="This Month" value={filterByDate(allFollows, thisMonth).length} icon="👥" color="#10b981" />
+                        <StatCard label="This Year" value={filterByDate(allFollows, thisYear).length} icon="👥" color="#10b981" />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: 32 }}>
+                      <h4 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "var(--black)", marginBottom: 12 }}>Likes</h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+                        <StatCard label="Today" value={filterByDate(allLikes, today).length} icon="❤️" color="#ef4444" />
+                        <StatCard label="This Week" value={filterByDate(allLikes, thisWeek).length} icon="❤️" color="#ef4444" />
+                        <StatCard label="This Month" value={filterByDate(allLikes, thisMonth).length} icon="❤️" color="#ef4444" />
+                        <StatCard label="This Year" value={filterByDate(allLikes, thisYear).length} icon="❤️" color="#ef4444" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* ── OVERVIEW ── */}
               {tab === "overview" && (
                 <div>

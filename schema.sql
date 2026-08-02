@@ -115,6 +115,14 @@ create index if not exists notifications_user_idx on public.notifications(user_i
 create index if not exists follows_follower_idx on public.follows(follower_id);
 create index if not exists follows_following_idx on public.follows(following_id);
 
+-- profile_views table
+create table if not exists public.profile_views (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid references public.profiles(id) on delete cascade not null,
+  created_at timestamptz default now()
+);
+create index if not exists profile_views_profile_idx on public.profile_views(profile_id, created_at desc);
+
 -- ── Auto-update updated_at ────────────────────────────────────────────────────
 create or replace function public.update_updated_at()
 returns trigger language plpgsql as $$

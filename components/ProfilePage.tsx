@@ -130,6 +130,12 @@ export default function ProfilePage() {
         .select("*").eq("author_id", prof.id).eq("published", true)
         .order("created_at", { ascending: false });
       setPosts(data as Post[] || []);
+
+      // Track profile view (analytics)
+      if (prof.id && (!user || user.id !== prof.id)) {
+        supabase.from("profile_views").insert({ profile_id: prof.id }).then().catch(console.error);
+      }
+
       setLoading(false);
     };
     load();
