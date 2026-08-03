@@ -721,40 +721,11 @@ export default function NotificationsPage() {
           }
           .uget-header {
             padding: 0 12px;
-            gap: 8px;
+            gap: 6px;
+            height: 56px;
           }
-          .notif-card {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-            padding: 14px 16px;
-          }
-          .notif-card-body {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            width: 100%;
-            min-width: 0;
-          }
-          .notif-card-text {
-            flex: 1;
-            min-width: 0;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-          }
-          .notif-card-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
-            width: 100%;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
-            margin-top: 2px;
-          }
-          .notif-card-actions button {
-            padding: 6px 14px !important;
-            font-size: 13px !important;
+          .uget-header-search {
+            display: none !important;
           }
         }
       `}} />
@@ -1359,90 +1330,89 @@ export default function NotificationsPage() {
                       onClick={() => handleNotificationClick(item)}
                       className={`notif-card ${item.unread ? "unread" : ""}`}
                     >
-                      {/* Top Body Section: Avatar + Content */}
-                      <div className="notif-card-body" style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1, minWidth: 0 }}>
-                        {/* Avatar with Badged Icon */}
-                        <div style={{ position: "relative", flexShrink: 0, marginTop: 2 }}>
-                          <div
-                            style={{
-                              width: 42,
-                              height: 42,
-                              borderRadius: "50%",
-                              overflow: "hidden",
-                              border: "1px solid var(--border)",
-                              background: "var(--bg-3)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            {item.actor_profile?.avatar_url ? (
-                              <Image
-                                src={item.actor_profile.avatar_url}
-                                alt=""
-                                width={42}
-                                height={42}
-                                style={{ objectFit: "cover", width: "100%", height: "100%" }}
-                              />
-                            ) : (
-                              <span style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 13, color: "var(--brand)" }}>
-                                {getInitials(actorName)}
-                              </span>
-                            )}
-                          </div>
-                          {/* Overlay Type Icon */}
+                      {/* Avatar with Badged Icon */}
+                      <div style={{ position: "relative", flexShrink: 0, marginTop: 2 }}>
+                        <div
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            overflow: "hidden",
+                            border: "1px solid var(--border)",
+                            background: "var(--bg-3)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {item.actor_profile?.avatar_url ? (
+                            <Image
+                              src={item.actor_profile.avatar_url}
+                              alt=""
+                              width={40}
+                              height={40}
+                              style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                            />
+                          ) : (
+                            <span style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 13, color: "var(--brand)" }}>
+                              {getInitials(actorName)}
+                            </span>
+                          )}
+                        </div>
+                        {/* Overlay Type Icon */}
+                        <span
+                          className="notif-icon-chip"
+                          style={{
+                            position: "absolute",
+                            bottom: -2,
+                            right: -2,
+                            width: 18,
+                            height: 18,
+                            borderRadius: "50%",
+                            background: "var(--bg)",
+                            border: "1px solid var(--border)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                          }}
+                        >
+                          {iconComponent}
+                        </span>
+                      </div>
+
+                      {/* Main Text & Subline Container */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "var(--sans)", fontSize: 14, lineHeight: 1.45, color: "var(--ink)", wordBreak: "break-word" }}>
                           <span
-                            className="notif-icon-chip"
-                            style={{
-                              position: "absolute",
-                              bottom: -2,
-                              right: -2,
-                              width: 20,
-                              height: 20,
-                              borderRadius: "50%",
-                              background: "var(--bg)",
-                              border: "1px solid var(--border)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                            style={{ fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (item.actor_profile?.username) router.push(`/profile/${item.actor_profile.username}`);
                             }}
                           >
-                            {iconComponent}
-                          </span>
+                            {actorName}
+                          </span>{" "}
+                          <span style={{ color: "var(--muted)" }}>{actionText}</span>
+                          {postTitle && (
+                            <>
+                              {": "}
+                              <span
+                                style={{ fontWeight: 600, color: "var(--brand)", cursor: "pointer" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (item.posts?.slug) router.push(`/post/${item.posts.slug}`);
+                                }}
+                              >
+                                "{postTitle}"
+                              </span>
+                            </>
+                          )}
                         </div>
 
-                        {/* Main Text Content */}
-                        <div className="notif-card-text" style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: "var(--sans)", fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }}>
-                            <span
-                              style={{ fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (item.actor_profile?.username) router.push(`/profile/${item.actor_profile.username}`);
-                              }}
-                            >
-                              {actorName}
-                            </span>{" "}
-                            <span style={{ color: "var(--muted)" }}>{actionText}</span>
-                            {postTitle && (
-                              <>
-                                {": "}
-                                <span
-                                  style={{ fontWeight: 600, color: "var(--brand)", cursor: "pointer" }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (item.posts?.slug) router.push(`/post/${item.posts.slug}`);
-                                  }}
-                                >
-                                  "{postTitle}"
-                                </span>
-                              </>
-                            )}
-                          </div>
-
-                          {/* Metadata subline */}
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+                        {/* Metadata & Actions Subline */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>
                               {item.time}
                             </span>
@@ -1454,71 +1424,66 @@ export default function NotificationsPage() {
                                   fontWeight: 700,
                                   color: "var(--brand)",
                                   background: "var(--brand-light)",
-                                  padding: "2px 8px",
+                                  padding: "1px 7px",
                                   borderRadius: 99,
                                   display: "inline-flex",
                                   alignItems: "center",
                                   gap: 4,
                                 }}
                               >
-                                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand)" }} />
+                                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--brand)" }} />
                                 Unread
                               </span>
                             )}
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Action Buttons Section */}
-                      <div
-                        className="notif-card-actions"
-                        style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, alignSelf: "center" }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={(e) => toggleReadStatus(e, item)}
-                          style={{
-                            fontFamily: "var(--sans)",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            padding: "5px 12px",
-                            borderRadius: 8,
-                            border: "1px solid var(--border)",
-                            background: item.read ? "transparent" : "var(--brand-light)",
-                            color: item.read ? "var(--muted)" : "var(--brand)",
-                            cursor: "pointer",
-                            transition: "all 0.15s ease",
-                          }}
-                          title={item.read ? "Mark as unread" : "Mark as read"}
-                        >
-                          {item.read ? "Read" : "Mark read"}
-                        </button>
-                        <button
-                          onClick={(e) => deleteNotification(e, item.id)}
-                          style={{
-                            padding: 6,
-                            borderRadius: 8,
-                            border: "none",
-                            background: "transparent",
-                            color: "var(--muted)",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "all 0.15s ease",
-                          }}
-                          title="Delete notification"
-                          onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLElement).style.color = "#ef4444";
-                            (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)";
-                          }}
-                          onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLElement).style.color = "var(--muted)";
-                            (e.currentTarget as HTMLElement).style.background = "transparent";
-                          }}
-                        >
-                          <TrashIcon />
-                        </button>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }} onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={(e) => toggleReadStatus(e, item)}
+                              style={{
+                                fontFamily: "var(--sans)",
+                                fontSize: 11.5,
+                                fontWeight: 600,
+                                padding: "4px 10px",
+                                borderRadius: 6,
+                                border: "1px solid var(--border)",
+                                background: item.read ? "transparent" : "var(--brand-light)",
+                                color: item.read ? "var(--muted)" : "var(--brand)",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                              }}
+                              title={item.read ? "Mark as unread" : "Mark as read"}
+                            >
+                              {item.read ? "Read" : "Mark read"}
+                            </button>
+                            <button
+                              onClick={(e) => deleteNotification(e, item.id)}
+                              style={{
+                                padding: "4px 6px",
+                                borderRadius: 6,
+                                border: "none",
+                                background: "transparent",
+                                color: "var(--muted)",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "all 0.15s ease",
+                              }}
+                              title="Delete notification"
+                              onMouseEnter={(e) => {
+                                (e.currentTarget as HTMLElement).style.color = "#ef4444";
+                                (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                (e.currentTarget as HTMLElement).style.color = "var(--muted)";
+                                (e.currentTarget as HTMLElement).style.background = "transparent";
+                              }}
+                            >
+                              <TrashIcon />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
