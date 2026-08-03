@@ -116,6 +116,7 @@ export default function NotificationsPage() {
   // Layout states
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const router = useRouter();
   const supabase = createClient();
@@ -716,10 +717,44 @@ export default function NotificationsPage() {
         }
         @media (max-width: 640px) {
           .uget-content-grid {
-            padding: 16px 16px 60px;
+            padding: 16px 12px 60px;
           }
           .uget-header {
-            padding: 0 16px;
+            padding: 0 12px;
+            gap: 8px;
+          }
+          .notif-card {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 14px 16px;
+          }
+          .notif-card-body {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            width: 100%;
+            min-width: 0;
+          }
+          .notif-card-text {
+            flex: 1;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
+          .notif-card-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            width: 100%;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            margin-top: 2px;
+          }
+          .notif-card-actions button {
+            padding: 6px 14px !important;
+            font-size: 13px !important;
           }
         }
       `}} />
@@ -926,7 +961,7 @@ export default function NotificationsPage() {
       <main className="uget-main">
         {/* Top Sticky Header Nav */}
         <header className="uget-header">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3" style={{ minWidth: 0 }}>
             <button
               onClick={() => {
                 if (window.innerWidth > 1024) {
@@ -941,7 +976,7 @@ export default function NotificationsPage() {
                   setSidebarOpen(true);
                 }
               }}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-gray-600 dark:text-zinc-400 transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-gray-600 dark:text-zinc-400 transition-colors flex-shrink-0"
               title="Toggle menu"
             >
               <HamburgerIcon />
@@ -949,11 +984,11 @@ export default function NotificationsPage() {
 
             <Link
               href="/"
-              className="uget-header-logo flex items-center gap-1.5"
+              className="uget-header-logo flex items-center gap-1.5 flex-shrink-0"
               style={{ textDecoration: "none" }}
             >
               <Image src="/favicon.png" alt="EchoGist" width={24} height={24} />
-              <span className="font-bold text-lg text-violet-600 font-display">
+              <span className="font-bold text-base sm:text-lg text-violet-600 font-display">
                 EchoGist
               </span>
             </Link>
@@ -984,7 +1019,17 @@ export default function NotificationsPage() {
             </form>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            {/* Mobile Search Icon Button */}
+            <button
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              className="sm:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-400 transition-colors"
+              title="Search"
+              aria-label="Search"
+            >
+              <SearchIcon />
+            </button>
+
             {userProfile && (
               <Link
                 href="/write"
@@ -995,7 +1040,7 @@ export default function NotificationsPage() {
                   gap: 6,
                   color: "var(--ink)",
                   background: "var(--bg-3)",
-                  padding: "6px 16px",
+                  padding: "6px 14px",
                   borderRadius: 999,
                   fontSize: 14,
                   fontWeight: 500,
@@ -1064,6 +1109,70 @@ export default function NotificationsPage() {
             )}
           </div>
         </header>
+
+        {/* Mobile Expandable Search Bar */}
+        {mobileSearchOpen && (
+          <div
+            style={{
+              padding: "10px 14px",
+              background: "var(--bg-2)",
+              borderBottom: "1px solid var(--border)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+            className="sm:hidden"
+          >
+            <form
+              onSubmit={handleSearchSubmit}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "var(--bg-3)",
+                borderRadius: 999,
+                padding: "6px 14px",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <span style={{ color: "var(--muted)", display: "flex" }}>
+                <SearchIcon />
+              </span>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search EchoGist..."
+                autoFocus
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  fontSize: 14,
+                  width: "100%",
+                  color: "var(--ink)",
+                  fontFamily: "var(--sans)",
+                }}
+              />
+            </form>
+            <button
+              onClick={() => setMobileSearchOpen(false)}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--muted)",
+                cursor: "pointer",
+                padding: "4px 6px",
+                fontFamily: "var(--sans)",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         {/* Content Layout Grid */}
         <div className="uget-content-grid">
@@ -1250,115 +1359,119 @@ export default function NotificationsPage() {
                       onClick={() => handleNotificationClick(item)}
                       className={`notif-card ${item.unread ? "unread" : ""}`}
                     >
-                      {/* Avatar with Badged Icon */}
-                      <div style={{ position: "relative", flexShrink: 0, marginTop: 2 }}>
-                        <div
-                          style={{
-                            width: 42,
-                            height: 42,
-                            borderRadius: "50%",
-                            overflow: "hidden",
-                            border: "1px solid var(--border)",
-                            background: "var(--bg-3)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {item.actor_profile?.avatar_url ? (
-                            <Image
-                              src={item.actor_profile.avatar_url}
-                              alt=""
-                              width={42}
-                              height={42}
-                              style={{ objectFit: "cover", width: "100%", height: "100%" }}
-                            />
-                          ) : (
-                            <span style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 13, color: "var(--brand)" }}>
-                              {getInitials(actorName)}
-                            </span>
-                          )}
-                        </div>
-                        {/* Overlay Type Icon */}
-                        <span
-                          className="notif-icon-chip"
-                          style={{
-                            position: "absolute",
-                            bottom: -2,
-                            right: -2,
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: "var(--bg)",
-                            border: "1px solid var(--border)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                          }}
-                        >
-                          {iconComponent}
-                        </span>
-                      </div>
-
-                      {/* Main Text Content */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "var(--sans)", fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }}>
-                          <span
-                            style={{ fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (item.actor_profile?.username) router.push(`/profile/${item.actor_profile.username}`);
+                      {/* Top Body Section: Avatar + Content */}
+                      <div className="notif-card-body" style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1, minWidth: 0 }}>
+                        {/* Avatar with Badged Icon */}
+                        <div style={{ position: "relative", flexShrink: 0, marginTop: 2 }}>
+                          <div
+                            style={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: "50%",
+                              overflow: "hidden",
+                              border: "1px solid var(--border)",
+                              background: "var(--bg-3)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                           >
-                            {actorName}
-                          </span>{" "}
-                          <span style={{ color: "var(--muted)" }}>{actionText}</span>
-                          {postTitle && (
-                            <>
-                              {": "}
-                              <span
-                                style={{ fontWeight: 600, color: "var(--brand)", cursor: "pointer" }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (item.posts?.slug) router.push(`/post/${item.posts.slug}`);
-                                }}
-                              >
-                                "{postTitle}"
+                            {item.actor_profile?.avatar_url ? (
+                              <Image
+                                src={item.actor_profile.avatar_url}
+                                alt=""
+                                width={42}
+                                height={42}
+                                style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                              />
+                            ) : (
+                              <span style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 13, color: "var(--brand)" }}>
+                                {getInitials(actorName)}
                               </span>
-                            </>
-                          )}
+                            )}
+                          </div>
+                          {/* Overlay Type Icon */}
+                          <span
+                            className="notif-icon-chip"
+                            style={{
+                              position: "absolute",
+                              bottom: -2,
+                              right: -2,
+                              width: 20,
+                              height: 20,
+                              borderRadius: "50%",
+                              background: "var(--bg)",
+                              border: "1px solid var(--border)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                            }}
+                          >
+                            {iconComponent}
+                          </span>
                         </div>
 
-                        {/* Metadata subline */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-                          <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>
-                            {item.time}
-                          </span>
-                          {item.unread && (
+                        {/* Main Text Content */}
+                        <div className="notif-card-text" style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: "var(--sans)", fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }}>
                             <span
-                              style={{
-                                fontFamily: "var(--sans)",
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: "var(--brand)",
-                                background: "var(--brand-light)",
-                                padding: "2px 8px",
-                                borderRadius: 99,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
+                              style={{ fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (item.actor_profile?.username) router.push(`/profile/${item.actor_profile.username}`);
                               }}
                             >
-                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand)" }} />
-                              Unread
+                              {actorName}
+                            </span>{" "}
+                            <span style={{ color: "var(--muted)" }}>{actionText}</span>
+                            {postTitle && (
+                              <>
+                                {": "}
+                                <span
+                                  style={{ fontWeight: 600, color: "var(--brand)", cursor: "pointer" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (item.posts?.slug) router.push(`/post/${item.posts.slug}`);
+                                  }}
+                                >
+                                  "{postTitle}"
+                                </span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Metadata subline */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+                            <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>
+                              {item.time}
                             </span>
-                          )}
+                            {item.unread && (
+                              <span
+                                style={{
+                                  fontFamily: "var(--sans)",
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  color: "var(--brand)",
+                                  background: "var(--brand-light)",
+                                  padding: "2px 8px",
+                                  borderRadius: 99,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                }}
+                              >
+                                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand)" }} />
+                                Unread
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Row Action Buttons */}
+                      {/* Action Buttons Section */}
                       <div
+                        className="notif-card-actions"
                         style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, alignSelf: "center" }}
                         onClick={(e) => e.stopPropagation()}
                       >
