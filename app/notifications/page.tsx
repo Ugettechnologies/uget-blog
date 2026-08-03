@@ -109,6 +109,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [followingProfiles, setFollowingProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authChecking, setAuthChecking] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [searchInput, setSearchInput] = useState("");
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
@@ -146,10 +147,12 @@ export default function NotificationsPage() {
               loadUserProfile(data.user.id);
               loadNotifications(data.user.id);
               loadFollowing(data.user.id);
+              setAuthChecking(false);
               return;
             }
           }
           setLoading(false);
+          setAuthChecking(false);
           return;
         }
 
@@ -160,6 +163,8 @@ export default function NotificationsPage() {
       } catch (err) {
         console.error("Error fetching user session:", err);
         setLoading(false);
+      } finally {
+        setAuthChecking(false);
       }
     }
 
@@ -552,6 +557,16 @@ export default function NotificationsPage() {
         .notif-tab.active .notif-tab-badge {
           background: var(--brand-light);
           color: var(--brand);
+        }
+
+        @keyframes skeletonShimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .skeleton-box {
+          background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-3) 50%, var(--bg-2) 75%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s ease-in-out infinite;
         }
 
         /* ── Notification Card ── */
@@ -1026,22 +1041,28 @@ export default function NotificationsPage() {
 
             <NavNotificationButton unreadCount={unreadCount} active={true} />
 
-            {user ? (
+            {authChecking ? (
+              <div
+                className="skeleton-box"
+                style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0 }}
+              />
+            ) : user ? (
               <div className="relative avatar-dropdown-trigger">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className="nav-avatar"
+                  style={{ width: 32, height: 32 }}
                 >
                   {userProfile?.avatar_url ? (
                     <Image
                       src={userProfile.avatar_url}
                       alt=""
-                      width={36}
-                      height={36}
+                      width={32}
+                      height={32}
                       style={{ objectFit: "cover" }}
                     />
                   ) : (
-                    <span>
+                    <span style={{ fontSize: 12 }}>
                       {getInitials(
                         userProfile?.full_name || user?.email || "?"
                       )}
@@ -1067,12 +1088,13 @@ export default function NotificationsPage() {
                 style={{
                   background: "var(--brand)",
                   color: "white",
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: 500,
-                  padding: "7px 18px",
+                  padding: "5px 14px",
                   borderRadius: 999,
                   textDecoration: "none",
                   fontFamily: "var(--sans)",
+                  whiteSpace: "nowrap",
                 }}
               >
                 Sign In
@@ -1236,12 +1258,42 @@ export default function NotificationsPage() {
                   <div
                     key={i}
                     style={{
-                      height: 72,
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 12,
+                      padding: "14px 16px",
                       borderRadius: 12,
-                      background: "var(--bg-2)",
                       border: "1px solid var(--border)",
+                      background: "var(--bg)",
                     }}
-                  />
+                  >
+                    {/* Avatar Skeleton */}
+                    <div
+                      className="skeleton-box"
+                      style={{ width: 40, height: 40, borderRadius: "50%", flexShrink: 0 }}
+                    />
+                    {/* Text & Action Skeleton */}
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div
+                        className="skeleton-box"
+                        style={{ width: "85%", height: 14, borderRadius: 4 }}
+                      />
+                      <div
+                        className="skeleton-box"
+                        style={{ width: "55%", height: 12, borderRadius: 4 }}
+                      />
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+                        <div
+                          className="skeleton-box"
+                          style={{ width: 44, height: 10, borderRadius: 4 }}
+                        />
+                        <div
+                          className="skeleton-box"
+                          style={{ width: 56, height: 20, borderRadius: 6 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : filteredNotifications.length === 0 ? (
