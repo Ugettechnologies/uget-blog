@@ -295,20 +295,26 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleNotificationClick = async (item: NotificationItem) => {
+  const handleNotificationClick = async (item: NotificationItem, targetUrl?: string) => {
+    // 1. Synchronously update unread state in local state right away
     if (!item.read) {
-      try {
-        await supabase
-          .from("notifications")
-          .update({ read: true })
-          .eq("id", item.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === item.id ? { ...n, read: true, unread: false } : n))
+      );
 
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === item.id ? { ...n, read: true, unread: false } : n))
-        );
-      } catch (err) {
-        console.error("Failed marking notification read on click:", err);
-      }
+      // Persist read status to DB asynchronously without blocking UI navigation
+      supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", item.id)
+        .then(({ error }) => {
+          if (error) console.error("Failed marking notification read on click:", error);
+        });
+    }
+
+    if (targetUrl) {
+      router.push(targetUrl);
+      return;
     }
 
     const actor = item.actor_profile;
@@ -371,8 +377,23 @@ export default function NotificationsPage() {
   const getFormattedContent = (item: NotificationItem) => {
     const actor = item.actor_profile;
     const post = item.posts;
-    const actorName = actor?.full_name || actor?.username || "Someone";
-    const postTitle = post?.title || "";
+    let actorName = actor?.full_name?.trim() || actor?.username?.trim() || "";
+    let postTitle = post?.title?.trim() || "";
+
+    // Fallback: Extract actor name from content if missing
+    if (!actorName && item.content) {
+      const match = item.content.match(/^([A-Z][a-z0-9_\s]{1,25})/);
+      if (match) actorName = match[1].trim();
+    }
+    if (!actorName) actorName = "Someone";
+
+    // Fallback: Extract post title from content quotes if post title relation is missing
+    if (!postTitle && item.content) {
+      const quoteMatch = item.content.match(/"([^"]+)"/);
+      if (quoteMatch && quoteMatch[1]) {
+        postTitle = quoteMatch[1].trim();
+      }
+    }
 
     let actionText = "";
     let iconComponent = <StoryBookIcon />;
@@ -464,8 +485,7 @@ export default function NotificationsPage() {
           position: sticky;
           top: 0;
           height: 64px;
-          background-color: var(--nav-bg, rgba(255, 255, 255, 0.95));
-          backdrop-filter: blur(8px);
+          background-color: var(--bg);
           border-bottom: 1px solid var(--border);
           display: flex;
           align-items: center;
@@ -584,6 +604,7 @@ export default function NotificationsPage() {
           border: 1px solid var(--border);
           background: var(--bg);
           cursor: pointer;
+          overflow: hidden;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .notif-card.unread {
@@ -1440,7 +1461,11 @@ export default function NotificationsPage() {
                             style={{ fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (item.actor_profile?.username) router.push(`/profile/${item.actor_profile.username}`);
+                              if (item.actor_profile?.username) {
+                                handleNotificationClick(item, `/profile/${item.actor_profile.username}`);
+                              } else {
+                                handleNotificationClick(item);
+                              }
                             }}
                           >
                             {actorName}
@@ -1453,7 +1478,11 @@ export default function NotificationsPage() {
                                 style={{ fontWeight: 600, color: "var(--brand)", cursor: "pointer" }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (item.posts?.slug) router.push(`/post/${item.posts.slug}`);
+                                  if (item.posts?.slug) {
+                                    handleNotificationClick(item, `/post/${item.posts.slug}`);
+                                  } else {
+                                    handleNotificationClick(item);
+                                  }
                                 }}
                               >
                                 "{postTitle}"
