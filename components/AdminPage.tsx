@@ -35,6 +35,12 @@ export default function AdminPage() {
   const [allProfileViews, setAllProfileViews] = useState<any[]>([]);
   const [allFollows, setAllFollows] = useState<any[]>([]);
   const [allLikes, setAllLikes] = useState<any[]>([]);
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<"today" | "week" | "month" | "year" | "all">("month");
+  const [analyticsQuota, setAnalyticsQuota] = useState<"all" | "staff" | "personal">("all");
+  const [analyticsRankTab, setAnalyticsRankTab] = useState<"impressions" | "followers" | "both">("both");
+  const [awardModalUser, setAwardModalUser] = useState<any | null>(null);
+  const [awardAmount, setAwardAmount] = useState("");
+  const [awardNote, setAwardNote] = useState("");
   const [staffSearchQuery, setStaffSearchQuery] = useState("");
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -409,49 +415,452 @@ export default function AdminPage() {
             </div>
           ) : (
             <>
-              {/* ── ANALYTICS ── */}
+              {/* ── ANALYTICS & RANKINGS ── */}
               {tab === "analytics" && (() => {
                 const now = new Date();
                 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                
                 const thisWeek = new Date(today);
                 thisWeek.setDate(today.getDate() - today.getDay());
+                
                 const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const thisYear = new Date(now.getFullYear(), 0, 1);
 
-                const filterByDate = (arr: any[], date: Date) => arr.filter(item => new Date(item.created_at) >= date);
+                let periodStartDate: Date | null = today;
+                if (analyticsPeriod === "week") periodStartDate = thisWeek;
+                else if (analyticsPeriod === "month") periodStartDate = thisMonth;
+                else if (analyticsPeriod === "year") periodStartDate = thisYear;
+                else if (analyticsPeriod === "all") periodStartDate = null;
+
+                const filterByPeriod = (arr: any[]) => {
+                  if (!periodStartDate) return arr;
+                  return arr.filter(item => item.created_at && new Date(item.created_at) >= periodStartDate);
+                };
+
+                const filteredViews = filterByPeriod(allProfileViews);
+                const filteredFollows = filterByPeriod(allFollows);
+                const filteredLikes = filterByPeriod(allLikes);
+                const filteredPosts = filterByPeriod(posts);
+
+                // Compute creator statistics & ranks
+                const creators = users
+                  .filter(u => {
+                    if (analyticsQuota === "staff") return u.role === "staff";
+                    if (analyticsQuota === "personal") return u.role !== "staff" && u.role !== "admin";
+                    return u.role !== "reader"; // all active writers & staff
+                  })
+                  .map(u => {
+                    // Profile views for user
+                    const userProfileViews = filteredViews.filter(v => v.profile_id === u.id).length;
+                    
+                    // User posts
+                    const userPosts = posts.filter(p => p.author_id === u.id);
+                    const userPostsInPeriod = filteredPosts.filter(p => p.author_id === u.id);
+                    
+                    // Post views for user's posts
+                    const postViewsTotal = userPosts.reduce((sum, p) => sum + (p.view_count || 0), 0);
+                    
+                    // Total Impressions (Sum of profile visits + article views)
+                    const totalImpressions = userProfileViews + postViewsTotal;
+                    
+                    // Followers gained for user
+                    const newFollowers = filteredFollows.filter(f => f.following_id === u.id).length;
+                    const totalFollowers = u.follower_count || allFollows.filter(f => f.following_id === u.id).length;
+
+                    // Likes gained for user
+                    const likesGained = filteredLikes.filter(l => {
+                      const likedPost = posts.find(p => p.id === l.post_id);
+                      return likedPost && likedPost.author_id === u.id;
+                    }).length;
+
+                    // Combined Performance Score
+                    const combinedScore = totalImpressions + (newFollowers * 10) + (likesGained * 5);
+
+                    return {
+                      ...u,
+                      userPostsCount: userPosts.length,
+                      userPostsInPeriodCount: userPostsInPeriod.length,
+                      userProfileViews,
+                      postViewsTotal,
+                      totalImpressions,
+                      newFollowers,
+                      totalFollowers,
+                      likesGained,
+                      combinedScore,
+                    };
+                  });
+
+                // Sort creators based on selected rank tab
+                let rankedCreators = [...creators];
+                if (analyticsRankTab === "impressions") {
+                  rankedCreators.sort((a, b) => b.totalImpressions - a.totalImpressions);
+                } else if (analyticsRankTab === "followers") {
+                  rankedCreators.sort((a, b) => b.newFollowers !== a.newFollowers ? b.newFollowers - a.newFollowers : b.totalFollowers - a.totalFollowers);
+                } else {
+                  rankedCreators.sort((a, b) => b.combinedScore - a.combinedScore);
+                }
 
                 return (
                   <div>
-                    <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, marginBottom: 24, color: "var(--black)" }}>Analytics & Tracking</h3>
-                    
-                    <div style={{ marginBottom: 32 }}>
-                      <h4 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "var(--black)", marginBottom: 12 }}>Profile Impressions (Visited Users)</h4>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-                        <StatCard label="Today" value={filterByDate(allProfileViews, today).length} icon="👀" color="#8b5cf6" />
-                        <StatCard label="This Week" value={filterByDate(allProfileViews, thisWeek).length} icon="👀" color="#8b5cf6" />
-                        <StatCard label="This Month" value={filterByDate(allProfileViews, thisMonth).length} icon="👀" color="#8b5cf6" />
-                        <StatCard label="This Year" value={filterByDate(allProfileViews, thisYear).length} icon="👀" color="#8b5cf6" />
+                    {/* Header */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 24 }}>
+                      <div>
+                        <h3 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 700, margin: 0, color: "var(--black)" }}>
+                          Analytics, Impressions & Staff Payment Rankings
+                        </h3>
+                        <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", margin: "4px 0 0" }}>
+                          Track creator performance, impression counts, and follower growth to decide daily, monthly & yearly payment awards.
+                        </p>
+                      </div>
+
+                      {/* Quota Filter Toggle */}
+                      <div style={{ display: "flex", gap: 6, background: "var(--bg-3)", padding: 4, borderRadius: 10, border: "1px solid var(--border)" }}>
+                        <button
+                          onClick={() => setAnalyticsQuota("all")}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: 8,
+                            border: "none",
+                            fontFamily: "var(--sans)",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            background: analyticsQuota === "all" ? "var(--brand)" : "transparent",
+                            color: analyticsQuota === "all" ? "white" : "var(--muted)"
+                          }}
+                        >
+                          🌐 All Creators
+                        </button>
+                        <button
+                          onClick={() => setAnalyticsQuota("staff")}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: 8,
+                            border: "none",
+                            fontFamily: "var(--sans)",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            background: analyticsQuota === "staff" ? "var(--brand)" : "transparent",
+                            color: analyticsQuota === "staff" ? "white" : "var(--muted)"
+                          }}
+                        >
+                          🛡️ Staff Quota Only
+                        </button>
+                        <button
+                          onClick={() => setAnalyticsQuota("personal")}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: 8,
+                            border: "none",
+                            fontFamily: "var(--sans)",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            background: analyticsQuota === "personal" ? "var(--brand)" : "transparent",
+                            color: analyticsQuota === "personal" ? "white" : "var(--muted)"
+                          }}
+                        >
+                          👤 Personal Creators
+                        </button>
                       </div>
                     </div>
 
-                    <div style={{ marginBottom: 32 }}>
-                      <h4 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "var(--black)", marginBottom: 12 }}>New Followers</h4>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-                        <StatCard label="Today" value={filterByDate(allFollows, today).length} icon="👥" color="#10b981" />
-                        <StatCard label="This Week" value={filterByDate(allFollows, thisWeek).length} icon="👥" color="#10b981" />
-                        <StatCard label="This Month" value={filterByDate(allFollows, thisMonth).length} icon="👥" color="#10b981" />
-                        <StatCard label="This Year" value={filterByDate(allFollows, thisYear).length} icon="👥" color="#10b981" />
-                      </div>
+                    {/* Time Period Selector Bar */}
+                    <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginRight: 8 }}>
+                        Timeframe:
+                      </span>
+                      {[
+                        { id: "today", label: "End of Day (Today)" },
+                        { id: "week", label: "This Week" },
+                        { id: "month", label: "End of Month (Monthly)" },
+                        { id: "year", label: "End of Year (Yearly)" },
+                        { id: "all", label: "All Time" },
+                      ].map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => setAnalyticsPeriod(p.id as any)}
+                          style={{
+                            padding: "8px 16px",
+                            borderRadius: 999,
+                            border: analyticsPeriod === p.id ? "1px solid var(--brand)" : "1px solid var(--border)",
+                            background: analyticsPeriod === p.id ? "rgba(124,58,237,0.1)" : "var(--bg-2)",
+                            color: analyticsPeriod === p.id ? "var(--brand)" : "var(--ink)",
+                            fontFamily: "var(--sans)",
+                            fontSize: 13,
+                            fontWeight: analyticsPeriod === p.id ? 700 : 500,
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
                     </div>
 
-                    <div style={{ marginBottom: 32 }}>
-                      <h4 style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 600, color: "var(--black)", marginBottom: 12 }}>Likes</h4>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-                        <StatCard label="Today" value={filterByDate(allLikes, today).length} icon="❤️" color="#ef4444" />
-                        <StatCard label="This Week" value={filterByDate(allLikes, thisWeek).length} icon="❤️" color="#ef4444" />
-                        <StatCard label="This Month" value={filterByDate(allLikes, thisMonth).length} icon="❤️" color="#ef4444" />
-                        <StatCard label="This Year" value={filterByDate(allLikes, thisYear).length} icon="❤️" color="#ef4444" />
+                    {/* Overview Stat Cards */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 32 }}>
+                      <StatCard 
+                        label={`Total Impressions (${analyticsPeriod.toUpperCase()})`} 
+                        value={filteredViews.length + posts.filter(p => analyticsQuota === "all" || (analyticsQuota === "staff" ? users.find(u => u.id === p.author_id)?.role === "staff" : users.find(u => u.id === p.author_id)?.role !== "staff")).reduce((s, p) => s + (p.view_count || 0), 0)} 
+                        icon="👀" 
+                        color="#8b5cf6" 
+                      />
+                      <StatCard 
+                        label={`New Followers (${analyticsPeriod.toUpperCase()})`} 
+                        value={filteredFollows.length} 
+                        icon="👥" 
+                        color="#10b981" 
+                      />
+                      <StatCard 
+                        label={`Likes Received (${analyticsPeriod.toUpperCase()})`} 
+                        value={filteredLikes.length} 
+                        icon="❤️" 
+                        color="#ef4444" 
+                      />
+                      <StatCard 
+                        label="Active Creators Ranked" 
+                        value={creators.length} 
+                        icon="🏆" 
+                        color="#f59e0b" 
+                      />
+                    </div>
+
+                    {/* Ranking Leaderboard Container */}
+                    <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                        <div>
+                          <span style={{ fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, color: "var(--black)" }}>
+                            🏆 Creator Ranks & Payment Award Leaderboard
+                          </span>
+                          <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
+                            Showing ranks for {analyticsQuota === "staff" ? "Staff Members Quota" : analyticsQuota === "personal" ? "Personal Creators" : "All Registered Creators"} ({analyticsPeriod === "today" ? "End of Day" : analyticsPeriod === "month" ? "End of Month" : analyticsPeriod === "year" ? "End of Year" : analyticsPeriod === "week" ? "This Week" : "All Time"})
+                          </span>
+                        </div>
+
+                        {/* Rank Tab Switcher */}
+                        <div style={{ display: "flex", gap: 4, background: "var(--bg-3)", padding: 3, borderRadius: 8 }}>
+                          <button
+                            onClick={() => setAnalyticsRankTab("impressions")}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 6,
+                              border: "none",
+                              fontFamily: "var(--sans)",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              background: analyticsRankTab === "impressions" ? "white" : "transparent",
+                              color: analyticsRankTab === "impressions" ? "var(--black)" : "var(--muted)",
+                              boxShadow: analyticsRankTab === "impressions" ? "var(--shadow-sm)" : "none"
+                            }}
+                          >
+                            👁️ Highest Impressions
+                          </button>
+                          <button
+                            onClick={() => setAnalyticsRankTab("followers")}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 6,
+                              border: "none",
+                              fontFamily: "var(--sans)",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              background: analyticsRankTab === "followers" ? "white" : "transparent",
+                              color: analyticsRankTab === "followers" ? "var(--black)" : "var(--muted)",
+                              boxShadow: analyticsRankTab === "followers" ? "var(--shadow-sm)" : "none"
+                            }}
+                          >
+                            👥 Highest Followers
+                          </button>
+                          <button
+                            onClick={() => setAnalyticsRankTab("both")}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 6,
+                              border: "none",
+                              fontFamily: "var(--sans)",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              background: analyticsRankTab === "both" ? "white" : "transparent",
+                              color: analyticsRankTab === "both" ? "var(--black)" : "var(--muted)",
+                              boxShadow: analyticsRankTab === "both" ? "var(--shadow-sm)" : "none"
+                            }}
+                          >
+                            ⭐ Combined Rank (Both)
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Ranks Table */}
+                      <div style={{ overflowX: "auto" }}>
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Rank</th>
+                              <th>Creator / Staff Member</th>
+                              <th>Quota Type</th>
+                              <th>Impressions</th>
+                              <th>Followers</th>
+                              <th>Articles</th>
+                              <th>Performance Score</th>
+                              <th>Award Tier</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rankedCreators.map((c, index) => {
+                              const rankPos = index + 1;
+                              let rankBadge = `#${rankPos}`;
+                              let rankBg = "var(--bg-3)";
+                              let rankColor = "var(--muted)";
+
+                              if (rankPos === 1) {
+                                rankBadge = "🥇 1st";
+                                rankBg = "rgba(245, 158, 11, 0.15)";
+                                rankColor = "#d97706";
+                              } else if (rankPos === 2) {
+                                rankBadge = "🥈 2nd";
+                                rankBg = "rgba(156, 163, 175, 0.2)";
+                                rankColor = "#4b5563";
+                              } else if (rankPos === 3) {
+                                rankBadge = "🥉 3rd";
+                                rankBg = "rgba(180, 83, 9, 0.15)";
+                                rankColor = "#b45309";
+                              }
+
+                              return (
+                                <tr key={c.id} style={{ background: rankPos === 1 ? "rgba(245, 158, 11, 0.03)" : "transparent" }}>
+                                  <td>
+                                    <span style={{
+                                      fontFamily: "var(--sans)",
+                                      fontSize: 12,
+                                      fontWeight: 800,
+                                      padding: "4px 10px",
+                                      borderRadius: 999,
+                                      background: rankBg,
+                                      color: rankColor,
+                                      display: "inline-block"
+                                    }}>
+                                      {rankBadge}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                        {c.avatar_url ? <Image src={c.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} /> : getInitials(c.full_name || "")}
+                                      </div>
+                                      <div>
+                                        <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>
+                                          {c.full_name || "—"}
+                                        </div>
+                                        <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>
+                                          @{c.username || "user"}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <span style={{
+                                      fontFamily: "var(--sans)",
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                      padding: "3px 8px",
+                                      borderRadius: 4,
+                                      textTransform: "uppercase",
+                                      background: c.role === "staff" ? "rgba(124, 58, 237, 0.15)" : c.role === "admin" ? "rgba(239, 68, 68, 0.15)" : "var(--bg-3)",
+                                      color: c.role === "staff" ? "var(--brand)" : c.role === "admin" ? "var(--red)" : "var(--muted)"
+                                    }}>
+                                      {c.role === "staff" ? "🛡️ Staff Quota" : c.role === "admin" ? "Admin" : "👤 Personal Writer"}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--brand)" }}>
+                                      👁️ {c.totalImpressions.toLocaleString()}
+                                    </span>
+                                    <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>
+                                      ({c.postViewsTotal} posts / {c.userProfileViews} profile)
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "#10b981" }}>
+                                      +{c.newFollowers} new
+                                    </span>
+                                    <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>
+                                      ({c.totalFollowers} total)
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--black)", fontWeight: 600 }}>
+                                      {c.userPostsCount}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 800, color: "var(--black)" }}>
+                                      ⚡ {c.combinedScore.toLocaleString()} pts
+                                    </span>
+                                  </td>
+                                  <td>
+                                    {rankPos === 1 && (
+                                      <span style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "#d97706", background: "rgba(245, 158, 11, 0.1)", padding: "3px 8px", borderRadius: 6, border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                                        🏆 #1 Payout Tier
+                                      </span>
+                                    )}
+                                    {rankPos === 2 && (
+                                      <span style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "#4b5563", background: "rgba(156, 163, 175, 0.1)", padding: "3px 8px", borderRadius: 6, border: "1px solid rgba(156, 163, 175, 0.3)" }}>
+                                        🥈 #2 Payout Tier
+                                      </span>
+                                    )}
+                                    {rankPos === 3 && (
+                                      <span style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "#b45309", background: "rgba(180, 83, 9, 0.1)", padding: "3px 8px", borderRadius: 6, border: "1px solid rgba(180, 83, 9, 0.3)" }}>
+                                        🥉 #3 Payout Tier
+                                      </span>
+                                    )}
+                                    {rankPos > 3 && (
+                                      <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>
+                                        Standard Tier
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td>
+                                    <button
+                                      onClick={() => {
+                                        setAwardModalUser(c);
+                                        setAwardAmount("");
+                                        setAwardNote(`Payment award for ${analyticsPeriod.toUpperCase()} rank #${rankPos} (${c.role === 'staff' ? 'Staff Quota' : 'Personal Creator'})`);
+                                      }}
+                                      style={{
+                                        fontFamily: "var(--sans)",
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        color: "white",
+                                        background: "var(--brand)",
+                                        border: "none",
+                                        borderRadius: 6,
+                                        padding: "6px 12px",
+                                        cursor: "pointer"
+                                      }}
+                                    >
+                                      💳 Award Payment
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {rankedCreators.length === 0 && (
+                        <div style={{ padding: "60px 0", textAlign: "center" }}>
+                          <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>
+                            No creators found for the selected quota filter.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -1049,14 +1458,100 @@ export default function AdminPage() {
             padding: 12px 16px !important;
           }
         }
-
-        @media (max-width: 576px) {
-          .admin-staff-fields-grid {
-            display: flex !important;
-            flex-direction: column !important;
-          }
-        }
       `}</style>
+
+      {/* Award Payment Modal */}
+      {awardModalUser && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          zIndex: 999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 20
+        }}>
+          <div style={{
+            background: "var(--bg-2)",
+            border: "1px solid var(--border)",
+            borderRadius: 16,
+            width: "100%",
+            maxWidth: 480,
+            padding: 24,
+            boxShadow: "0 10px 40px rgba(0,0,0,0.3)"
+          }}>
+            <h3 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, margin: "0 0 8px", color: "var(--black)" }}>
+              Award Payment / Bonus
+            </h3>
+            <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", margin: "0 0 16px" }}>
+              Record payment award for <strong style={{ color: "var(--black)" }}>{awardModalUser.full_name}</strong> (@{awardModalUser.username})
+            </p>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", marginBottom: 4 }}>
+                Award Amount (e.g. $50 or ₦25,000)
+              </label>
+              <input
+                type="text"
+                value={awardAmount}
+                onChange={(e) => setAwardAmount(e.target.value)}
+                placeholder="Enter amount..."
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                  fontSize: 14,
+                  fontFamily: "var(--sans)",
+                  outline: "none"
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", marginBottom: 4 }}>
+                Payment Note / Quota Details
+              </label>
+              <textarea
+                value={awardNote}
+                onChange={(e) => setAwardNote(e.target.value)}
+                rows={3}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                  fontSize: 13,
+                  fontFamily: "var(--sans)",
+                  outline: "none",
+                  resize: "vertical"
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button
+                onClick={() => setAwardModalUser(null)}
+                className="btn btn-outline btn-sm"
+                style={{ borderRadius: 8 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  showMsg(`Payment award of ${awardAmount || "bonus"} recorded for ${awardModalUser.full_name}!`);
+                  setAwardModalUser(null);
+                }}
+                className="btn btn-primary btn-sm"
+                style={{ borderRadius: 8 }}
+              >
+                Confirm Award
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

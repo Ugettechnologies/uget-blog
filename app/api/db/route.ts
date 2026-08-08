@@ -252,7 +252,7 @@ export async function POST(request: Request) {
     } 
     
     else if (method === "insert") {
-      if (!user) {
+      if (!user && table !== "profile_views") {
         return NextResponse.json({ data: null, error: { message: "Unauthorized" } }, { status: 401 });
       }
 
@@ -297,7 +297,8 @@ export async function POST(request: Request) {
     } 
     
     else if (method === "update") {
-      if (!user) {
+      const isViewCountOnly = table === "posts" && payload && Object.keys(payload).length === 1 && "view_count" in payload;
+      if (!user && !isViewCountOnly) {
         return NextResponse.json({ data: null, error: { message: "Unauthorized" } }, { status: 401 });
       }
 

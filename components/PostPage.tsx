@@ -360,8 +360,11 @@ export default function PostPage() {
     setPost(data as Post);
     setLikeCount(data.like_count || 0);
 
-    // Increment views
+    // Increment views and track impression for author
     await supabase.from("posts").update({ view_count: (data.view_count || 0) + 1 }).eq("id", data.id);
+    if (data.author_id) {
+      supabase.from("profile_views").insert({ profile_id: data.author_id, post_id: data.id }).then().catch(console.error);
+    }
 
     // Get related
     const { data: rel } = await supabase.from("posts")

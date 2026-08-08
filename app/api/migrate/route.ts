@@ -151,22 +151,32 @@ export async function GET() {
     } catch (idxErr: any) {
       console.warn("Could not create indexes:", idxErr.message);
     }
-    // 7. Add custom_lists column to profiles table
+    // 8. Create profile_views table
+    await sql`
+      CREATE TABLE IF NOT EXISTS public.profile_views (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        profile_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+        post_id uuid REFERENCES public.posts(id) ON DELETE CASCADE,
+        created_at timestamptz DEFAULT now()
+      )
+    `;
+    console.log("✓ Profile views table created/checked");
+
     try {
       await sql`
-        ALTER TABLE public.profiles 
-        ADD COLUMN IF NOT EXISTS custom_lists jsonb DEFAULT '[]'::jsonb
+        ALTER TABLE public.profile_views 
+        ADD COLUMN IF NOT EXISTS post_id uuid REFERENCES public.posts(id) ON DELETE CASCADE
       `;
-      console.log("✓ Profiles custom_lists column added/checked");
-    } catch (colErr: any) {
-      console.warn("Could not alter profiles table directly for custom_lists:", colErr.message);
+      await sql`CREATE INDEX IF NOT EXISTS profile_views_profile_idx ON public.profile_views(profile_id, created_at desc)`;
+    } catch (pvErr: any) {
+      console.warn("Could not alter profile_views or create index:", pvErr.message);
     }
 
     return NextResponse.json({
       success: true,
       message: "Database migrations completed successfully!",
-      tables: ["live_events", "live_updates", "follows", "notifications", "subscriptions"],
-      columns: ["profiles.theme"]
+      tables: ["live_events", "live_updates", "follows", "notifications", "subscriptions", "profile_views"],
+      columns: ["profiles.theme", "profile_views.post_id"]
     });
   } catch (err: any) {
     console.error("Migration failed:", err);
