@@ -9,6 +9,7 @@ import { createClient } from "@/lib/db-client/client";
 import type { Post, Comment } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import SafeImage from "./SafeImage";
+import AdBanner from "./AdBanner";
 
 // ── Guest CTA Banner ─────────────────────────────────────────────────────────
 // Shown to unauthenticated visitors (e.g. arriving from newsletter email).
@@ -654,6 +655,11 @@ export default function PostPage() {
         onMouseUp={handleMouseUp}
         dangerouslySetInnerHTML={{ __html: post.content }} 
       />
+
+      {/* Ad Banner for article readers */}
+      <div style={{ maxWidth: 680, margin: "32px auto", padding: "0 24px" }}>
+        <AdBanner dataAdSlot="auto" />
+      </div>
 
       {/* Floating Highlight Button */}
       {selectionCoords && (
