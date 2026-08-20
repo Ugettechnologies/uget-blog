@@ -52,6 +52,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        {/* Monetag Ads - Zone 11617002 (Lovely tag) */}
+        <Script
+          id="monetag-11617002"
+          src="https://5gvci.com/act/files/tag.min.js?z=11617002"
+          strategy="afterInteractive"
+          data-cfasync="false"
+        />
         {/* Monetag Ads - Zone 11609101 (Terrific tag) */}
         <Script
           id="monetag-11609101"
