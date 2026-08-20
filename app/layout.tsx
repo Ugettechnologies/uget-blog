@@ -46,39 +46,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <Script
+        {/* Google AdSense */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7030150096951668"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
-        {/* Monetag Ads - Zone 11617002 (Lovely tag) */}
-        <Script
-          id="monetag-11617002"
+        {/* Monetag Multitag - Zone 11617002 (Lovely tag for echo-gist.com) */}
+        <script
           src="https://5gvci.com/act/files/tag.min.js?z=11617002"
-          strategy="afterInteractive"
           data-cfasync="false"
+          async
         />
-        {/* Monetag Ads - Zone 11609101 (Terrific tag) */}
-        <Script
-          id="monetag-11609101"
+        {/* Monetag Zone 11609101 (Terrific tag) */}
+        <script
           src="https://5gvci.com/act/files/tag.min.js?z=11609101"
-          strategy="afterInteractive"
           data-cfasync="false"
-        />
-        {/* Monetag Ads - Zone 11608961 */}
-        <Script
-          id="monetag-11608961"
-          src="https://5gvci.com/act/files/tag.min.js?z=11608961"
-          strategy="afterInteractive"
-          data-cfasync="false"
-        />
-        {/* Monetag Push Notifications - Zone 11609104 */}
-        <Script
-          id="monetag-11609104"
-          src="https://3nbf4.com/act/files/tag.min.js?z=11609104"
-          strategy="afterInteractive"
-          data-cfasync="false"
+          async
         />
         <Script
           id="sw-register"
