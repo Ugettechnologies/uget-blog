@@ -52,6 +52,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        {/* Monetag Ads - Zone 11609101 (Terrific tag) */}
+        <Script
+          id="monetag-11609101"
+          src="https://5gvci.com/act/files/tag.min.js?z=11609101"
+          strategy="afterInteractive"
+          data-cfasync="false"
+        />
+        {/* Monetag Ads - Zone 11608961 */}
+        <Script
+          id="monetag-11608961"
+          src="https://5gvci.com/act/files/tag.min.js?z=11608961"
+          strategy="afterInteractive"
+          data-cfasync="false"
+        />
+        {/* Monetag Push Notifications - Zone 11609104 */}
+        <Script
+          id="monetag-11609104"
+          src="https://3nbf4.com/act/files/tag.min.js?z=11609104"
+          strategy="afterInteractive"
+          data-cfasync="false"
+        />
         <Script
           id="sw-register"
           strategy="afterInteractive"
