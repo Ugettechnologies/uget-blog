@@ -718,7 +718,7 @@ export default function HomePage() {
                   posts.map((post, idx) => (
                     <div key={post.id}>
                       <PostCard post={post} />
-                      {(idx + 1) % 4 === 0 && <SponsoredCard variant="feed" />}
+                      {(idx + 1) % 8 === 0 && <SponsoredCard variant="feed" />}
                     </div>
                   ))
                 )}

@@ -30,7 +30,13 @@ export default function AdBanner({
   }, []);
 
   return (
-    <div className={`my-6 overflow-hidden text-center ${className}`}>
+    <div 
+      className={`my-6 overflow-hidden text-center rounded-xl p-3 bg-[var(--bg-2,#18181b)] border border-[var(--border,#27272a)] ${className}`}
+      style={{ margin: "24px 0" }}
+    >
+      <div style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted, #a1a1aa)", marginBottom: "8px", textAlign: "center" }}>
+        Advertisement
+      </div>
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
