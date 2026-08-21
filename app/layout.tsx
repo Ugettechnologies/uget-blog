@@ -55,29 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7030150096951668"
           crossOrigin="anonymous"
         />
-        {/* Monetag Multitag - Zone 11617002 (Web Push Notifications & Ads) */}
-        <Script
-          id="monetag-multitag"
-          strategy="afterInteractive"
-          src="https://5gvci.com/act/files/tag.min.js?z=11617002"
-          data-cfasync="false"
-        />
-        {/* Monetag Anti-Adblock Tag - Zone 271393 */}
-        <Script
-          id="monetag-anti-adblock"
-          strategy="afterInteractive"
-          src="https://quge5.com/88/tag.min.js"
-          data-zone="271393"
-          data-cfasync="false"
-        />
-        {/* Monetag Anti-Adblock Tag - Zone 271697 */}
-        <Script
-          id="monetag-anti-adblock-lovely"
-          strategy="afterInteractive"
-          src="https://quge5.com/88/tag.min.js"
-          data-zone="271697"
-          data-cfasync="false"
-        />
+
         <Script
           id="sw-register"
           strategy="afterInteractive"
