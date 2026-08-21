@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import SponsoredCard from "./SponsoredCard";
 
 declare global {
   interface Window {
@@ -21,30 +22,56 @@ export default function AdBanner({
   dataFullWidthResponsive = true,
   className = "",
 }: AdBannerProps) {
+  const [adSenseFilled, setAdSenseFilled] = useState<boolean>(false);
+
   useEffect(() => {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (err) {
       console.error("AdSense error:", err);
     }
-  }, []);
+
+    // Check if AdSense successfully loaded an ad element inside ins tag
+    const checkTimer = setTimeout(() => {
+      const insNode = document.querySelector(`ins[data-ad-slot="${dataAdSlot}"]`);
+      if (insNode && insNode.children.length > 0 && insNode.clientHeight > 20) {
+        setAdSenseFilled(true);
+      } else {
+        setAdSenseFilled(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(checkTimer);
+  }, [dataAdSlot]);
 
   return (
-    <div 
-      className={`my-6 overflow-hidden text-center rounded-xl p-3 bg-[var(--bg-2,#18181b)] border border-[var(--border,#27272a)] ${className}`}
-      style={{ margin: "24px 0" }}
-    >
-      <div style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted, #a1a1aa)", marginBottom: "8px", textAlign: "center" }}>
-        Advertisement
+    <div className={`my-6 text-center ${className}`}>
+      <div 
+        style={{ 
+          display: adSenseFilled ? "block" : "none",
+          padding: "12px", 
+          borderRadius: "12px", 
+          background: "var(--bg-2, #18181b)", 
+          border: "1px solid var(--border, #27272a)" 
+        }}
+      >
+        <div style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted, #a1a1aa)", marginBottom: "8px" }}>
+          Advertisement
+        </div>
+        <ins
+          className="adsbygoogle"
+          style={{ display: "block" }}
+          data-ad-client="ca-pub-7030150096951668"
+          data-ad-slot={dataAdSlot}
+          data-ad-format={dataAdFormat}
+          data-full-width-responsive={dataFullWidthResponsive ? "true" : "false"}
+        />
       </div>
-      <ins
-        className="adsbygoogle"
-        style={{ display: "block" }}
-        data-ad-client="ca-pub-7030150096951668"
-        data-ad-slot={dataAdSlot}
-        data-ad-format={dataAdFormat}
-        data-full-width-responsive={dataFullWidthResponsive ? "true" : "false"}
-      />
+
+      {!adSenseFilled && (
+        <SponsoredCard variant="banner" />
+      )}
     </div>
   );
 }
+
