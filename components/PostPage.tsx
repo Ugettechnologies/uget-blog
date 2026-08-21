@@ -10,6 +10,7 @@ import type { Post, Comment } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import SafeImage from "./SafeImage";
 import AdBanner from "./AdBanner";
+import SponsoredCard from "./SponsoredCard";
 
 // ── Guest CTA Banner ─────────────────────────────────────────────────────────
 // Shown to unauthenticated visitors (e.g. arriving from newsletter email).
@@ -736,6 +737,11 @@ export default function PostPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Sponsored Ad Banner */}
+      <div style={{ maxWidth: 680, margin: "0 auto 40px", padding: "0 24px" }}>
+        <SponsoredCard variant="banner" />
       </div>
 
       {/* Comments */}

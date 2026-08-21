@@ -11,6 +11,7 @@ import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon, NavNotificationButton } from "./SidebarNav";
 import SafeImage from "./SafeImage";
+import SponsoredCard from "./SponsoredCard";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -714,7 +715,12 @@ export default function HomePage() {
                     </div>
                   )
                 ) : (
-                  posts.map((post) => <PostCard key={post.id} post={post} />)
+                  posts.map((post, idx) => (
+                    <div key={post.id}>
+                      <PostCard post={post} />
+                      {(idx + 1) % 4 === 0 && <SponsoredCard variant="feed" />}
+                    </div>
+                  ))
                 )}
               </main>
 
@@ -738,6 +744,10 @@ export default function HomePage() {
                     );
                   })}
                 </div>
+                
+                {/* Sponsored Direct Link Sidebar Card */}
+                <SponsoredCard variant="sidebar" />
+
                 <div className="sidebar-section">
                   <div className="sidebar-title">Topics to explore</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

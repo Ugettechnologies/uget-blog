@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import AntiAdblockNotice from "@/components/AntiAdblockNotice";
+import DirectLinkClickPopunder from "@/components/DirectLinkClickPopunder";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -47,22 +49,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {/* Google AdSense */}
-        <script
-          async
+        <Script
+          id="google-adsense"
+          strategy="afterInteractive"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7030150096951668"
           crossOrigin="anonymous"
         />
-        {/* Monetag Multitag - Zone 11617002 (Lovely tag for echo-gist.com) */}
-        <script
+        {/* Monetag Multitag - Zone 11617002 */}
+        <Script
+          id="monetag-multitag"
+          strategy="afterInteractive"
           src="https://5gvci.com/act/files/tag.min.js?z=11617002"
           data-cfasync="false"
-          async
         />
-        {/* Monetag Zone 11609101 (Terrific tag) */}
-        <script
-          src="https://5gvci.com/act/files/tag.min.js?z=11609101"
+        {/* Monetag Anti-Adblock Tag - Zone 271393 */}
+        <Script
+          id="monetag-anti-adblock"
+          strategy="afterInteractive"
+          src="https://quge5.com/88/tag.min.js"
+          data-zone="271393"
           data-cfasync="false"
-          async
+        />
+        {/* Monetag Anti-Adblock Tag - Lovely tag (Zone 271697) */}
+        <Script
+          id="monetag-anti-adblock-lovely"
+          strategy="afterInteractive"
+          src="https://quge5.com/88/tag.min.js"
+          data-zone="271697"
+          data-cfasync="false"
         />
         <Script
           id="sw-register"
@@ -78,7 +92,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <AntiAdblockNotice />
+        <DirectLinkClickPopunder />
+      </body>
     </html>
   );
 }
