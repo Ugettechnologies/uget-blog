@@ -130,6 +130,17 @@ export function getInitials(name: string | null): string {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
+export function formatViews(count: number = 0): string {
+  if (count >= 1_000_000) {
+    return (count / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (count >= 1_000) {
+    return (count / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return String(count || 0);
+}
+
+
 export interface SavedUser {
   id: string;
   full_name: string;

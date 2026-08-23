@@ -27,6 +27,16 @@ const ProfileIcon = () => (
   </svg>
 );
 
+const ShareIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="18" cy="5" r="3" />
+    <circle cx="6" cy="12" r="3" />
+    <circle cx="18" cy="19" r="3" />
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+  </svg>
+);
+
 const NotifIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -153,9 +163,10 @@ interface UserDropdownProps {
   onClose: () => void;
   onOpenNotifs: () => void;
   onSignOut: () => void;
+  onShareProfile?: () => void;
 }
 
-export function UserDropdown({ isOpen, user, userProfile, onClose, onOpenNotifs, onSignOut }: UserDropdownProps) {
+export function UserDropdown({ isOpen, user, userProfile, onClose, onOpenNotifs, onSignOut, onShareProfile }: UserDropdownProps) {
   if (!isOpen) return null;
 
   return (
@@ -261,6 +272,17 @@ export function UserDropdown({ isOpen, user, userProfile, onClose, onOpenNotifs,
         icon={<ProfileIcon />} 
         label="Profile" 
         shortcut="⌘K→P" 
+      />
+      <MenuItem 
+        href={onShareProfile ? undefined : `/profile/${userProfile?.username || user?.id || ""}`}
+        onClick={() => {
+          onClose();
+          if (onShareProfile) {
+            onShareProfile();
+          }
+        }} 
+        icon={<ShareIcon />} 
+        label="Share profile" 
       />
       <MenuItem 
         href="/settings" 

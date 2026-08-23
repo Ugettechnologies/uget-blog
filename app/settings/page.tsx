@@ -8,6 +8,7 @@ import { UserDropdown } from "@/components/UserDropdown";
 import type { Profile } from "@/lib/types";
 import { getInitials } from "@/lib/types";
 import { SidebarNav, SidebarFollowingList, HamburgerIcon, CloseIcon, SearchIcon, WriteIcon, BellIcon, NavNotificationButton } from "@/components/SidebarNav";
+import { ShareProfileModal } from "@/components/ShareProfileModal";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -82,6 +83,7 @@ export default function SettingsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [followingProfiles, setFollowingProfiles] = useState<any[]>([]);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Toast notifications state
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
@@ -1085,6 +1087,7 @@ export default function SettingsPage() {
                 onClose={() => setUserDropdownOpen(false)}
                 onOpenNotifs={() => { setUserDropdownOpen(false); router.push("/notifications"); }}
                 onSignOut={handleSignOut}
+                onShareProfile={() => setShareModalOpen(true)}
               />
             </div>
           </div>
@@ -1308,6 +1311,33 @@ export default function SettingsPage() {
                     )}
                   </div>
 
+                  {/* Shareable Profile Link row */}
+                  <div className="settings-row">
+                    <div className="settings-row-main">
+                      <div className="settings-label">Shareable Profile Link</div>
+                      <div className="settings-value">
+                        {typeof window !== "undefined"
+                          ? `${window.location.origin}/profile/${profile?.username || user?.id || ""}`
+                          : `/profile/${profile?.username || ""}`}
+                      </div>
+                      <div className="settings-desc">
+                        Share your EchoGist profile with your audience or share directly via WhatsApp, Snapchat, LinkedIn, X, Telegram, and Reddit.
+                      </div>
+                    </div>
+                    <div className="settings-row-action">
+                      <button
+                        onClick={() => setShareModalOpen(true)}
+                        className="btn btn-primary btn-sm flex items-center gap-1.5"
+                        style={{ borderRadius: 999 }}
+                      >
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M18 8a3 3 0 100-6 3 3 0 000 6zm-12 7a3 3 0 100-6 3 3 0 000 6zm12 7a3 3 0 100-6 3 3 0 000 6zm-12-7l8-4.5m-8 4.5l8 4.5" />
+                        </svg>
+                        <span>Share profile</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Profile info row */}
                   <div className="settings-row">
                     <div className="settings-row-main">
@@ -1352,19 +1382,20 @@ export default function SettingsPage() {
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
                               Display Name
                             </label>
                             <input
                               type="text"
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600"
+                              placeholder="Your full name"
+                              className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-sans focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
                               Bio
                             </label>
                             <textarea
@@ -1372,52 +1403,64 @@ export default function SettingsPage() {
                               onChange={(e) => setBio(e.target.value)}
                               rows={3}
                               placeholder="Tell readers about yourself..."
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-serif focus:outline-none focus:border-violet-600"
+                              className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-serif focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
                               Website URL
                             </label>
-                            <input
-                              type="url"
-                              value={website}
-                              onChange={(e) => setWebsite(e.target.value)}
-                              placeholder="https://yourpage.com"
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600"
-                            />
+                            <div className="relative flex items-center">
+                              <div className="absolute left-3.5 text-gray-400 pointer-events-none flex items-center">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" /><path strokeLinecap="round" strokeLinejoin="round" d="M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18" /></svg>
+                              </div>
+                              <input
+                                type="url"
+                                value={website}
+                                onChange={(e) => setWebsite(e.target.value)}
+                                placeholder="https://yourpage.com"
+                                className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-sans focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
+                              />
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-1 font-sans">Appears on your public profile card and About tab.</p>
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
-                              Twitter Handle (no @)
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
+                              Twitter / X Handle
                             </label>
-                            <input
-                              type="text"
-                              value={twitter}
-                              onChange={(e) => setTwitter(e.target.value)}
-                              placeholder="handle"
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-black font-sans focus:outline-none focus:border-violet-600"
-                            />
+                            <div className="relative flex items-center">
+                              <div className="absolute left-3.5 text-gray-400 font-bold text-sm pointer-events-none flex items-center">
+                                @
+                              </div>
+                              <input
+                                type="text"
+                                value={twitter}
+                                onChange={(e) => setTwitter(e.target.value.replace(/^@/, ""))}
+                                placeholder="username"
+                                className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-sans focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
+                              />
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-1 font-sans">Your Twitter/X username without the @ symbol.</p>
                           </div>
 
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 dark:border-zinc-800">
                             <button
                               onClick={() => {
                                 handleSaveField({
                                   full_name: fullName.trim(),
                                   bio: bio.trim(),
                                   website: website.trim(),
-                                  twitter: twitter.trim(),
+                                  twitter: twitter.trim().replace(/^@/, ""),
                                   avatar_url: avatarUrl,
                                 });
                                 setIsEditingProfileInfo(false);
                               }}
                               disabled={saving}
-                              className="btn btn-primary btn-sm"
+                              className="btn btn-primary btn-sm px-6 py-2 rounded-full font-sans text-xs font-bold"
                             >
-                              Save
+                              {saving ? "Saving..." : "Save Changes"}
                             </button>
                             <button
                               onClick={() => {
@@ -1427,7 +1470,7 @@ export default function SettingsPage() {
                                 setTwitter(profile?.twitter || "");
                                 setIsEditingProfileInfo(false);
                               }}
-                              className="px-4 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full text-xs font-semibold font-sans"
+                              className="px-5 py-2 border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-full text-xs font-semibold font-sans transition-colors"
                             >
                               Cancel
                             </button>
@@ -1435,32 +1478,66 @@ export default function SettingsPage() {
                         </div>
                       ) : (
                         <>
-                          <div className="flex items-center gap-3 py-1.5">
-                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                              {profile?.avatar_url ? (
-                                <Image
-                                  src={profile.avatar_url}
-                                  alt=""
-                                  width={36}
-                                  height={36}
-                                  className="object-cover w-full h-full"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center">
-                                  {getInitials(profile?.full_name || "?")}
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-sans font-bold text-sm text-gray-900">
-                                {profile?.full_name}
+                          <div className="flex flex-col gap-2 py-1.5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                                {profile?.avatar_url ? (
+                                  <Image
+                                    src={profile.avatar_url}
+                                    alt=""
+                                    width={40}
+                                    height={40}
+                                    className="object-cover w-full h-full"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center">
+                                    {getInitials(profile?.full_name || "?")}
+                                  </div>
+                                )}
                               </div>
-                              {profile?.bio && (
-                                <div className="font-serif text-xs text-gray-500 mt-0.5 max-w-sm truncate">
-                                  {profile.bio}
+                              <div>
+                                <div className="font-sans font-bold text-sm text-gray-900 dark:text-white">
+                                  {profile?.full_name || "No name set"}
                                 </div>
-                              )}
+                                {profile?.bio && (
+                                  <div className="font-serif text-xs text-gray-500 mt-0.5 max-w-sm truncate">
+                                    {profile.bio}
+                                  </div>
+                                )}
+                              </div>
                             </div>
+
+                            {(profile?.website || profile?.twitter) && (
+                              <div className="flex flex-wrap items-center gap-2 text-xs font-sans text-gray-600 dark:text-gray-400 mt-2">
+                                {profile?.twitter && (
+                                  <a
+                                    href={`https://x.com/${profile.twitter.replace(/^@/, "")}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white font-semibold text-xs border border-gray-200 dark:border-zinc-700 hover:border-gray-400 transition-colors"
+                                  >
+                                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                    </svg>
+                                    <span>@{profile.twitter.replace(/^@/, "")}</span>
+                                  </a>
+                                )}
+                                {profile?.website && (
+                                  <a
+                                    href={profile.website.startsWith("http") ? profile.website : `https://${profile.website}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 font-semibold text-xs border border-violet-200 dark:border-violet-800 hover:border-violet-400 transition-colors"
+                                  >
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" />
+                                    </svg>
+                                    <span className="truncate max-w-[200px]">{profile.website.replace(/^https?:\/\//i, "").replace(/\/$/, "")}</span>
+                                  </a>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="settings-desc">
                             Edit your display photo, name, short bio, website URL, and Twitter handle.
@@ -2660,6 +2737,12 @@ export default function SettingsPage() {
           </aside>
         </div>
       </main>
+
+      <ShareProfileModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        profile={profile}
+      />
     </div>
   );
 }

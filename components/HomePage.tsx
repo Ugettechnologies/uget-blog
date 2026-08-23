@@ -7,7 +7,7 @@ import Footer from "./Footer";
 import { createClient } from "@/lib/db-client/client";
 import { UserDropdown } from "@/components/UserDropdown";
 import type { Post } from "@/lib/types";
-import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
+import { CATEGORIES, formatDate, getInitials, formatViews } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon, NavNotificationButton } from "./SidebarNav";
 import SafeImage from "./SafeImage";
@@ -43,9 +43,14 @@ function PostCard({ post }: { post: Post }) {
           {cat && <span className="post-card-tag">{cat.label}</span>}
           <span>{post.read_time} min read</span>
           <span>·</span>
+          <span className="flex items-center gap-1" title={`${post.view_count || 0} views`}>
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.573 16.49 16.638 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            {formatViews(post.view_count || 0)} views
+          </span>
+          <span>·</span>
           <span className="flex items-center gap-1">
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-            {post.like_count}
+            {post.like_count || 0}
           </span>
         </div>
       </div>
@@ -132,8 +137,10 @@ interface TrendingSectionProps {
 }
 
 function TrendingSection({ posts, router }: TrendingSectionProps) {
-  // Take first 6 posts
-  const trendingPosts = posts.slice(0, 6);
+  // Sort posts by view_count descending and take top 6
+  const trendingPosts = [...posts]
+    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+    .slice(0, 6);
 
   return (
     <div className="trending-section" style={{ borderBottom: "1px solid var(--border)", background: "white" }}>
@@ -149,7 +156,6 @@ function TrendingSection({ posts, router }: TrendingSectionProps) {
           {trendingPosts.map((post, idx) => {
             const authorName = (post.profiles as any)?.full_name || "Writer";
             const authorAvatar = (post.profiles as any)?.avatar_url;
-            const authorUsername = (post.profiles as any)?.username || post.author_id;
             return (
               <div key={post.id} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ fontFamily: "var(--sans)", fontSize: 30, fontWeight: 700, color: "#ddd6fe", lineHeight: 1, marginTop: -4 }}>
@@ -171,14 +177,71 @@ function TrendingSection({ posts, router }: TrendingSectionProps) {
                       {post.title}
                     </h3>
                   </Link>
-                  <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>
-                    {formatDate(post.created_at)} · {post.read_time} min read
+                  <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>{formatDate(post.created_at)} · {post.read_time} min read</span>
+                    <span>·</span>
+                    <span style={{ fontWeight: 600, color: "var(--brand)" }}>🔥 {formatViews(post.view_count || 0)} views</span>
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SidebarTrending({ posts }: { posts: Post[] }) {
+  // Twitter / X style Trending Widget showing posts with highest views
+  const topTrending = [...posts]
+    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+    .slice(0, 5);
+
+  return (
+    <div className="sidebar-section" style={{ marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+        <span style={{ fontSize: 18 }}>📈</span>
+        <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+          Trending for the week
+        </h3>
+      </div>
+      
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {topTrending.map((post, idx) => {
+          const cat = CATEGORIES.find((c) => c.id === post.category);
+          return (
+            <Link
+              key={post.id}
+              href={`/post/${post.slug}`}
+              style={{
+                textDecoration: "none",
+                display: "block",
+                padding: "10px 12px",
+                borderRadius: "10px",
+                backgroundColor: "var(--bg-2)",
+                border: "1px solid var(--border-2)",
+                transition: "all 0.2s ease"
+              }}
+              className="trending-item-card"
+            >
+              <div style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--muted)", fontWeight: 500, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontWeight: 800, color: "var(--brand)" }}>#{idx + 1}</span>
+                <span>·</span>
+                <span>Trending in {cat?.label || "Stories"}</span>
+              </div>
+              
+              <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, lineHeight: 1.35, color: "var(--black)", marginBottom: 6 }} className="truncate-2">
+                {post.title}
+              </div>
+              
+              <div style={{ fontSize: 12, fontFamily: "var(--sans)", color: "var(--muted-2)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.573 16.49 16.638 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                {formatViews(post.view_count || 0)} views
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
@@ -478,8 +541,9 @@ export default function HomePage() {
       .from("posts")
       .select("*, profiles(id, full_name, avatar_url, username)")
       .eq("published", true)
+      .order("view_count", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(50);
     if (activeCategory !== "all") q = q.eq("category", activeCategory);
     if (query) q = q.ilike("title", `%${query}%`);
     
@@ -505,7 +569,15 @@ export default function HomePage() {
 
     const { data } = await q;
     
-    let fetchedPosts = data as Post[] || [];
+    let fetchedPosts = (data as Post[]) || [];
+
+    // Ensure posts with highest views are shown first
+    fetchedPosts = [...fetchedPosts].sort((a, b) => {
+      const viewDiff = (b.view_count || 0) - (a.view_count || 0);
+      if (viewDiff !== 0) return viewDiff;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
     if (activeFeedTab === "following") {
       const followedIds = followingProfiles.map(f => f.id);
       fetchedPosts = fetchedPosts.filter(p => followedIds.includes(p.author_id));
@@ -516,7 +588,7 @@ export default function HomePage() {
         const bMatches = matchesInterests(b, userProfile.interests);
         if (aMatches && !bMatches) return -1;
         if (!aMatches && bMatches) return 1;
-        return 0;
+        return (b.view_count || 0) - (a.view_count || 0);
       });
     }
 
@@ -697,6 +769,16 @@ export default function HomePage() {
                     </h2>
                   </div>
                 )}
+                {!query && (
+                  <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid var(--border-2)" }}>
+                    <h2 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 800, color: "var(--black)", margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
+                      🔥 Top 10 Most Viewed Stories
+                    </h2>
+                    <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", margin: "4px 0 0" }}>
+                      Highest impression write-ups trending across EchoGist
+                    </p>
+                  </div>
+                )}
                 {renderSearchedProfiles()}
                 {query && posts.length > 0 && (
                   <h3 style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 20 }}>
@@ -715,7 +797,7 @@ export default function HomePage() {
                     </div>
                   )
                 ) : (
-                  posts.map((post, idx) => (
+                  (query ? posts : posts.slice(0, 10)).map((post, idx) => (
                     <div key={post.id}>
                       <PostCard post={post} />
                       {(idx + 1) % 8 === 0 && <SponsoredCard variant="feed" />}
@@ -725,25 +807,7 @@ export default function HomePage() {
               </main>
 
               <aside className="home-sidebar">
-                <div className="sidebar-section">
-                  <div className="sidebar-title">Staff picks</div>
-                  {topSidebar.map((post) => {
-                    const authorName = (post.profiles as any)?.full_name || "Writer";
-                    const cat = CATEGORIES.find((c) => c.id === post.category);
-                    return (
-                      <Link key={post.id} href={`/post/${post.slug}`} className="sidebar-post" style={{ textDecoration: "none" }}>
-                        <div className="sidebar-post-author">
-                          <div className="post-card-author-avatar" style={{ width: 20, height: 20, fontSize: 9 }}>
-                            {getInitials(authorName)}
-                          </div>
-                          <span>{authorName}</span>
-                        </div>
-                        <div className="sidebar-post-title">{post.title}</div>
-                        <div className="sidebar-post-meta">{cat?.icon} {cat?.label} · {post.read_time} min</div>
-                      </Link>
-                    );
-                  })}
-                </div>
+                <SidebarTrending posts={posts} />
                 
                 {/* Sponsored Direct Link Sidebar Card */}
                 <SponsoredCard variant="sidebar" />
@@ -1361,29 +1425,7 @@ export default function HomePage() {
 
           {/* Desktop Right Sidebar */}
           <aside className="uget-right-sidebar">
-            <div className="sidebar-section" style={{ marginBottom: 32 }}>
-              <div className="sidebar-title" style={{ fontWeight: 700 }}>Staff picks</div>
-              {topSidebar.map((post) => {
-                const authorName = (post.profiles as any)?.full_name || "Writer";
-                const cat = CATEGORIES.find((c) => c.id === post.category);
-                return (
-                  <Link key={post.id} href={`/post/${post.slug}`} className="sidebar-post" style={{ textDecoration: "none" }}>
-                    <div className="sidebar-post-author" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                      <div className="post-card-author-avatar" style={{ width: 20, height: 20, fontSize: 9 }}>
-                        {getInitials(authorName)}
-                      </div>
-                      <span className="font-semibold" style={{ color: "var(--ink)" }}>{authorName}</span>
-                    </div>
-                    <div className="sidebar-post-title" style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.35, color: "var(--black)" }}>
-                      {post.title}
-                    </div>
-                    <div className="sidebar-post-meta" style={{ fontSize: 11, color: "var(--muted-2)", marginTop: 6 }}>
-                      {cat?.icon} {cat?.label} · {post.read_time} min read
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            <SidebarTrending posts={posts} />
 
             <div className="sidebar-section" style={{ marginBottom: 32 }}>
               <div className="sidebar-title" style={{ fontWeight: 700 }}>Topics to explore</div>
