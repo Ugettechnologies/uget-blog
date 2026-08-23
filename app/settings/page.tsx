@@ -707,13 +707,32 @@ export default function SettingsPage() {
         }
         .settings-inline-editor {
           margin-top: 12px;
-          background-color: var(--bg-2);
-          border: 1px solid var(--border-2);
-          border-radius: 12px;
-          padding: 20px;
+          background-color: var(--bg-2, #fafafa);
+          border: 1px solid var(--border, #e5e7eb);
+          border-radius: 16px;
+          padding: 24px;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 18px;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+        }
+        .settings-inline-editor input[type="text"],
+        .settings-inline-editor input[type="url"],
+        .settings-inline-editor textarea {
+          background-color: var(--bg, #ffffff) !important;
+          color: var(--black, #0d0d0d) !important;
+          border: 1px solid var(--border, #e8e8e8) !important;
+          border-radius: 12px !important;
+          font-family: var(--sans) !important;
+          font-size: 14px !important;
+          outline: none !important;
+          transition: all 0.2s ease !important;
+        }
+        .settings-inline-editor input[type="text"]:focus,
+        .settings-inline-editor input[type="url"]:focus,
+        .settings-inline-editor textarea:focus {
+          border-color: var(--brand, #7c3aed) !important;
+          box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
         }
         .settings-help-card {
           border: 1px solid var(--border-2);
@@ -1390,7 +1409,17 @@ export default function SettingsPage() {
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
                               placeholder="Your full name"
-                              className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-sans focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
+                              style={{
+                                width: "100%",
+                                background: "var(--bg, #ffffff)",
+                                color: "var(--black, #0d0d0d)",
+                                border: "1px solid var(--border, #e8e8e8)",
+                                borderRadius: "12px",
+                                padding: "10px 14px",
+                                fontSize: "14px",
+                                fontFamily: "var(--sans)",
+                                outline: "none",
+                              }}
                             />
                           </div>
 
@@ -1403,7 +1432,17 @@ export default function SettingsPage() {
                               onChange={(e) => setBio(e.target.value)}
                               rows={3}
                               placeholder="Tell readers about yourself..."
-                              className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-serif focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
+                              style={{
+                                width: "100%",
+                                background: "var(--bg, #ffffff)",
+                                color: "var(--black, #0d0d0d)",
+                                border: "1px solid var(--border, #e8e8e8)",
+                                borderRadius: "12px",
+                                padding: "10px 14px",
+                                fontSize: "14px",
+                                fontFamily: "var(--serif)",
+                                outline: "none",
+                              }}
                             />
                           </div>
 
@@ -1411,8 +1450,8 @@ export default function SettingsPage() {
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
                               Website URL
                             </label>
-                            <div className="relative flex items-center">
-                              <div className="absolute left-3.5 text-gray-400 pointer-events-none flex items-center">
+                            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                              <div style={{ position: "absolute", left: "14px", color: "var(--muted)", pointerEvents: "none", display: "flex", alignItems: "center" }}>
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" /><path strokeLinecap="round" strokeLinejoin="round" d="M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18" /></svg>
                               </div>
                               <input
@@ -1420,7 +1459,17 @@ export default function SettingsPage() {
                                 value={website}
                                 onChange={(e) => setWebsite(e.target.value)}
                                 placeholder="https://yourpage.com"
-                                className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-sans focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
+                                style={{
+                                  width: "100%",
+                                  background: "var(--bg, #ffffff)",
+                                  color: "var(--black, #0d0d0d)",
+                                  border: "1px solid var(--border, #e8e8e8)",
+                                  borderRadius: "12px",
+                                  padding: "10px 14px 10px 40px",
+                                  fontSize: "14px",
+                                  fontFamily: "var(--sans)",
+                                  outline: "none",
+                                }}
                               />
                             </div>
                             <p className="text-[11px] text-gray-400 mt-1 font-sans">Appears on your public profile card and About tab.</p>
@@ -1430,8 +1479,8 @@ export default function SettingsPage() {
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 font-sans">
                               Twitter / X Handle
                             </label>
-                            <div className="relative flex items-center">
-                              <div className="absolute left-3.5 text-gray-400 font-bold text-sm pointer-events-none flex items-center">
+                            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                              <div style={{ position: "absolute", left: "14px", color: "var(--muted)", fontWeight: 700, fontSize: "14px", pointerEvents: "none", display: "flex", alignItems: "center" }}>
                                 @
                               </div>
                               <input
@@ -1439,7 +1488,17 @@ export default function SettingsPage() {
                                 value={twitter}
                                 onChange={(e) => setTwitter(e.target.value.replace(/^@/, ""))}
                                 placeholder="username"
-                                className="w-full border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-sans focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 transition-all"
+                                style={{
+                                  width: "100%",
+                                  background: "var(--bg, #ffffff)",
+                                  color: "var(--black, #0d0d0d)",
+                                  border: "1px solid var(--border, #e8e8e8)",
+                                  borderRadius: "12px",
+                                  padding: "10px 14px 10px 36px",
+                                  fontSize: "14px",
+                                  fontFamily: "var(--sans)",
+                                  outline: "none",
+                                }}
                               />
                             </div>
                             <p className="text-[11px] text-gray-400 mt-1 font-sans">Your Twitter/X username without the @ symbol.</p>
