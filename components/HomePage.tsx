@@ -196,10 +196,10 @@ function SidebarTrending({ posts }: { posts: Post[] }) {
   // Twitter / X style Trending Widget showing posts with highest views
   const topTrending = [...posts]
     .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
-    .slice(0, 5);
+    .slice(0, 4);
 
   return (
-    <div className="sidebar-section" style={{ marginBottom: 32 }}>
+    <div className="sidebar-section trending-widget-card" style={{ marginBottom: 32 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <span style={{ fontSize: 18 }}>📈</span>
         <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -240,6 +240,80 @@ function SidebarTrending({ posts }: { posts: Post[] }) {
                 {formatViews(post.view_count || 0)} views
               </div>
             </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SidebarStaffPicks({ posts }: { posts: Post[] }) {
+  // Staff picks selected from featured or staff/admin posts, with top posts fallback
+  const staffPosts = posts.filter(
+    (p) => p.featured || (p.profiles as any)?.role === "staff" || (p.profiles as any)?.role === "admin"
+  );
+  
+  const selectedPicks = [...staffPosts];
+  if (selectedPicks.length < 4) {
+    const ids = new Set(selectedPicks.map((p) => p.id));
+    for (const post of posts) {
+      if (!ids.has(post.id)) {
+        selectedPicks.push(post);
+        ids.add(post.id);
+        if (selectedPicks.length >= 4) break;
+      }
+    }
+  }
+
+  const picks = selectedPicks.slice(0, 4);
+
+  return (
+    <div className="sidebar-section staff-picks-widget" style={{ marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 800, color: "var(--black)", margin: 0, letterSpacing: "-0.01em" }}>
+          Staff picks
+        </h3>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {picks.map((post) => {
+          const cat = CATEGORIES.find((c) => c.id === post.category);
+          const authorName = (post.profiles as any)?.full_name || "EchoGist Staff";
+          const authorAvatar = (post.profiles as any)?.avatar_url;
+          const authorUsername = (post.profiles as any)?.username || post.author_id;
+
+          return (
+            <div key={post.id} style={{ borderBottom: "1px solid var(--border-2)", paddingBottom: 14 }}>
+              {/* Author Row */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <Link href={`/profile/${authorUsername}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", backgroundColor: "#18181b", color: "#ffffff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                    {authorAvatar ? (
+                      <SafeImage src={authorAvatar} alt={authorName} width={22} height={22} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                    ) : (
+                      <span>{getInitials(authorName)}</span>
+                    )}
+                  </div>
+                  <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--ink)" }} className="hover:underline">
+                    {authorName}
+                  </span>
+                </Link>
+              </div>
+
+              {/* Title */}
+              <Link href={`/post/${post.slug}`} style={{ textDecoration: "none", display: "block", marginBottom: 6 }}>
+                <h4 style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 700, lineHeight: 1.35, color: "var(--black)", margin: 0 }} className="truncate-2 hover:text-violet-600 transition-colors">
+                  {post.title}
+                </h4>
+              </Link>
+
+              {/* Category & Read Time */}
+              <div style={{ fontSize: 12, fontFamily: "var(--sans)", color: "var(--muted-2)", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                <span>{cat?.icon || "🌱"} {cat?.label || "Story"}</span>
+                <span>·</span>
+                <span>{post.read_time || 3} min</span>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -808,6 +882,7 @@ export default function HomePage() {
 
               <aside className="home-sidebar">
                 <SidebarTrending posts={posts} />
+                <SidebarStaffPicks posts={posts} />
                 
                 {/* Sponsored Direct Link Sidebar Card */}
                 <SponsoredCard variant="sidebar" />
@@ -962,11 +1037,17 @@ export default function HomePage() {
         .uget-right-sidebar {
           position: sticky;
           top: 88px;
-          height: calc(100vh - 120px);
+          max-height: calc(100vh - 100px);
           overflow-y: auto;
+          padding-bottom: 60px;
+          scrollbar-width: thin;
         }
         .uget-right-sidebar::-webkit-scrollbar {
-          display: none;
+          width: 4px;
+        }
+        .uget-right-sidebar::-webkit-scrollbar-thumb {
+          background-color: var(--border-2);
+          border-radius: 4px;
         }
         .uget-mobile-drawer {
           position: fixed;
@@ -1122,13 +1203,18 @@ export default function HomePage() {
           />
         </form>
 
-        <nav style={{ flex: 1 }}>
+        <nav style={{ flex: 1, overflowY: "auto", paddingRight: 4 }}>
           <SidebarNav
             activePage="home"
             profileHref={`/profile/${userProfile?.username || user?.id}`}
             onItemClick={() => setSidebarOpen(false)}
           />
           <SidebarFollowingList followingProfiles={followingProfiles} userProfileId={userProfile?.id} />
+          
+          <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 20, marginTop: 20 }}>
+            <SidebarTrending posts={posts} />
+            <SidebarStaffPicks posts={posts} />
+          </div>
         </nav>
 
         {userProfile && (
@@ -1426,6 +1512,7 @@ export default function HomePage() {
           {/* Desktop Right Sidebar */}
           <aside className="uget-right-sidebar">
             <SidebarTrending posts={posts} />
+            <SidebarStaffPicks posts={posts} />
 
             <div className="sidebar-section" style={{ marginBottom: 32 }}>
               <div className="sidebar-title" style={{ fontWeight: 700 }}>Topics to explore</div>
