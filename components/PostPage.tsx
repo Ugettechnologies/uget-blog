@@ -195,6 +195,10 @@ export default function PostPage() {
   const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentText, setCommentText] = useState("");
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [replySubmitting, setReplySubmitting] = useState(false);
+  const [commentReactions, setCommentReactions] = useState<Record<string, { count: number; reacted: boolean }>>({});
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -465,6 +469,49 @@ export default function PostPage() {
       await supabase.from("posts").update({ comment_count: comments.length + 1 }).eq("id", post.id);
     }
     setSubmitting(false);
+  };
+
+  const handleReply = async (targetComment: Comment) => {
+    if (!user || !post || !replyText.trim()) return;
+    setReplySubmitting(true);
+    const targetAuthor = (targetComment.profiles as any)?.full_name || "Writer";
+    const formattedContent = `@${targetAuthor} ${replyText.trim()}`;
+    
+    const { data } = await supabase.from("comments")
+      .insert({ post_id: post.id, user_id: user.id, content: formattedContent })
+      .select("*, profiles(full_name, avatar_url, username)").single();
+
+    if (data) {
+      setComments([...comments, data as Comment]);
+      setReplyText("");
+      setReplyingToId(null);
+      await supabase.from("posts").update({ comment_count: comments.length + 1 }).eq("id", post.id);
+
+      // Send notification to the user being replied to
+      if (targetComment.user_id && targetComment.user_id !== user.id) {
+        await supabase.from("notifications").insert({
+          user_id: targetComment.user_id,
+          type: "comment",
+          actor_id: user.id,
+          post_id: post.id,
+          content: replyText.trim().slice(0, 100)
+        });
+      }
+    }
+    setReplySubmitting(false);
+  };
+
+  const handleToggleCommentReaction = (commentId: string) => {
+    setCommentReactions((prev) => {
+      const current = prev[commentId] || { count: 0, reacted: false };
+      return {
+        ...prev,
+        [commentId]: {
+          count: current.reacted ? Math.max(0, current.count - 1) : current.count + 1,
+          reacted: !current.reacted
+        }
+      };
+    });
   };
 
   const handleDeletePost = async () => {
@@ -775,11 +822,26 @@ export default function PostPage() {
         {comments.length === 0 ? (
           <p style={{ fontFamily: "var(--serif)", fontSize: 16, color: "var(--muted)", fontStyle: "italic" }}>No responses yet. Be the first!</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {comments.map((c) => {
               const cAuthor = c.profiles as any;
+              const isReply = c.content.trim().startsWith("@");
+              const isReplyingToThis = replyingToId === c.id;
+              const reaction = commentReactions[c.id] || { count: 0, reacted: false };
+
               return (
-                <div key={c.id} style={{ display: "flex", gap: 14 }}>
+                <div 
+                  key={c.id} 
+                  style={{ 
+                    display: "flex", 
+                    gap: 14, 
+                    marginLeft: isReply ? 28 : 0, 
+                    paddingLeft: isReply ? 14 : 0,
+                    borderLeft: isReply ? "2px solid var(--brand)" : "none",
+                    paddingTop: 8,
+                    paddingBottom: 8
+                  }}
+                >
                   <div className="post-card-author-avatar" style={{ width: 36, height: 36, fontSize: 13, flexShrink: 0 }}>
                     {cAuthor?.avatar_url ? (
                       <Image src={cAuthor.avatar_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} />
@@ -787,20 +849,128 @@ export default function PostPage() {
                       <span>{getInitials(cAuthor?.full_name)}</span>
                     )}
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Comment Author & Date Header */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                       <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{cAuthor?.full_name || "Writer"}</span>
                       <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>{formatDate(c.created_at)}</span>
+                    </div>
+
+                    {/* Content with mention tag rendering */}
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--ink-2)", lineHeight: 1.65, margin: "0 0 8px 0" }}>
+                      {c.content.startsWith("@") ? (
+                        <>
+                          <span style={{ fontWeight: 700, color: "var(--brand)", backgroundColor: "var(--brand-light)", padding: "2px 6px", borderRadius: 4, marginRight: 6, fontSize: 13, fontFamily: "var(--sans)" }}>
+                            {c.content.split(" ")[0]}
+                          </span>
+                          {c.content.split(" ").slice(1).join(" ")}
+                        </>
+                      ) : (
+                        c.content
+                      )}
+                    </p>
+
+                    {/* Action Bar Below Comment Content (Love React & Reply) */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 6, marginBottom: 4 }}>
+                      {/* Love Reaction Button */}
+                      <button
+                        onClick={() => handleToggleCommentReaction(c.id)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          fontFamily: "var(--sans)",
+                          color: reaction.reacted ? "var(--red)" : "var(--muted)",
+                          transition: "transform 0.15s ease"
+                        }}
+                      >
+                        <span style={{ fontSize: 14 }}>{reaction.reacted ? "❤️" : "🤍"}</span>
+                        <span>{reaction.count > 0 ? reaction.count : "Love"}</span>
+                      </button>
+
+                      {/* Reply Button Below Comment */}
+                      {user && (
+                        <button
+                          onClick={() => {
+                            if (isReplyingToThis) {
+                              setReplyingToId(null);
+                              setReplyText("");
+                            } else {
+                              setReplyingToId(c.id);
+                              setReplyText("");
+                            }
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: isReplyingToThis ? "var(--brand)" : "var(--muted)",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            fontFamily: "var(--sans)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4
+                          }}
+                        >
+                          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                          {isReplyingToThis ? "Cancel" : "Reply"}
+                        </button>
+                      )}
+
+                      {/* Delete Button */}
                       {user?.id === c.user_id && (
-                        <button onClick={() => handleDeleteComment(c.id)}
-                          style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--muted-2)", fontSize: 12, padding: "2px 8px", borderRadius: 4 }}
+                        <button 
+                          onClick={() => handleDeleteComment(c.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted-2)", fontSize: 12, padding: "2px 6px", borderRadius: 4, marginLeft: "auto" }}
                           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--red)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--muted-2)"; }}>
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--muted-2)"; }}
+                        >
                           Delete
                         </button>
                       )}
                     </div>
-                    <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--ink-2)", lineHeight: 1.65 }}>{c.content}</p>
+
+                    {/* Inline Reply Form */}
+                    {isReplyingToThis && user && (
+                      <div style={{ marginTop: 14, backgroundColor: "var(--bg-2)", padding: 14, borderRadius: 8, border: "1px solid var(--border)" }}>
+                        <div style={{ fontSize: 12, fontFamily: "var(--sans)", color: "var(--muted)", fontWeight: 600, marginBottom: 8 }}>
+                          Replying to <span style={{ color: "var(--brand)" }}>@{cAuthor?.full_name || "Writer"}</span>
+                        </div>
+                        <textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder={`Write a reply to ${cAuthor?.full_name || "writer"}...`}
+                          rows={2}
+                          style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 6, fontFamily: "var(--serif)", fontSize: 14, color: "var(--ink)", resize: "vertical", outline: "none", marginBottom: 8, lineHeight: 1.5 }}
+                          autoFocus
+                        />
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() => { setReplyingToId(null); setReplyText(""); }}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: 12, padding: "4px 12px" }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={replySubmitting || !replyText.trim()}
+                            onClick={() => handleReply(c)}
+                            className="btn btn-primary btn-sm"
+                            style={{ fontSize: 12, padding: "4px 14px" }}
+                          >
+                            {replySubmitting ? <div className="spinner" style={{ width: 14, height: 14 }} /> : "Send Reply"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

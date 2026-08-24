@@ -6,12 +6,13 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { createClient } from "@/lib/db-client/client";
 import { UserDropdown } from "@/components/UserDropdown";
-import type { Post } from "@/lib/types";
+import type { Post, Profile } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials, formatViews } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon, NavNotificationButton } from "./SidebarNav";
 import SafeImage from "./SafeImage";
 import SponsoredCard from "./SponsoredCard";
+import AdBanner from "./AdBanner";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -247,6 +248,62 @@ function SidebarTrending({ posts }: { posts: Post[] }) {
   );
 }
 
+function MobileHighestViewsWidget({ posts }: { posts: Post[] }) {
+  const topTrending = [...posts]
+    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+    .slice(0, 5);
+
+  if (topTrending.length === 0) return null;
+
+  return (
+    <div className="uget-mobile-trending-section" style={{ marginBottom: 24, display: "none" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--black)", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
+          <span>🔥</span> Highest Views
+        </h3>
+        <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--muted)", fontWeight: 600 }}>Top Stories</span>
+      </div>
+
+      <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }} className="feed-nav-scroll">
+        {topTrending.map((post, idx) => {
+          const cat = CATEGORIES.find((c) => c.id === post.category);
+          return (
+            <Link
+              key={post.id}
+              href={`/post/${post.slug}`}
+              style={{
+                minWidth: 240,
+                maxWidth: 260,
+                flexShrink: 0,
+                textDecoration: "none",
+                padding: "12px 14px",
+                borderRadius: 12,
+                backgroundColor: "var(--bg-2)",
+                border: "1px solid var(--border-2)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between"
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--brand)", fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>#{idx + 1} {cat?.label || "Story"}</span>
+                  <span style={{ backgroundColor: "var(--brand-light)", color: "var(--brand)", padding: "2px 8px", borderRadius: 999, fontSize: 10 }}>
+                    👁️ {formatViews(post.view_count || 0)}
+                  </span>
+                </div>
+                <h4 style={{ fontFamily: "var(--display)", fontSize: 14, fontWeight: 700, lineHeight: 1.35, color: "var(--black)", margin: 0 }} className="truncate-2">
+                  {post.title}
+                </h4>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function SidebarStaffPicks({ posts }: { posts: Post[] }) {
   // Staff picks selected from featured or staff/admin posts, with top posts fallback
   const staffPosts = posts.filter(
@@ -317,6 +374,317 @@ function SidebarStaffPicks({ posts }: { posts: Post[] }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function SidebarSuggestedWriters({ writers, followingProfiles, onFollow }: { writers: Profile[]; followingProfiles: Profile[]; onFollow: (id: string) => void }) {
+  if (!writers || writers.length === 0) return null;
+  return (
+    <div className="sidebar-section" style={{ marginBottom: 28 }}>
+      <h3 style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--black)", marginBottom: 14 }}>
+        Who to follow
+      </h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {writers.slice(0, 4).map((writer) => {
+          const isF = followingProfiles.some((p) => p.id === writer.id);
+          return (
+            <div key={writer.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0, flex: 1 }}>
+                <div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: "var(--border)" }}>
+                  {writer.avatar_url ? (
+                    <SafeImage src={writer.avatar_url} alt="" width={34} height={34} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "var(--brand-light)", color: "var(--brand)", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {getInitials(writer.full_name || "?")}
+                    </div>
+                  )}
+                </div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <Link href={`/profile/${writer.username || writer.id}`} style={{ textDecoration: "none", display: "block", color: "var(--black)", fontWeight: 700, fontSize: 13 }} className="truncate hover:underline">
+                    {writer.full_name}
+                  </Link>
+                  <span style={{ display: "block", fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {writer.bio || "EchoGist Writer"}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => onFollow(writer.id)}
+                style={{
+                  border: "1px solid var(--brand)",
+                  color: isF ? "white" : "var(--brand)",
+                  backgroundColor: isF ? "var(--brand)" : "transparent",
+                  borderRadius: 999,
+                  padding: "4px 12px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  marginLeft: 8,
+                  flexShrink: 0
+                }}
+              >
+                {isF ? "Following" : "Follow"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SidebarTopicsToExplore({ 
+  activeCategory, 
+  onSelectCategory 
+}: { 
+  activeCategory: string; 
+  onSelectCategory: (catId: string) => void;
+}) {
+  return (
+    <div className="sidebar-section topics-widget-card" style={{ marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
+          Topics to explore
+        </h3>
+      </div>
+      
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {CATEGORIES.map((cat) => {
+          const isActive = activeCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelectCategory(cat.id)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 14px",
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: isActive ? 700 : 500,
+                fontFamily: "var(--sans)",
+                color: isActive ? "#ffffff" : "var(--ink)",
+                backgroundColor: isActive ? "var(--brand)" : "var(--bg-3)",
+                border: isActive ? "1px solid var(--brand)" : "1px solid var(--border-2)",
+                cursor: "pointer",
+                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: isActive ? "0 4px 12px rgba(124, 58, 237, 0.25)" : "none"
+              }}
+            >
+              <span>{cat.icon || "🏷️"}</span>
+              <span>{cat.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FancyCategoryScroll({
+  activeCategory,
+  activeFeedTab,
+  onSelectFeedTab,
+  onSelectCategory,
+}: {
+  activeCategory: string;
+  activeFeedTab: "foryou" | "following" | "featured";
+  onSelectFeedTab: (tab: "foryou" | "following" | "featured") => void;
+  onSelectCategory: (catId: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    setCanScrollLeft(scrollLeft > 5);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", checkScroll);
+    window.addEventListener("resize", checkScroll);
+    return () => {
+      el.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, []);
+
+  const handleScroll = (direction: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const amount = direction === "left" ? -260 : 260;
+    scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+  };
+
+  return (
+    <div style={{ position: "relative", marginBottom: 24 }} className="fancy-scroll-wrapper">
+      {/* Left Scroll Button */}
+      {canScrollLeft && (
+        <button
+          onClick={() => handleScroll("left")}
+          style={{
+            position: "absolute",
+            left: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            zIndex: 10,
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            backgroundColor: "var(--bg-2)",
+            border: "1px solid var(--border)",
+            color: "var(--black)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            cursor: "pointer"
+          }}
+          aria-label="Scroll left"
+        >
+          &larr;
+        </button>
+      )}
+
+      {/* Right Scroll Button */}
+      {canScrollRight && (
+        <button
+          onClick={() => handleScroll("right")}
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            zIndex: 10,
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            backgroundColor: "var(--bg-2)",
+            border: "1px solid var(--border)",
+            color: "var(--black)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            cursor: "pointer"
+          }}
+          aria-label="Scroll right"
+        >
+          &rarr;
+        </button>
+      )}
+
+      {/* Gradient Mask Overlays */}
+      {canScrollLeft && (
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 40, background: "linear-gradient(to right, var(--bg), transparent)", pointerEvents: "none", zIndex: 5 }} />
+      )}
+      {canScrollRight && (
+        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 40, background: "linear-gradient(to left, var(--bg), transparent)", pointerEvents: "none", zIndex: 5 }} />
+      )}
+
+      {/* Horizontal Scroll Track */}
+      <div
+        ref={scrollRef}
+        className="fancy-scroll-track"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          overflowX: "auto",
+          scrollbarWidth: "thin",
+          paddingBottom: 8,
+          borderBottom: "1px solid var(--border-2)",
+          scrollBehavior: "smooth"
+        }}
+      >
+        {/* Tab Buttons */}
+        <button
+          onClick={() => { onSelectCategory("all"); onSelectFeedTab("foryou"); }}
+          className={`fancy-scroll-item ${activeFeedTab === "foryou" && activeCategory === "all" ? "active" : ""}`}
+        >
+          ✨ For you
+        </button>
+        <button
+          onClick={() => { onSelectCategory("all"); onSelectFeedTab("following"); }}
+          className={`fancy-scroll-item ${activeFeedTab === "following" ? "active" : ""}`}
+        >
+          👥 Following
+        </button>
+        <button
+          onClick={() => { onSelectCategory("all"); onSelectFeedTab("featured"); }}
+          className={`fancy-scroll-item ${activeFeedTab === "featured" ? "active" : ""}`}
+        >
+          🔥 Featured
+        </button>
+
+        <div style={{ width: 1, height: 24, backgroundColor: "var(--border)", flexShrink: 0, margin: "0 4px" }} />
+
+        {CATEGORIES.map((cat) => {
+          const isActive = activeFeedTab === "foryou" && activeCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => { onSelectCategory(cat.id); onSelectFeedTab("foryou"); }}
+              className={`fancy-scroll-item ${isActive ? "active" : ""}`}
+            >
+              <span>{cat.icon || "🏷️"}</span>
+              <span>{cat.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <style jsx>{`
+        .fancy-scroll-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border-radius: 999px;
+          font-family: var(--sans);
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--muted);
+          background: var(--bg-2);
+          border: 1px solid var(--border-2);
+          white-space: nowrap;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          flex-shrink: 0;
+        }
+        .fancy-scroll-item:hover {
+          color: var(--black);
+          background: var(--bg-3);
+          border-color: var(--border);
+          transform: translateY(-1px);
+        }
+        .fancy-scroll-item.active {
+          color: #ffffff;
+          background: linear-gradient(135deg, var(--brand) 0%, #6366f1 100%);
+          border-color: var(--brand);
+          font-weight: 700;
+          box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+        }
+        .fancy-scroll-track::-webkit-scrollbar {
+          height: 3px;
+        }
+        .fancy-scroll-track::-webkit-scrollbar-track {
+          background: var(--bg-2);
+          border-radius: 99px;
+        }
+        .fancy-scroll-track::-webkit-scrollbar-thumb {
+          background: var(--brand);
+          border-radius: 99px;
+        }
+      `}</style>
     </div>
   );
 }
@@ -880,26 +1248,24 @@ export default function HomePage() {
                 )}
               </main>
 
-              <aside className="home-sidebar">
+              <aside className="home-sidebar" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <SidebarTrending posts={posts} />
                 <SidebarStaffPicks posts={posts} />
                 
-                {/* Sponsored Direct Link Sidebar Card */}
+                {/* Sponsored Ad 1 */}
                 <SponsoredCard variant="sidebar" />
 
-                <div className="sidebar-section">
-                  <div className="sidebar-title">Topics to explore</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => setActiveCategory(cat.id)}
-                        className={`tag-chip${activeCategory === cat.id ? " active" : ""}`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
+                {/* Who to follow widget */}
+                <SidebarSuggestedWriters 
+                  writers={suggestedWriters} 
+                  followingProfiles={followingProfiles} 
+                  onFollow={handleFollowSuggestedWriter} 
+                />
+
+                {/* Sticky Ad container so scrolling down never leaves free space! */}
+                <div style={{ position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16 }}>
+                  <SponsoredCard variant="sidebar" />
+                  <AdBanner dataAdSlot="9876543210" />
                 </div>
               </aside>
             </div>
@@ -1030,24 +1396,16 @@ export default function HomePage() {
           max-width: 1200px;
           width: 100%;
           margin: 0 auto;
+          align-items: start;
         }
         .uget-feed-column {
           min-width: 0;
         }
         .uget-right-sidebar {
-          position: sticky;
-          top: 88px;
-          max-height: calc(100vh - 100px);
-          overflow-y: auto;
-          padding-bottom: 60px;
-          scrollbar-width: thin;
-        }
-        .uget-right-sidebar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .uget-right-sidebar::-webkit-scrollbar-thumb {
-          background-color: var(--border-2);
-          border-radius: 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          position: relative;
         }
         .uget-mobile-drawer {
           position: fixed;
@@ -1107,6 +1465,9 @@ export default function HomePage() {
           }
           .uget-right-sidebar {
             display: none;
+          }
+          .uget-mobile-trending-section {
+            display: block !important;
           }
           .uget-header {
             padding: 0 24px;
@@ -1341,37 +1702,54 @@ export default function HomePage() {
               </h3>
             )}
 
-            {/* Unified Feed & Category Navigation Tabs */}
+            {/* Mobile Highest Views Carousel */}
+            {!query && <MobileHighestViewsWidget posts={posts} />}
+
+            {/* Unified Feed & Category Navigation Tabs with Pro Fancy Scroll Controls */}
             {!query && (
-              <div style={{ borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, marginBottom: 20, overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }} className="feed-nav-scroll">
-                <button
-                  onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); }}
-                  style={tabStyle(activeFeedTab === "foryou" && activeCategory === "all")}
+              <div style={{ position: "relative", marginBottom: 20 }}>
+                <div 
+                  id="categoryNavScroll"
+                  style={{ 
+                    borderBottom: "1px solid var(--border-2)", 
+                    display: "flex", 
+                    gap: 20, 
+                    overflowX: "auto", 
+                    WebkitOverflowScrolling: "touch",
+                    paddingBottom: 8,
+                    alignItems: "center"
+                  }} 
+                  className="feed-nav-scroll"
                 >
-                  For you
-                </button>
-                <button
-                  onClick={() => { setActiveCategory("all"); setActiveFeedTab("following"); }}
-                  style={tabStyle(activeFeedTab === "following")}
-                >
-                  Following
-                </button>
-                <button
-                  onClick={() => { setActiveCategory("all"); setActiveFeedTab("featured"); }}
-                  style={tabStyle(activeFeedTab === "featured")}
-                >
-                  Featured
-                </button>
-                <div style={{ width: 1, backgroundColor: "var(--border)", margin: "12px 0", alignSelf: "stretch", flexShrink: 0 }} />
-                {CATEGORIES.map((cat) => (
                   <button
-                    key={cat.id}
-                    onClick={() => { setActiveCategory(cat.id); setActiveFeedTab("foryou"); }}
-                    style={tabStyle(activeFeedTab === "foryou" && activeCategory === cat.id)}
+                    onClick={() => { setActiveCategory("all"); setActiveFeedTab("foryou"); }}
+                    style={tabStyle(activeFeedTab === "foryou" && activeCategory === "all")}
                   >
-                    {cat.label}
+                    For you
                   </button>
-                ))}
+                  <button
+                    onClick={() => { setActiveCategory("all"); setActiveFeedTab("following"); }}
+                    style={tabStyle(activeFeedTab === "following")}
+                  >
+                    Following
+                  </button>
+                  <button
+                    onClick={() => { setActiveCategory("all"); setActiveFeedTab("featured"); }}
+                    style={tabStyle(activeFeedTab === "featured")}
+                  >
+                    Featured
+                  </button>
+                  <div style={{ width: 1, height: 20, backgroundColor: "var(--border)", flexShrink: 0 }} />
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => { setActiveCategory(cat.id); setActiveFeedTab("foryou"); }}
+                      style={tabStyle(activeFeedTab === "foryou" && activeCategory === cat.id)}
+                    >
+                      {cat.icon || "🏷️"} {cat.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -1512,44 +1890,50 @@ export default function HomePage() {
           {/* Desktop Right Sidebar */}
           <aside className="uget-right-sidebar">
             <SidebarTrending posts={posts} />
+            
+            {/* Topics to explore in sidebar */}
+            <SidebarTopicsToExplore 
+              activeCategory={activeCategory} 
+              onSelectCategory={(catId) => { setActiveCategory(catId); setActiveFeedTab("foryou"); }} 
+            />
+
             <SidebarStaffPicks posts={posts} />
 
-            <div className="sidebar-section" style={{ marginBottom: 32 }}>
-              <div className="sidebar-title" style={{ fontWeight: 700 }}>Topics to explore</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => { setActiveCategory(cat.id); setActiveFeedTab("foryou"); }}
-                    className={`tag-chip${activeCategory === cat.id ? " active" : ""}`}
-                    style={{ fontSize: 12, padding: "6px 12px" }}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Sponsored Ad 1 */}
+            <SponsoredCard variant="sidebar" />
 
-            {/* Desktop right sidebar footer */}
-            <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 16 }}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", marginBottom: 12 }}>
-                {[
-                  { label: "Help", href: "/help" },
-                  { label: "Status", href: "/status" },
-                  { label: "About", href: "/about" },
-                  { label: "Careers", href: "/careers" },
-                  { label: "Blog", href: "/blog" },
-                  { label: "Privacy", href: "/privacy" },
-                  { label: "Terms", href: "/terms" },
-                  { label: "Teams", href: "/staff" }
-                ].map((link) => (
-                  <Link key={link.label} href={link.href} style={{ fontSize: 11, color: "var(--muted-2)", textDecoration: "none" }} className="hover:underline">
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-              <div style={{ fontSize: 11, color: "var(--muted-2)" }}>
-                © 2026 EchoGist. All rights reserved.
+            {/* Who to follow widget */}
+            <SidebarSuggestedWriters 
+              writers={suggestedWriters} 
+              followingProfiles={followingProfiles} 
+              onFollow={handleFollowSuggestedWriter} 
+            />
+
+            {/* Sticky Ad & Footer Container — stays pinned at top 88px as user scrolls endlessly down the feed! */}
+            <div style={{ position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16 }}>
+              <SponsoredCard variant="sidebar" />
+              <AdBanner dataAdSlot="1234567890" />
+
+              <div style={{ borderTop: "1px solid var(--border-2)", paddingTop: 16 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", marginBottom: 12 }}>
+                  {[
+                    { label: "Help", href: "/help" },
+                    { label: "Status", href: "/status" },
+                    { label: "About", href: "/about" },
+                    { label: "Careers", href: "/careers" },
+                    { label: "Blog", href: "/blog" },
+                    { label: "Privacy", href: "/privacy" },
+                    { label: "Terms", href: "/terms" },
+                    { label: "Teams", href: "/staff" }
+                  ].map((link) => (
+                    <Link key={link.label} href={link.href} style={{ fontSize: 11, color: "var(--muted-2)", textDecoration: "none" }} className="hover:underline">
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--muted-2)" }}>
+                  © 2026 EchoGist. All rights reserved.
+                </div>
               </div>
             </div>
           </aside>
