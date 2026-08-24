@@ -147,16 +147,21 @@ a { color: inherit; text-decoration: none; }
 button { cursor: pointer; font-family: inherit; border: none; background: none; }
 input, textarea, select { font-family: inherit; }
 
-/* Custom Pro Fancy Scrollbars */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-2); border-radius: 999px; }
-::-webkit-scrollbar-thumb { 
-  background: linear-gradient(180deg, var(--brand) 0%, #a78bfa 100%);
-  border-radius: 999px;
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+/* Global Scrollbar (Clean & Subtle) */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-2); }
+
+/* Left Sidebar Scrollbar - Clean & Hidden */
+.uget-sidebar, .sidebar-nav {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-::-webkit-scrollbar-thumb:hover { 
-  background: linear-gradient(180deg, var(--brand-hover) 0%, var(--brand) 100%); 
+.uget-sidebar::-webkit-scrollbar, .sidebar-nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* Horizontal Fancy Category Scroll Container */
