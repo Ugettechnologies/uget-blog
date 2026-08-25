@@ -1407,6 +1407,20 @@ export default function HomePage() {
           gap: 20px;
           position: relative;
         }
+        @media (min-width: 1025px) {
+          .uget-right-sidebar {
+            position: sticky;
+            top: 84px;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: 32px;
+          }
+          .uget-right-sidebar::-webkit-scrollbar {
+            display: none;
+          }
+        }
         .uget-mobile-drawer {
           position: fixed;
           top: 0;
