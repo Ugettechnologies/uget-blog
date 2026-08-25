@@ -181,7 +181,7 @@ function TrendingSection({ posts, router }: TrendingSectionProps) {
                   <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", display: "flex", alignItems: "center", gap: 6 }}>
                     <span>{formatDate(post.created_at)} · {post.read_time} min read</span>
                     <span>·</span>
-                    <span style={{ fontWeight: 600, color: "var(--brand)" }}>🔥 {formatViews(post.view_count || 0)} views</span>
+                    <span style={{ fontWeight: 600, color: "var(--brand)" }}>{formatViews(post.view_count || 0)} views</span>
                   </div>
                 </div>
               </div>
@@ -259,7 +259,7 @@ function MobileHighestViewsWidget({ posts }: { posts: Post[] }) {
     <div className="uget-mobile-trending-section" style={{ marginBottom: 24, display: "none" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--black)", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
-          <span>🔥</span> Highest Views
+          Highest Views
         </h3>
         <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--muted)", fontWeight: 600 }}>Top Stories</span>
       </div>
@@ -1214,7 +1214,7 @@ export default function HomePage() {
                 {!query && (
                   <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid var(--border-2)" }}>
                     <h2 style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 800, color: "var(--black)", margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
-                      🔥 Top 10 Most Viewed Stories
+                      Top 10 Most Viewed Stories
                     </h2>
                     <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", margin: "4px 0 0" }}>
                       Highest impression write-ups trending across EchoGist
