@@ -779,7 +779,7 @@ export default function HomePage() {
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(20);
-      if (data) {
+      if (Array.isArray(data)) {
         setNotifications(data.map((n: any) => {
           const actor = n.actor_profile || n.profiles;
           const iconMap: any = { like: "💖", comment: "💬", follow: "👤", post: "✍️" };
@@ -807,8 +807,8 @@ export default function HomePage() {
         .select("following_id, following_profile:profiles(*)")
         .eq("follower_id", userId)
         .limit(5);
-      if (data) {
-        setFollowingProfiles(data.map((f: any) => f.following_profile).filter(Boolean));
+      if (Array.isArray(data)) {
+        setFollowingProfiles(data.map((f: any) => f?.following_profile).filter(Boolean));
       }
     } catch (err) {
       console.error("Error loading following profiles:", err);
@@ -825,14 +825,14 @@ export default function HomePage() {
           supabase.from("follows").select("following_id").eq("follower_id", user.id),
           q
         ]);
-        const followingIds = followsRes.data ? followsRes.data.map((f: any) => f.following_id) : [];
-        if (profilesRes.data) {
+        const followingIds = Array.isArray(followsRes.data) ? followsRes.data.map((f: any) => f.following_id) : [];
+        if (Array.isArray(profilesRes.data)) {
           const filtered = profilesRes.data.filter((p: any) => !followingIds.includes(p.id));
           setSuggestedWriters(filtered.slice(0, 5));
         }
       } else {
         const { data } = await q;
-        if (data) {
+        if (Array.isArray(data)) {
           setSuggestedWriters(data.slice(0, 5));
         }
       }
