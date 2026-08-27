@@ -56,6 +56,7 @@ export default function ProfilePage() {
   // Page state
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [userComments, setUserComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<any | null>(null);
@@ -147,10 +148,16 @@ export default function ProfilePage() {
         setIsFollowing(!!followRes);
       }
 
-      const { data } = await supabase.from("posts")
-        .select("*").eq("author_id", prof.id).eq("published", true)
-        .order("created_at", { ascending: false });
-      setPosts(data as Post[] || []);
+      const [postsRes, commentsRes] = await Promise.all([
+        supabase.from("posts")
+          .select("*").eq("author_id", prof.id).eq("published", true)
+          .order("created_at", { ascending: false }),
+        supabase.from("comments")
+          .select("*, posts(slug, title)").eq("user_id", prof.id)
+          .order("created_at", { ascending: false }),
+      ]);
+      setPosts(postsRes.data as Post[] || []);
+      setUserComments(commentsRes.data || []);
 
       // Track profile view (analytics)
       if (prof.id && (!user || user.id !== prof.id)) {
@@ -327,6 +334,30 @@ export default function ProfilePage() {
 
   const totalViews = posts.reduce((s, p) => s + (p.view_count || 0), 0);
   const totalLikes = posts.reduce((s, p) => s + (p.like_count || 0), 0);
+
+  const activities = [
+    ...posts.map((p) => ({
+      id: `post-${p.id}`,
+      type: "post" as const,
+      created_at: p.created_at,
+      title: p.title,
+      slug: p.slug,
+      excerpt: p.excerpt,
+      read_time: p.read_time,
+      view_count: p.view_count,
+      like_count: p.like_count,
+      cover_image: p.cover_image,
+      category: p.category,
+    })),
+    ...userComments.map((c) => ({
+      id: `comment-${c.id}`,
+      type: "comment" as const,
+      created_at: c.created_at,
+      content: c.content,
+      post_title: c.posts?.title || "a story",
+      post_slug: c.posts?.slug,
+    })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <div className="uget-layout">
@@ -1155,7 +1186,7 @@ export default function ProfilePage() {
 
             {activeTab === "activity" && (
               <div>
-                {/* Activity Tooltip card matching Screenshot 3 */}
+                {/* Activity Tooltip card */}
                 {!activityDismissed && (
                   <div style={{ backgroundColor: "#292929", color: "#ffffff", borderRadius: 8, padding: 20, marginBottom: 28, position: "relative", zIndex: 10 }}>
                     <div style={{ fontFamily: "var(--sans)", fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
@@ -1163,18 +1194,81 @@ export default function ProfilePage() {
                     </div>
                     <button 
                       onClick={() => setActivityDismissed(true)} 
-                      style={{ backgroundColor: "transparent", color: "#ffffff", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 999, fontSize: 12, padding: "4px 12px", fontFamily: "var(--sans)", fontWeight: 600 }}
+                      style={{ backgroundColor: "transparent", color: "#ffffff", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 999, fontSize: 12, padding: "4px 12px", fontFamily: "var(--sans)", fontWeight: 600, cursor: "pointer" }}
                     >
                       Okay, got it
                     </button>
                   </div>
                 )}
 
-                <div style={{ textAlign: "center", padding: "60px 0", background: "var(--bg-2)", borderRadius: 12, border: "1px dashed var(--border)" }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }} className="font-sans">No recent activities</h3>
-                  <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)" }}>Actions like published posts, follows, or comments will appear here.</p>
-                </div>
+                {activities.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "60px 0", background: "var(--bg-2)", borderRadius: 12, border: "1px dashed var(--border)" }}>
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }} className="font-sans">No recent activities</h3>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)" }}>Actions like published posts, follows, or comments will appear here.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {activities.map((act) => {
+                      if (act.type === "post") {
+                        const cat = CATEGORIES.find((c) => c.id === act.category);
+                        return (
+                          <div key={act.id} style={{ padding: "20px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 16 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)", marginBottom: 12, fontWeight: 500 }}>
+                              <span style={{ fontSize: 16 }}>✍️</span>
+                              <span style={{ color: "var(--ink)", fontWeight: 600 }}>Published a story</span>
+                              <span>·</span>
+                              <span>{formatDate(act.created_at)}</span>
+                            </div>
+                            <article className="post-card" style={{ padding: 0, border: "none" }}>
+                              <div className="post-card-content">
+                                <div className="post-card-meta" style={{ marginBottom: 6 }}>
+                                  {cat && <span className="post-card-tag">{cat.label}</span>}
+                                </div>
+                                <Link href={`/post/${act.slug}`} style={{ textDecoration: "none" }}>
+                                  <h3 className="post-card-title" style={{ fontSize: 18, fontWeight: 700, color: "var(--black)", marginBottom: 6 }}>{act.title}</h3>
+                                  {act.excerpt && <p className="post-card-excerpt" style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>{act.excerpt}</p>}
+                                </Link>
+                                <div className="post-card-meta" style={{ marginTop: 8 }}>
+                                  <span>{act.read_time || 1} min read</span>
+                                  <span>· {act.view_count || 0} views</span>
+                                  <span>· {act.like_count || 0} likes</span>
+                                </div>
+                              </div>
+                              {act.cover_image && (
+                                <Link href={`/post/${act.slug}`} className="post-card-image">
+                                  <SafeImage src={act.cover_image} alt={act.title} fill fallbackSeed={act.id} />
+                                </Link>
+                              )}
+                            </article>
+                          </div>
+                        );
+                      } else if (act.type === "comment") {
+                        return (
+                          <div key={act.id} style={{ padding: "20px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 16 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)", marginBottom: 10, fontWeight: 500 }}>
+                              <span style={{ fontSize: 16 }}>💬</span>
+                              <span>Responded to</span>
+                              {act.post_slug ? (
+                                <Link href={`/post/${act.post_slug}`} style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}>
+                                  "{act.post_title}"
+                                </Link>
+                              ) : (
+                                <span style={{ color: "var(--ink)", fontWeight: 600 }}>"{act.post_title}"</span>
+                              )}
+                              <span>·</span>
+                              <span>{formatDate(act.created_at)}</span>
+                            </div>
+                            <div style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--ink-2)", lineHeight: 1.6, paddingLeft: 12, borderLeft: "3px solid var(--brand)", fontStyle: "italic" }}>
+                              "{act.content}"
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
