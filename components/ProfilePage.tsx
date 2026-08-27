@@ -869,185 +869,89 @@ export default function ProfilePage() {
 
             {/* Profile Card Header (Mobile only) */}
             <div className="uget-profile-header-card" style={{ border: "1px solid var(--border)", borderRadius: 24, padding: 24, background: "var(--bg-2)", boxShadow: "var(--shadow-md)", marginBottom: 32, display: "flex", flexDirection: "column", gap: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <div className="uget-profile-avatar-lg" style={{ width: 80, height: 80, padding: '2px', marginBottom: 0 }}>
-                    <div className="uget-profile-avatar-inner">
-                      {profile.avatar_url ? (
-                        <Image src={profile.avatar_url} alt="" width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                      ) : (
-                        <div className="uget-profile-avatar-initials" style={{ background: getAvatarGradient(profile.full_name), fontSize: '1.6rem' }}>
-                          {getInitials(profile.full_name)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <h1 className="uget-profile-name" style={{ fontSize: 24 }}>
-                      {profile.full_name}
-                    </h1>
-                    <div className="uget-profile-username" style={{ marginBottom: 4 }}>
-                      <span>@{profile.username || "writer"}</span>
-                    </div>
-
-                    {/* Social Links on Mobile Header */}
-                    {(profile.website || profile.twitter) && (
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 10px", marginTop: 8 }}>
-                        {profile.twitter && (
-                          <a
-                            href={`https://x.com/${formatTwitterHandle(profile.twitter)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                              fontSize: 12.5,
-                              fontFamily: "var(--sans)",
-                              color: "var(--black)",
-                              background: "var(--bg-3)",
-                              border: "1px solid var(--border)",
-                              padding: "4px 12px",
-                              borderRadius: 99,
-                              textDecoration: "none",
-                              fontWeight: 600,
-                              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                            }}
-                            className="hover:border-gray-400 hover:shadow-xs"
-                          >
-                            <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                            </svg>
-                            <span>@{formatTwitterHandle(profile.twitter)}</span>
-                          </a>
-                        )}
-                        {profile.website && (
-                          <a
-                            href={formatWebsiteUrl(profile.website)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                              fontSize: 12.5,
-                              fontFamily: "var(--sans)",
-                              color: "#7c3aed",
-                              background: "rgba(124, 58, 237, 0.08)",
-                              border: "1px solid rgba(124, 58, 237, 0.2)",
-                              padding: "4px 12px",
-                              borderRadius: 99,
-                              textDecoration: "none",
-                              fontWeight: 600,
-                              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                            }}
-                            className="hover:border-violet-400 hover:shadow-xs"
-                          >
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18" />
-                            </svg>
-                            <span className="truncate max-w-[180px]">{formatWebsiteDisplay(profile.website)}</span>
-                          </a>
-                        )}
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div className="uget-profile-avatar-lg" style={{ width: 80, height: 80, padding: '2px', marginBottom: 0 }}>
+                  <div className="uget-profile-avatar-inner">
+                    {profile.avatar_url ? (
+                      <Image src={profile.avatar_url} alt="" width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                    ) : (
+                      <div className="uget-profile-avatar-initials" style={{ background: getAvatarGradient(profile.full_name), fontSize: '1.6rem' }}>
+                        {getInitials(profile.full_name)}
                       </div>
                     )}
                   </div>
                 </div>
+                <div>
+                  <h1 className="uget-profile-name" style={{ fontSize: 24 }}>
+                    {profile.full_name}
+                  </h1>
+                  <div className="uget-profile-username" style={{ marginBottom: 4 }}>
+                    <span>@{profile.username || "writer"}</span>
+                  </div>
 
-                {/* Follow/Following/Share trigger buttons */}
-                <div className="relative following-dropdown-trigger flex-shrink-0" style={{ display: "flex", gap: "8px" }}>
-                  {currentUser && currentUser.id === profile.id ? (
-                    <Link
-                      href="/settings"
-                      className="profile-action-btn profile-action-btn-secondary"
-                      style={{ padding: "8px 16px", width: "auto" }}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-                      <span>Edit profile</span>
-                    </Link>
-                  ) : (
-                    <>
-                      {isFollowing ? (
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <button
-                            onClick={() => setFollowingDropdownOpen(!followingDropdownOpen)}
-                            className="profile-action-btn profile-action-btn-secondary"
-                            style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: 6, width: "auto" }}
-                          >
-                            <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Following</span>
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ opacity: 0.5 }}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={handleFollow}
-                          className="profile-action-btn profile-action-btn-primary"
-                          style={{ padding: "8px 20px", width: "auto" }}
+                  {/* Social Links on Mobile Header */}
+                  {(profile.website || profile.twitter) && (
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 10px", marginTop: 8 }}>
+                      {profile.twitter && (
+                        <a
+                          href={`https://x.com/${formatTwitterHandle(profile.twitter)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            fontSize: 12.5,
+                            fontFamily: "var(--sans)",
+                            color: "var(--black)",
+                            background: "var(--bg-3)",
+                            border: "1px solid var(--border)",
+                            padding: "4px 12px",
+                            borderRadius: 99,
+                            textDecoration: "none",
+                            fontWeight: 600,
+                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                          }}
+                          className="hover:border-gray-400 hover:shadow-xs"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                          <span>Follow</span>
-                        </button>
+                          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                          </svg>
+                          <span>@{formatTwitterHandle(profile.twitter)}</span>
+                        </a>
                       )}
-
-                      {followingDropdownOpen && (
-                        <div className="following-dropdown absolute right-0 mt-2 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden py-1 w-48">
-                          <button
-                            onClick={() => {
-                              handleFollow();
-                              setFollowingDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 font-sans transition-colors"
-                          >
-                            Unfollow
-                          </button>
-                          <button
-                            onClick={() => {
-                              showMsg(`Muted ${profile.full_name} successfully`, "ok");
-                              setFollowingDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
-                          >
-                            Mute this writer
-                          </button>
-                          <button
-                            onClick={() => {
-                              showMsg(`Blocked ${profile.full_name} successfully`, "ok");
-                              setFollowingDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
-                          >
-                            Block this writer
-                          </button>
-                          <button
-                            onClick={() => {
-                              showMsg("Reported successfully", "ok");
-                              setFollowingDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
-                          >
-                            Report profile
-                          </button>
-                        </div>
+                      {profile.website && (
+                        <a
+                          href={formatWebsiteUrl(profile.website)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            fontSize: 12.5,
+                            fontFamily: "var(--sans)",
+                            color: "#7c3aed",
+                            background: "rgba(124, 58, 237, 0.08)",
+                            border: "1px solid rgba(124, 58, 237, 0.2)",
+                            padding: "4px 12px",
+                            borderRadius: 99,
+                            textDecoration: "none",
+                            fontWeight: 600,
+                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                          }}
+                          className="hover:border-violet-400 hover:shadow-xs"
+                        >
+                          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18" />
+                          </svg>
+                          <span className="truncate max-w-[180px]">{formatWebsiteDisplay(profile.website)}</span>
+                        </a>
                       )}
-                    </>
+                    </div>
                   )}
-
-                  <button
-                    onClick={() => setShareModalOpen(true)}
-                    className="profile-action-btn profile-action-btn-secondary"
-                    style={{ padding: "8px 12px", width: "auto" }}
-                    title="Share profile"
-                  >
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                    </svg>
-                    <span>Share</span>
-                  </button>
                 </div>
               </div>
 
@@ -1056,6 +960,100 @@ export default function ProfilePage() {
                   {profile.bio}
                 </p>
               )}
+
+              {/* Follow/Following/Share trigger buttons below Bio */}
+              <div className="relative following-dropdown-trigger flex-shrink-0" style={{ display: "flex", gap: "8px", width: "100%" }}>
+                {currentUser && currentUser.id === profile.id ? (
+                  <Link
+                    href="/settings"
+                    className="profile-action-btn profile-action-btn-secondary"
+                    style={{ padding: "8px 16px", flex: 1, justifyContent: "center" }}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                    <span>Edit profile</span>
+                  </Link>
+                ) : (
+                  <>
+                    {isFollowing ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+                        <button
+                          onClick={() => setFollowingDropdownOpen(!followingDropdownOpen)}
+                          className="profile-action-btn profile-action-btn-secondary"
+                          style={{ padding: "8px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%" }}
+                        >
+                          <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <span>Following</span>
+                          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ opacity: 0.5 }}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleFollow}
+                        className="profile-action-btn profile-action-btn-primary"
+                        style={{ padding: "8px 20px", flex: 1, justifyContent: "center" }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                        <span>Follow</span>
+                      </button>
+                    )}
+
+                    {followingDropdownOpen && (
+                      <div className="following-dropdown absolute right-0 mt-2 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden py-1 w-48">
+                        <button
+                          onClick={() => {
+                            handleFollow();
+                            setFollowingDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 font-sans transition-colors"
+                        >
+                          Unfollow
+                        </button>
+                        <button
+                          onClick={() => {
+                            showMsg(`Muted ${profile.full_name} successfully`, "ok");
+                            setFollowingDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
+                        >
+                          Mute this writer
+                        </button>
+                        <button
+                          onClick={() => {
+                            showMsg(`Blocked ${profile.full_name} successfully`, "ok");
+                            setFollowingDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
+                        >
+                          Block this writer
+                        </button>
+                        <button
+                          onClick={() => {
+                            showMsg("Reported successfully", "ok");
+                            setFollowingDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 font-sans transition-colors"
+                        >
+                          Report profile
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <button
+                  onClick={() => setShareModalOpen(true)}
+                  className="profile-action-btn profile-action-btn-secondary"
+                  style={{ padding: "8px 12px", width: "auto" }}
+                  title="Share profile"
+                >
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  <span>Share</span>
+                </button>
+              </div>
 
               {/* Metrics Grid for Mobile View */}
               <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
