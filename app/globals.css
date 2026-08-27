@@ -1795,17 +1795,13 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   display: flex !important;
 }
 
-/* Right Sidenav Fixed/Sticky Rule - Stays fixed so only main posts scroll */
+/* Right Sidenav Completely Static & Non-Scrolling Rule */
 @media (min-width: 1025px) {
   .uget-right-sidebar, .uget-profile-sidebar {
     position: sticky !important;
-    top: 80px !important;
-    height: calc(100vh - 96px) !important;
-    overflow-y: auto !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-  }
-  .uget-right-sidebar::-webkit-scrollbar, .uget-profile-sidebar::-webkit-scrollbar {
-    display: none !important;
+    top: 84px !important;
+    height: fit-content !important;
+    overflow: hidden !important;
+    align-self: start !important;
   }
 }

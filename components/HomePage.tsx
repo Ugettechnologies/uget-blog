@@ -441,17 +441,26 @@ function SidebarTopicsToExplore({
   activeCategory: string; 
   onSelectCategory: (catId: string) => void;
 }) {
+  const [showAllTopics, setShowAllTopics] = useState(false);
+  const displayedCategories = showAllTopics ? CATEGORIES : CATEGORIES.slice(0, 8);
+
   return (
-    <div className="sidebar-section topics-widget-card" style={{ marginBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+    <div className="sidebar-section topics-widget-card" style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
           <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
           Topics to explore
         </h3>
+        <button
+          onClick={() => setShowAllTopics(!showAllTopics)}
+          style={{ background: "none", border: "none", color: "var(--brand)", fontSize: 12, fontFamily: "var(--sans)", fontWeight: 600, cursor: "pointer" }}
+        >
+          {showAllTopics ? "Show less" : "See all →"}
+        </button>
       </div>
       
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {CATEGORIES.map((cat) => {
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {displayedCategories.map((cat) => {
           const isActive = activeCategory === cat.id;
           return (
             <button
@@ -460,18 +469,17 @@ function SidebarTopicsToExplore({
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "6px 14px",
+                gap: 5,
+                padding: "5px 12px",
                 borderRadius: 999,
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: isActive ? 700 : 500,
                 fontFamily: "var(--sans)",
                 color: isActive ? "#ffffff" : "var(--ink)",
                 backgroundColor: isActive ? "var(--brand)" : "var(--bg-3)",
                 border: isActive ? "1px solid var(--brand)" : "1px solid var(--border-2)",
                 cursor: "pointer",
-                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                boxShadow: isActive ? "0 4px 12px rgba(124, 58, 237, 0.25)" : "none"
+                transition: "all 0.15s ease",
               }}
             >
               <span>{cat.icon || "🏷️"}</span>
@@ -1410,15 +1418,10 @@ export default function HomePage() {
         @media (min-width: 1025px) {
           .uget-right-sidebar {
             position: sticky;
-            top: 80px;
-            height: calc(100vh - 96px);
-            overflow-y: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-bottom: 32px;
-          }
-          .uget-right-sidebar::-webkit-scrollbar {
-            display: none;
+            top: 84px;
+            height: fit-content;
+            overflow: hidden;
+            align-self: start;
           }
         }
         .uget-mobile-drawer {
