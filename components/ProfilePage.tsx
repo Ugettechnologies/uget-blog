@@ -440,9 +440,9 @@ export default function ProfilePage() {
         }
         .uget-profile-sidebar {
           position: sticky;
-          top: 88px;
+          top: 80px;
           align-self: start;
-          max-height: calc(100vh - 108px);
+          height: calc(100vh - 96px);
           overflow-y: auto;
           scrollbar-width: none;
           -ms-overflow-style: none;
