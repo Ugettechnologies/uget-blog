@@ -1,5 +1,4 @@
 "use client";
-import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -154,16 +153,6 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ activePage, profileHref = "/profile", onItemClick }: SidebarNavProps) {
-  useEffect(() => {
-    const sidebarEl = document.querySelector(".uget-sidebar");
-    if (!sidebarEl) return;
-    const handleWheel = (e: WheelEvent) => {
-      window.scrollBy({ top: e.deltaY });
-    };
-    sidebarEl.addEventListener("wheel", handleWheel, { passive: true });
-    return () => sidebarEl.removeEventListener("wheel", handleWheel);
-  }, []);
-
   const items = [
     { key: "home",          href: "/",                        label: "Home",          Icon: HomeIcon },
     { key: "notifications", href: "/notifications",           label: "Notifications", Icon: BellIcon },

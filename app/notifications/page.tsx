@@ -513,7 +513,7 @@ export default function NotificationsPage() {
           display: grid;
           grid-template-columns: 1fr 300px;
           gap: 40px;
-          padding: 36px 32px 80px;
+          padding: 24px 32px 80px;
           max-width: 1140px;
           width: 100%;
           margin: 0 auto;
@@ -524,7 +524,10 @@ export default function NotificationsPage() {
         .uget-right-sidebar {
           position: sticky;
           top: 88px;
-          height: fit-content;
+          max-height: calc(100vh - 108px);
+          overflow-y: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
           display: flex;
           flex-direction: column;
           gap: 20px;

@@ -1410,8 +1410,8 @@ export default function HomePage() {
         @media (min-width: 1025px) {
           .uget-right-sidebar {
             position: sticky;
-            top: 84px;
-            height: calc(100vh - 100px);
+            top: 88px;
+            max-height: calc(100vh - 108px);
             overflow-y: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;

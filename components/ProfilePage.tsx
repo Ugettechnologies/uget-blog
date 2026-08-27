@@ -430,7 +430,7 @@ export default function ProfilePage() {
           display: grid;
           grid-template-columns: 1fr 340px;
           gap: 48px;
-          padding: 48px 32px 80px;
+          padding: 24px 32px 80px;
           max-width: 1200px;
           width: 100%;
           margin: 0 auto;
@@ -442,11 +442,18 @@ export default function ProfilePage() {
           position: sticky;
           top: 88px;
           align-self: start;
+          max-height: calc(100vh - 108px);
+          overflow-y: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
           background-color: var(--bg-2);
           border: 1px solid var(--border);
           border-radius: 24px;
           padding: 28px 24px;
           box-shadow: var(--shadow-md);
+        }
+        .uget-profile-sidebar::-webkit-scrollbar {
+          display: none;
         }
         .uget-profile-header-card {
           display: none !important;

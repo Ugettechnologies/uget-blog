@@ -1767,12 +1767,6 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   }
 }/* Persistent Desktop Left Sidebar toggle styles */
 .uget-sidebar {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  bottom: 0 !important;
-  height: 100vh !important;
-  overflow-y: hidden !important;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .uget-main {
