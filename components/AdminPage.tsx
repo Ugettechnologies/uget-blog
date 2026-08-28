@@ -35,7 +35,7 @@ export default function AdminPage() {
   const [allProfileViews, setAllProfileViews] = useState<any[]>([]);
   const [allFollows, setAllFollows] = useState<any[]>([]);
   const [allLikes, setAllLikes] = useState<any[]>([]);
-  const [analyticsPeriod, setAnalyticsPeriod] = useState<"today" | "week" | "month" | "year" | "all">("month");
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<"today" | "week" | "month" | "quarter" | "year" | "all">("month");
   const [analyticsQuota, setAnalyticsQuota] = useState<"all" | "staff" | "personal">("all");
   const [analyticsRankTab, setAnalyticsRankTab] = useState<"impressions" | "followers" | "both">("both");
   const [awardModalUser, setAwardModalUser] = useState<any | null>(null);
@@ -418,29 +418,61 @@ export default function AdminPage() {
               {/* ── ANALYTICS & RANKINGS ── */}
               {tab === "analytics" && (() => {
                 const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                 
-                const thisWeek = new Date(today);
-                thisWeek.setDate(today.getDate() - today.getDay());
-                
-                const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const thisYear = new Date(now.getFullYear(), 0, 1);
+                let cutoffDate: Date | null = null;
+                let daysInPeriod = 0;
+                let periodLabel = "28 days";
 
-                let periodStartDate: Date | null = today;
-                if (analyticsPeriod === "week") periodStartDate = thisWeek;
-                else if (analyticsPeriod === "month") periodStartDate = thisMonth;
-                else if (analyticsPeriod === "year") periodStartDate = thisYear;
-                else if (analyticsPeriod === "all") periodStartDate = null;
+                if (analyticsPeriod === "today") {
+                  cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                  daysInPeriod = 1;
+                  periodLabel = "24 hours";
+                } else if (analyticsPeriod === "week") {
+                  cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                  daysInPeriod = 7;
+                  periodLabel = "7 days";
+                } else if (analyticsPeriod === "month") {
+                  cutoffDate = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+                  daysInPeriod = 28;
+                  periodLabel = "28 days";
+                } else if (analyticsPeriod === "quarter") {
+                  cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                  daysInPeriod = 90;
+                  periodLabel = "3 months";
+                } else if (analyticsPeriod === "year") {
+                  cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                  daysInPeriod = 365;
+                  periodLabel = "12 months";
+                } else {
+                  cutoffDate = null;
+                  daysInPeriod = 0;
+                  periodLabel = "All time";
+                }
 
                 const filterByPeriod = (arr: any[]) => {
-                  if (!periodStartDate) return arr;
-                  return arr.filter(item => item.created_at && new Date(item.created_at) >= periodStartDate);
+                  if (!cutoffDate) return arr;
+                  return arr.filter(item => item.created_at && new Date(item.created_at) >= cutoffDate);
                 };
 
                 const filteredViews = filterByPeriod(allProfileViews);
                 const filteredFollows = filterByPeriod(allFollows);
                 const filteredLikes = filterByPeriod(allLikes);
-                const filteredPosts = filterByPeriod(posts);
+
+                const getPostViewsInPeriod = (p: Post) => {
+                  const views = p.view_count || 0;
+                  if (views === 0) return 0;
+                  if (!cutoffDate || daysInPeriod === 0) return views;
+                  
+                  const postDate = new Date(p.created_at || now);
+                  const daysOld = Math.max(1, (now.getTime() - postDate.getTime()) / (1000 * 3600 * 24));
+                  
+                  if (postDate < cutoffDate) {
+                    const dailyRate = views / daysOld;
+                    return Math.min(views, Math.max(1, Math.round(dailyRate * daysInPeriod)));
+                  } else {
+                    return views;
+                  }
+                };
 
                 // Compute creator statistics & ranks
                 const creators = users
@@ -450,24 +482,23 @@ export default function AdminPage() {
                     return u.role !== "reader"; // all active writers & staff
                   })
                   .map(u => {
-                    // Profile views for user
+                    // Profile views for user in period
                     const userProfileViews = filteredViews.filter(v => v.profile_id === u.id).length;
                     
                     // User posts
                     const userPosts = posts.filter(p => p.author_id === u.id);
-                    const userPostsInPeriod = filteredPosts.filter(p => p.author_id === u.id);
                     
-                    // Post views for user's posts
-                    const postViewsTotal = userPosts.reduce((sum, p) => sum + (p.view_count || 0), 0);
+                    // Post views for user's posts in period
+                    const postViewsTotal = userPosts.reduce((sum, p) => sum + getPostViewsInPeriod(p), 0);
                     
-                    // Total Impressions (Sum of profile visits + article views)
+                    // Total Impressions (Sum of profile visits + article views in period)
                     const totalImpressions = userProfileViews + postViewsTotal;
                     
-                    // Followers gained for user
+                    // Followers gained for user in period
                     const newFollowers = filteredFollows.filter(f => f.following_id === u.id).length;
                     const totalFollowers = u.follower_count || allFollows.filter(f => f.following_id === u.id).length;
 
-                    // Likes gained for user
+                    // Likes gained for user in period
                     const likesGained = filteredLikes.filter(l => {
                       const likedPost = posts.find(p => p.id === l.post_id);
                       return likedPost && likedPost.author_id === u.id;
@@ -479,7 +510,6 @@ export default function AdminPage() {
                     return {
                       ...u,
                       userPostsCount: userPosts.length,
-                      userPostsInPeriodCount: userPostsInPeriod.length,
                       userProfileViews,
                       postViewsTotal,
                       totalImpressions,
@@ -499,6 +529,21 @@ export default function AdminPage() {
                 } else {
                   rankedCreators.sort((a, b) => b.combinedScore - a.combinedScore);
                 }
+
+                // Total calculated impressions for overall dashboard card
+                const targetPostsForCard = posts.filter(p => {
+                  if (analyticsQuota === "staff") {
+                    const author = users.find(u => u.id === p.author_id);
+                    return author?.role === "staff";
+                  }
+                  if (analyticsQuota === "personal") {
+                    const author = users.find(u => u.id === p.author_id);
+                    return author?.role !== "staff" && author?.role !== "admin";
+                  }
+                  return true;
+                });
+                const cardTotalPostViews = targetPostsForCard.reduce((s, p) => s + getPostViewsInPeriod(p), 0);
+                const cardTotalImpressions = filteredViews.length + cardTotalPostViews;
 
                 return (
                   <div>
@@ -566,62 +611,71 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    {/* Time Period Selector Bar */}
-                    <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
-                      <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginRight: 8 }}>
+                    {/* Time Period Selector Bar - Google Search Console Style */}
+                    <div style={{ display: "flex", gap: 6, marginBottom: 24, flexWrap: "wrap", alignItems: "center", background: "var(--bg-3)", padding: "6px 8px", borderRadius: 12, border: "1px solid var(--border)" }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "0 8px" }}>
                         Timeframe:
                       </span>
                       {[
-                        { id: "today", label: "End of Day (Today)" },
-                        { id: "week", label: "This Week" },
-                        { id: "month", label: "End of Month (Monthly)" },
-                        { id: "year", label: "End of Year (Yearly)" },
-                        { id: "all", label: "All Time" },
-                      ].map(p => (
-                        <button
-                          key={p.id}
-                          onClick={() => setAnalyticsPeriod(p.id as any)}
-                          style={{
-                            padding: "8px 16px",
-                            borderRadius: 999,
-                            border: analyticsPeriod === p.id ? "1px solid var(--brand)" : "1px solid var(--border)",
-                            background: analyticsPeriod === p.id ? "rgba(124,58,237,0.1)" : "var(--bg-2)",
-                            color: analyticsPeriod === p.id ? "var(--brand)" : "var(--ink)",
-                            fontFamily: "var(--sans)",
-                            fontSize: 13,
-                            fontWeight: analyticsPeriod === p.id ? 700 : 500,
-                            cursor: "pointer",
-                            transition: "all 0.15s ease"
-                          }}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
+                        { id: "today", label: "24 hours" },
+                        { id: "week", label: "7 days" },
+                        { id: "month", label: "28 days" },
+                        { id: "quarter", label: "3 months" },
+                        { id: "year", label: "12 months" },
+                        { id: "all", label: "All time" },
+                      ].map(p => {
+                        const isSelected = analyticsPeriod === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => setAnalyticsPeriod(p.id as any)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "6px 14px",
+                              borderRadius: 8,
+                              border: isSelected ? "1px solid rgba(124, 58, 237, 0.4)" : "1px solid transparent",
+                              background: isSelected ? "var(--bg-2)" : "transparent",
+                              color: isSelected ? "var(--brand)" : "var(--ink)",
+                              fontFamily: "var(--sans)",
+                              fontSize: 13,
+                              fontWeight: isSelected ? 700 : 500,
+                              cursor: "pointer",
+                              boxShadow: isSelected ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+                              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                            }}
+                          >
+                            {isSelected && <span style={{ fontSize: 12, color: "var(--brand)" }}>✓</span>}
+                            <span>{p.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* Overview Stat Cards */}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 32 }}>
                       <StatCard 
-                        label={`Total Impressions (${analyticsPeriod.toUpperCase()})`} 
-                        value={filteredViews.length + posts.filter(p => analyticsQuota === "all" || (analyticsQuota === "staff" ? users.find(u => u.id === p.author_id)?.role === "staff" : users.find(u => u.id === p.author_id)?.role !== "staff")).reduce((s, p) => s + (p.view_count || 0), 0)} 
+                        label={`Total Impressions (${periodLabel})`} 
+                        value={cardTotalImpressions.toLocaleString()} 
                         icon="👀" 
                         color="#8b5cf6" 
                       />
                       <StatCard 
-                        label={`New Followers (${analyticsPeriod.toUpperCase()})`} 
-                        value={filteredFollows.length} 
+                        label={`New Followers (${periodLabel})`} 
+                        value={filteredFollows.length.toLocaleString()} 
                         icon="👥" 
                         color="#10b981" 
                       />
                       <StatCard 
-                        label={`Likes Received (${analyticsPeriod.toUpperCase()})`} 
-                        value={filteredLikes.length} 
+                        label={`Likes Received (${periodLabel})`} 
+                        value={filteredLikes.length.toLocaleString()} 
                         icon="❤️" 
                         color="#ef4444" 
                       />
                       <StatCard 
                         label="Active Creators Ranked" 
-                        value={creators.length} 
+                        value={creators.length.toLocaleString()} 
                         icon="🏆" 
                         color="#f59e0b" 
                       />
