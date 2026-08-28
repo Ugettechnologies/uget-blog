@@ -7,7 +7,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "EchoGist — Where Ideas Live", template: "%s | EchoGist" },
   description: "Read and write stories that matter. Join EchoGist's community of writers sharing ideas on technology, design, careers, and more.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com"),
+  alternates: {
+    canonical: "./",
+  },
   openGraph: { type: "website", siteName: "EchoGist" },
   icons: {
     icon: "/favicon.png",
