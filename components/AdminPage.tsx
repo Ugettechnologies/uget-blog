@@ -35,7 +35,14 @@ export default function AdminPage() {
   const [allProfileViews, setAllProfileViews] = useState<any[]>([]);
   const [allFollows, setAllFollows] = useState<any[]>([]);
   const [allLikes, setAllLikes] = useState<any[]>([]);
-  const [analyticsPeriod, setAnalyticsPeriod] = useState<"today" | "week" | "month" | "quarter" | "year" | "all">("month");
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<"today" | "week" | "month" | "quarter" | "6months" | "year" | "16months" | "custom" | "all">("month");
+  const [customStartDate, setCustomStartDate] = useState<string>("");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [dateModalTab, setDateModalTab] = useState<"filter" | "compare">("filter");
+  const [tempPeriodOption, setTempPeriodOption] = useState<string>("6months");
+  const [tempStartDate, setTempStartDate] = useState<string>("");
+  const [tempEndDate, setTempEndDate] = useState<string>("");
   const [analyticsQuota, setAnalyticsQuota] = useState<"all" | "staff" | "personal">("all");
   const [analyticsRankTab, setAnalyticsRankTab] = useState<"impressions" | "followers" | "both">("both");
   const [awardModalUser, setAwardModalUser] = useState<any | null>(null);
@@ -420,6 +427,7 @@ export default function AdminPage() {
                 const now = new Date();
                 
                 let cutoffDate: Date | null = null;
+                let maxDate: Date | null = null;
                 let daysInPeriod = 0;
                 let periodLabel = "28 days";
 
@@ -439,10 +447,25 @@ export default function AdminPage() {
                   cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
                   daysInPeriod = 90;
                   periodLabel = "3 months";
+                } else if (analyticsPeriod === "6months") {
+                  cutoffDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+                  daysInPeriod = 180;
+                  periodLabel = "6 months";
                 } else if (analyticsPeriod === "year") {
                   cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
                   daysInPeriod = 365;
                   periodLabel = "12 months";
+                } else if (analyticsPeriod === "16months") {
+                  cutoffDate = new Date(now.getTime() - 480 * 24 * 60 * 60 * 1000);
+                  daysInPeriod = 480;
+                  periodLabel = "16 months";
+                } else if (analyticsPeriod === "custom" && customStartDate && customEndDate) {
+                  cutoffDate = new Date(customStartDate);
+                  maxDate = new Date(customEndDate);
+                  maxDate.setHours(23, 59, 59, 999);
+                  const diffTime = Math.abs(maxDate.getTime() - cutoffDate.getTime());
+                  daysInPeriod = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                  periodLabel = `${customStartDate} – ${customEndDate}`;
                 } else {
                   cutoffDate = null;
                   daysInPeriod = 0;
@@ -451,7 +474,14 @@ export default function AdminPage() {
 
                 const filterByPeriod = (arr: any[]) => {
                   if (!cutoffDate) return arr;
-                  return arr.filter(item => item.created_at && new Date(item.created_at) >= cutoffDate);
+                  return arr.filter(item => {
+                    if (!item.created_at) return false;
+                    const itemDate = new Date(item.created_at);
+                    if (maxDate) {
+                      return itemDate >= cutoffDate! && itemDate <= maxDate;
+                    }
+                    return itemDate >= cutoffDate!;
+                  });
                 };
 
                 const filteredViews = filterByPeriod(allProfileViews);
@@ -621,8 +651,6 @@ export default function AdminPage() {
                         { id: "week", label: "7 days" },
                         { id: "month", label: "28 days" },
                         { id: "quarter", label: "3 months" },
-                        { id: "year", label: "12 months" },
-                        { id: "all", label: "All time" },
                       ].map(p => {
                         const isSelected = analyticsPeriod === p.id;
                         return (
@@ -651,6 +679,64 @@ export default function AdminPage() {
                           </button>
                         );
                       })}
+
+                      {/* More ▾ Button for Custom Date & Range Modal */}
+                      <button
+                        onClick={() => {
+                          setTempPeriodOption(["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? analyticsPeriod : "6months");
+                          setTempStartDate(customStartDate || "2026-07-30");
+                          setTempEndDate(customEndDate || new Date().toISOString().split("T")[0]);
+                          setDateModalOpen(true);
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "6px 14px",
+                          borderRadius: 8,
+                          border: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "1px solid rgba(124, 58, 237, 0.4)" : "1px solid var(--border)",
+                          background: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "var(--bg-2)" : "transparent",
+                          color: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "var(--brand)" : "var(--ink)",
+                          fontFamily: "var(--sans)",
+                          fontSize: 13,
+                          fontWeight: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? 700 : 500,
+                          cursor: "pointer",
+                          boxShadow: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+                          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                      >
+                        {["6months", "year", "16months", "custom"].includes(analyticsPeriod) && <span style={{ fontSize: 12, color: "var(--brand)" }}>✓</span>}
+                        <span>
+                          {analyticsPeriod === "6months" ? "Last 6 months" :
+                           analyticsPeriod === "year" ? "Last 12 months" :
+                           analyticsPeriod === "16months" ? "Last 16 months" :
+                           analyticsPeriod === "custom" && customStartDate ? `Custom (${customStartDate})` :
+                           "More ▾"}
+                        </span>
+                      </button>
+
+                      {/* All Time Button */}
+                      <button
+                        onClick={() => setAnalyticsPeriod("all")}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "6px 14px",
+                          borderRadius: 8,
+                          border: analyticsPeriod === "all" ? "1px solid rgba(124, 58, 237, 0.4)" : "1px solid transparent",
+                          background: analyticsPeriod === "all" ? "var(--bg-2)" : "transparent",
+                          color: analyticsPeriod === "all" ? "var(--brand)" : "var(--ink)",
+                          fontFamily: "var(--sans)",
+                          fontSize: 13,
+                          fontWeight: analyticsPeriod === "all" ? 700 : 500,
+                          cursor: "pointer",
+                          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                      >
+                        {analyticsPeriod === "all" && <span style={{ fontSize: 12, color: "var(--brand)" }}>✓</span>}
+                        <span>All time</span>
+                      </button>
                     </div>
 
                     {/* Overview Stat Cards */}
@@ -1601,6 +1687,252 @@ export default function AdminPage() {
                 style={{ borderRadius: 8 }}
               >
                 Confirm Award
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Google Search Console Style Date Range Modal */}
+      {dateModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.55)",
+            backdropFilter: "blur(4px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+          onClick={() => setDateModalOpen(false)}
+        >
+          <div
+            style={{
+              background: "var(--bg-2)",
+              border: "1px solid var(--border)",
+              borderRadius: 24,
+              width: "100%",
+              maxWidth: 480,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+              overflow: "hidden",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ padding: "24px 28px 16px" }}>
+              <h2 style={{ fontFamily: "var(--sans)", fontSize: 22, fontWeight: 700, color: "var(--black)", margin: 0 }}>
+                Date range
+              </h2>
+
+              {/* Filter vs Compare Tabs */}
+              <div style={{ display: "flex", gap: 24, borderBottom: "1px solid var(--border)", marginTop: 16 }}>
+                <button
+                  onClick={() => setDateModalTab("filter")}
+                  style={{
+                    padding: "8px 4px",
+                    fontFamily: "var(--sans)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: dateModalTab === "filter" ? "var(--brand)" : "var(--muted)",
+                    background: "none",
+                    border: "none",
+                    borderBottom: dateModalTab === "filter" ? "2px solid var(--brand)" : "2px solid transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  Filter
+                </button>
+                <button
+                  onClick={() => setDateModalTab("compare")}
+                  style={{
+                    padding: "8px 4px",
+                    fontFamily: "var(--sans)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: dateModalTab === "compare" ? "var(--brand)" : "var(--muted)",
+                    background: "none",
+                    border: "none",
+                    borderBottom: dateModalTab === "compare" ? "2px solid var(--brand)" : "2px solid transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  Compare
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: "0 28px 24px", maxHeight: "60vh", overflowY: "auto" }}>
+              {dateModalTab === "filter" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingTop: 8 }}>
+                  {[
+                    { id: "6months", label: "Last 6 months" },
+                    { id: "year", label: "Last 12 months" },
+                    { id: "16months", label: "Last 16 months" },
+                    { id: "custom", label: "Custom" },
+                  ].map((opt) => (
+                    <label
+                      key={opt.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        fontFamily: "var(--sans)",
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "var(--ink)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="dateOption"
+                        checked={tempPeriodOption === opt.id}
+                        onChange={() => setTempPeriodOption(opt.id)}
+                        style={{ accentColor: "var(--brand)", width: 18, height: 18 }}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+
+                  {/* Custom Date Pickers */}
+                  {tempPeriodOption === "custom" && (
+                    <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, background: "var(--bg-3)", padding: 16, borderRadius: 16, border: "1px solid var(--border)" }}>
+                      <div>
+                        <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 6 }}>
+                          Start date
+                        </label>
+                        <input
+                          type="date"
+                          value={tempStartDate}
+                          onChange={(e) => setTempStartDate(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            borderRadius: 10,
+                            border: "1px solid var(--border)",
+                            background: "var(--bg-2)",
+                            color: "var(--ink)",
+                            fontFamily: "var(--sans)",
+                            fontSize: 13,
+                          }}
+                        />
+                        <span style={{ fontSize: 10, color: "var(--muted)", display: "block", marginTop: 4 }}>YYYY-MM-DD</span>
+                      </div>
+
+                      <div>
+                        <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 6 }}>
+                          End date
+                        </label>
+                        <input
+                          type="date"
+                          value={tempEndDate}
+                          onChange={(e) => setTempEndDate(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            borderRadius: 10,
+                            border: "1px solid var(--border)",
+                            background: "var(--bg-2)",
+                            color: "var(--ink)",
+                            fontFamily: "var(--sans)",
+                            fontSize: 13,
+                          }}
+                        />
+                        <span style={{ fontSize: 10, color: "var(--muted)", display: "block", marginTop: 4 }}>YYYY-MM-DD</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
+                  {[
+                    "Compare last 24 hours to previous period",
+                    "Compare last 24 hours week over week",
+                    "Compare last 7 days to previous period",
+                    "Compare last 7 days year over year",
+                    "Compare last 28 days to previous period",
+                    "Compare last 28 days year over year",
+                    "Compare last 3 months to previous period",
+                    "Compare last 3 months year over year",
+                    "Compare last 6 months to previous period",
+                  ].map((item, idx) => (
+                    <label
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        fontFamily: "var(--sans)",
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "var(--ink)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="compareOption"
+                        defaultChecked={idx === 4}
+                        style={{ accentColor: "var(--brand)", width: 18, height: 18 }}
+                      />
+                      <span>{item}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end", gap: 12, background: "var(--bg-3)" }}>
+              <button
+                onClick={() => setDateModalOpen(false)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 99,
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--brand)",
+                  fontFamily: "var(--sans)",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (tempPeriodOption === "custom") {
+                    if (!tempStartDate || !tempEndDate) {
+                      showMsg("Please select both start date and end date", "err");
+                      return;
+                    }
+                    setCustomStartDate(tempStartDate);
+                    setCustomEndDate(tempEndDate);
+                    setAnalyticsPeriod("custom");
+                  } else {
+                    setAnalyticsPeriod(tempPeriodOption as any);
+                  }
+                  setDateModalOpen(false);
+                }}
+                style={{
+                  padding: "8px 24px",
+                  borderRadius: 99,
+                  border: "none",
+                  background: "var(--brand)",
+                  color: "white",
+                  fontFamily: "var(--sans)",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(124, 58, 237, 0.3)",
+                }}
+              >
+                Apply
               </button>
             </div>
           </div>
