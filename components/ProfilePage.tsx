@@ -923,73 +923,9 @@ export default function ProfilePage() {
                   <h1 className="uget-profile-name" style={{ fontSize: 24 }}>
                     {profile.full_name}
                   </h1>
-                  <div className="uget-profile-username" style={{ marginBottom: 4 }}>
+                  <div className="uget-profile-username" style={{ marginBottom: 0 }}>
                     <span>@{profile.username || "writer"}</span>
                   </div>
-
-                  {/* Social Links on Mobile Header */}
-                  {(profile.website || profile.twitter) && (
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 10px", marginTop: 8 }}>
-                      {profile.twitter && (
-                        <a
-                          href={`https://x.com/${formatTwitterHandle(profile.twitter)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 6,
-                            fontSize: 12.5,
-                            fontFamily: "var(--sans)",
-                            color: "var(--black)",
-                            background: "var(--bg-3)",
-                            border: "1px solid var(--border)",
-                            padding: "4px 12px",
-                            borderRadius: 99,
-                            textDecoration: "none",
-                            fontWeight: 600,
-                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                          }}
-                          className="hover:border-gray-400 hover:shadow-xs"
-                        >
-                          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                          </svg>
-                          <span>@{formatTwitterHandle(profile.twitter)}</span>
-                        </a>
-                      )}
-                      {profile.website && (
-                        <a
-                          href={formatWebsiteUrl(profile.website)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 6,
-                            fontSize: 12.5,
-                            fontFamily: "var(--sans)",
-                            color: "#7c3aed",
-                            background: "rgba(124, 58, 237, 0.08)",
-                            border: "1px solid rgba(124, 58, 237, 0.2)",
-                            padding: "4px 12px",
-                            borderRadius: 99,
-                            textDecoration: "none",
-                            fontWeight: 600,
-                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                          }}
-                          className="hover:border-violet-400 hover:shadow-xs"
-                        >
-                          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18" />
-                          </svg>
-                          <span className="truncate max-w-[180px]">{formatWebsiteDisplay(profile.website)}</span>
-                        </a>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -997,6 +933,70 @@ export default function ProfilePage() {
                 <p className="text-base text-gray-600 dark:text-gray-400 font-serif leading-relaxed pt-3 border-t border-gray-100 dark:border-zinc-800">
                   {profile.bio}
                 </p>
+              )}
+
+              {/* Social Links on Mobile Header - placed below bio */}
+              {(profile.website || profile.twitter) && (
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 10px" }}>
+                  {profile.twitter && (
+                    <a
+                      href={`https://x.com/${formatTwitterHandle(profile.twitter)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 12.5,
+                        fontFamily: "var(--sans)",
+                        color: "var(--black)",
+                        background: "var(--bg-3)",
+                        border: "1px solid var(--border)",
+                        padding: "4px 12px",
+                        borderRadius: 99,
+                        textDecoration: "none",
+                        fontWeight: 600,
+                        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                      }}
+                      className="hover:border-gray-400 hover:shadow-xs"
+                    >
+                      <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                      </svg>
+                      <span>@{formatTwitterHandle(profile.twitter)}</span>
+                    </a>
+                  )}
+                  {profile.website && (
+                    <a
+                      href={formatWebsiteUrl(profile.website)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 12.5,
+                        fontFamily: "var(--sans)",
+                        color: "#7c3aed",
+                        background: "rgba(124, 58, 237, 0.08)",
+                        border: "1px solid rgba(124, 58, 237, 0.2)",
+                        padding: "4px 12px",
+                        borderRadius: 99,
+                        textDecoration: "none",
+                        fontWeight: 600,
+                        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                      }}
+                      className="hover:border-violet-400 hover:shadow-xs"
+                    >
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.6 9h16.8M3.6 15h16.8" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18" />
+                      </svg>
+                      <span className="truncate max-w-[180px]">{formatWebsiteDisplay(profile.website)}</span>
+                    </a>
+                  )}
+                </div>
               )}
 
               {/* Follow/Following/Share trigger buttons below Bio */}
@@ -1443,13 +1443,19 @@ export default function ProfilePage() {
             </div>
 
             <h2 className="uget-profile-name">{profile.full_name}</h2>
-            <div className="uget-profile-username">
+            <div className="uget-profile-username" style={{ marginBottom: profile.bio ? 12 : 16 }}>
               <span>@{profile.username || "writer"}</span>
             </div>
 
-            {/* Desktop Sidebar Social Links */}
+            {profile.bio && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-serif leading-relaxed" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", marginBottom: '12px' }}>
+                {profile.bio}
+              </p>
+            )}
+
+            {/* Desktop Sidebar Social Links - placed below bio */}
             {(profile.website || profile.twitter) && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: 10, marginBottom: 16 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: 16 }}>
                 {profile.twitter && (
                   <a
                     href={`https://x.com/${formatTwitterHandle(profile.twitter)}`}
@@ -1511,12 +1517,6 @@ export default function ProfilePage() {
                   </a>
                 )}
               </div>
-            )}
-
-            {profile.bio && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-serif leading-relaxed" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", marginBottom: '16px' }}>
-                {profile.bio}
-              </p>
             )}
 
             {/* Follow/Edit/Share trigger buttons */}
