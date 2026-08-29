@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [storiesSubTab, setStoriesSubTab] = useState<"drafts" | "published" | "scheduled" | "unlisted">("published");
   const [followSubTab, setFollowSubTab] = useState<"followers" | "following">("followers");
   const [statsSubTab, setStatsSubTab] = useState<"stories" | "audience">("stories");
+  const [selectedMonth, setSelectedMonth] = useState<string>("August 2026");
   
   // Custom dropdowns and layout states
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -783,9 +784,9 @@ export default function DashboardPage() {
                               {activeStoryMenuId === post.id && (
                                 <div className="story-options-menu">
                                   {/* Stats */}
-                                  <button onClick={() => { setActiveStoryMenuId(null); handleTabChange("stats"); }} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <button onClick={() => { setActiveStoryMenuId(null); router.push(`/post/${post.slug}?stats=true`); }} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                    View stats
+                                    View post analytics
                                   </button>
 
                                   {/* Edit */}
@@ -884,13 +885,18 @@ export default function DashboardPage() {
                             Monthly
                           </h3>
                           <span style={{ fontSize: 13, color: "var(--muted)" }}>
-                            June 1, 2026 - Today (UTC) · Updated hourly
+                            {selectedMonth === "August 2026" ? "August 1, 2026 - Today (UTC) · Updated hourly" : `${selectedMonth} · Monthly Summary`}
                           </span>
                         </div>
-                        <select style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--ink)", padding: "8px 16px", border: "1px solid var(--border)", borderRadius: 12, backgroundColor: "white", outline: "none", cursor: "pointer", width: "100%", maxWidth: 200 }}>
-                          <option>June 2026</option>
-                          <option>May 2026</option>
-                          <option>April 2026</option>
+                        <select 
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(e.target.value)}
+                          style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--ink)", padding: "8px 16px", border: "1px solid var(--border)", borderRadius: 12, backgroundColor: "white", outline: "none", cursor: "pointer", width: "100%", maxWidth: 200 }}
+                        >
+                          <option value="August 2026">August 2026</option>
+                          <option value="July 2026">July 2026</option>
+                          <option value="June 2026">June 2026</option>
+                          <option value="May 2026">May 2026</option>
                         </select>
                       </div>
 
@@ -977,9 +983,16 @@ export default function DashboardPage() {
                               })()}
 
                               {/* X Axis Labels */}
-                              <text x="40" y="178" textAnchor="middle" style={{ fill: "var(--muted)", fontSize: 10, fontFamily: "var(--sans)" }}>Jun 1</text>
-                              <text x="400" y="178" textAnchor="middle" style={{ fill: "var(--muted)", fontSize: 10, fontFamily: "var(--sans)" }}>Jun 8</text>
-                              <text x="760" y="178" textAnchor="middle" style={{ fill: "var(--muted)", fontSize: 10, fontFamily: "var(--sans)" }}>Jun 15</text>
+                              {(() => {
+                                const mPrefix = selectedMonth.split(" ")[0].substring(0, 3);
+                                return (
+                                  <>
+                                    <text x="40" y="178" textAnchor="middle" style={{ fill: "var(--muted)", fontSize: 10, fontFamily: "var(--sans)" }}>{mPrefix} 1</text>
+                                    <text x="400" y="178" textAnchor="middle" style={{ fill: "var(--muted)", fontSize: 10, fontFamily: "var(--sans)" }}>{mPrefix} 15</text>
+                                    <text x="760" y="178" textAnchor="middle" style={{ fill: "var(--muted)", fontSize: 10, fontFamily: "var(--sans)" }}>{mPrefix} {selectedMonth.startsWith("August") ? "29" : "30"}</text>
+                                  </>
+                                );
+                              })()}
                             </svg>
                           </div>
                         )}

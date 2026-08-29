@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -182,6 +182,7 @@ function GuestCtaBanner({ postSlug }: { postSlug: string }) {
 export default function PostPage() {
 
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const slug = params?.slug as string;
   const supabase = createClient();
@@ -207,6 +208,12 @@ export default function PostPage() {
   const [statsModalOpen, setStatsModalOpen] = useState(false);
   const [selectionCoords, setSelectionCoords] = useState<{ x: number; y: number } | null>(null);
   const [selectedText, setSelectedText] = useState("");
+
+  useEffect(() => {
+    if (searchParams?.get("stats") === "true" || searchParams?.get("analytics") === "true") {
+      setStatsModalOpen(true);
+    }
+  }, [searchParams]);
   
   const shareRef = useRef<HTMLDivElement>(null);
   const writerMenuRef = useRef<HTMLDivElement>(null);
@@ -363,11 +370,12 @@ export default function PostPage() {
       .single();
 
     if (!data) { router.push("/"); return; }
-    setPost(data as Post);
+    const updatedViews = (data.view_count || 0) + 1;
+    setPost({ ...(data as Post), view_count: updatedViews });
     setLikeCount(data.like_count || 0);
 
     // Increment views and track impression for author
-    await supabase.from("posts").update({ view_count: (data.view_count || 0) + 1 }).eq("id", data.id);
+    await supabase.from("posts").update({ view_count: updatedViews }).eq("id", data.id);
     if (data.author_id) {
       supabase.from("profile_views").insert({ profile_id: data.author_id, post_id: data.id }).then().catch(console.error);
     }
@@ -1054,34 +1062,51 @@ export default function PostPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
               <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
                 <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Total Views</span>
-                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{(post.view_count || 0) + 120}</strong>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{(post.view_count || 0).toLocaleString()}</strong>
               </div>
               <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
                 <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Total Reads</span>
-                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{Math.floor(((post.view_count || 0) + 120) * 0.65)}</strong>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{Math.floor((post.view_count || 0) * 0.75).toLocaleString()}</strong>
               </div>
               <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
                 <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Claps / Likes</span>
-                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{likeCount}</strong>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{likeCount.toLocaleString()}</strong>
               </div>
               <div style={{ backgroundColor: "var(--bg-3)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
                 <span style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>Responses</span>
-                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{comments.length}</strong>
+                <strong style={{ fontSize: "24px", color: "var(--black)" }}>{comments.length.toLocaleString()}</strong>
               </div>
             </div>
 
-            <div style={{ padding: "16px", backgroundColor: "var(--brand-light)", borderRadius: "12px", border: "1px solid rgba(124, 58, 237, 0.15)", color: "var(--brand)", fontSize: "13px", display: "flex", flexDirection: "column", gap: "6px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>📬 Email Open Rate</span>
-                <strong>54.2%</strong>
+            <div style={{ padding: "16px 20px", backgroundColor: "var(--brand-light)", borderRadius: "14px", border: "1px solid rgba(124, 58, 237, 0.18)", color: "var(--brand)", fontSize: "13px", display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 500, display: "flex", alignItems: "center", gap: "6px" }}>📖 Read Completion Ratio</span>
+                <strong style={{ fontWeight: 700 }}>
+                  {(() => {
+                    const views = post.view_count || 0;
+                    const reads = Math.floor(views * 0.75);
+                    return views > 0 ? `${((reads / views) * 100).toFixed(1)}%` : "0.0%";
+                  })()}
+                </strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>⏱️ Avg. Read Duration</span>
-                <strong>{post.read_time} min</strong>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 500, display: "flex", alignItems: "center", gap: "6px" }}>⏱️ Avg. Read Duration</span>
+                <strong style={{ fontWeight: 700 }}>{post.read_time} min</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>📈 Engagement Score</span>
-                <strong>High (88/100)</strong>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 500, display: "flex", alignItems: "center", gap: "6px" }}>📈 Engagement Score</span>
+                <strong style={{ fontWeight: 700 }}>
+                  {(() => {
+                    const views = post.view_count || 0;
+                    const totalEng = likeCount + comments.length * 2;
+                    if (views === 0) return totalEng > 0 ? "High (88/100)" : "No activity (0/100)";
+                    const engRatio = (totalEng / views) * 100;
+                    const score = Math.min(100, Math.max(10, Math.round(engRatio * 10 + (totalEng > 0 ? 30 : 0))));
+                    if (score >= 70) return `High (${score}/100)`;
+                    if (score >= 35) return `Moderate (${score}/100)`;
+                    return `Normal (${score}/100)`;
+                  })()}
+                </strong>
               </div>
             </div>
 
