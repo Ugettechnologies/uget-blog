@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [followSubTab, setFollowSubTab] = useState<"followers" | "following">("followers");
   const [statsSubTab, setStatsSubTab] = useState<"stories" | "audience">("stories");
   const [selectedMonth, setSelectedMonth] = useState<string>("August 2026");
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   
   // Custom dropdowns and layout states
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -95,6 +96,10 @@ export default function DashboardPage() {
       // Close stories action menu
       if (!target.closest(".story-options-trigger") && !target.closest(".story-options-menu")) {
         setActiveStoryMenuId(null);
+      }
+      // Close month dropdown
+      if (!target.closest(".month-dropdown-trigger") && !target.closest(".month-dropdown-menu")) {
+        setMonthDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -888,16 +893,118 @@ export default function DashboardPage() {
                             {selectedMonth === "August 2026" ? "August 1, 2026 - Today (UTC) · Updated hourly" : `${selectedMonth} · Monthly Summary`}
                           </span>
                         </div>
-                        <select 
-                          value={selectedMonth}
-                          onChange={(e) => setSelectedMonth(e.target.value)}
-                          style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 600, color: "var(--ink)", padding: "8px 16px", border: "1px solid var(--border)", borderRadius: 12, backgroundColor: "white", outline: "none", cursor: "pointer", width: "100%", maxWidth: 200 }}
-                        >
-                          <option value="August 2026">August 2026</option>
-                          <option value="July 2026">July 2026</option>
-                          <option value="June 2026">June 2026</option>
-                          <option value="May 2026">May 2026</option>
-                        </select>
+                        <div style={{ position: "relative" }} className="month-dropdown-trigger">
+                          <button
+                            type="button"
+                            onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 10,
+                              fontFamily: "var(--sans)",
+                              fontSize: 14,
+                              fontWeight: 600,
+                              color: "var(--black)",
+                              padding: "10px 18px",
+                              border: "1px solid var(--border-2)",
+                              borderRadius: "12px",
+                              backgroundColor: "var(--bg-2)",
+                              cursor: "pointer",
+                              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.12)",
+                              transition: "all 0.2s ease",
+                              outline: "none"
+                            }}
+                          >
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--primary)" }}>
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                              <line x1="16" y1="2" x2="16" y2="6" />
+                              <line x1="8" y1="2" x2="8" y2="6" />
+                              <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            <span>{selectedMonth}</span>
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                              style={{
+                                transition: "transform 0.2s ease",
+                                transform: monthDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                                color: "var(--muted)"
+                              }}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </button>
+
+                          {monthDropdownOpen && (
+                            <div
+                              className="month-dropdown-menu"
+                              style={{
+                                position: "absolute",
+                                top: "calc(100% + 8px)",
+                                right: 0,
+                                zIndex: 99,
+                                minWidth: 180,
+                                backgroundColor: "var(--bg-2)",
+                                border: "1px solid var(--border-2)",
+                                borderRadius: "14px",
+                                padding: "6px",
+                                boxShadow: "0 12px 32px rgba(0,0,0,0.35)",
+                                backdropFilter: "blur(12px)",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2
+                              }}
+                            >
+                              {["August 2026", "July 2026", "June 2026", "May 2026"].map((month) => {
+                                const isSelected = selectedMonth === month;
+                                return (
+                                  <button
+                                    key={month}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedMonth(month);
+                                      setMonthDropdownOpen(false);
+                                    }}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      width: "100%",
+                                      padding: "10px 14px",
+                                      borderRadius: "10px",
+                                      border: "none",
+                                      backgroundColor: isSelected ? "var(--brand-light)" : "transparent",
+                                      color: isSelected ? "var(--brand)" : "var(--black)",
+                                      fontFamily: "var(--sans)",
+                                      fontSize: 13,
+                                      fontWeight: isSelected ? 700 : 500,
+                                      cursor: "pointer",
+                                      transition: "background 0.15s ease",
+                                      textAlign: "left"
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (!isSelected) e.currentTarget.style.backgroundColor = "var(--bg-3)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                                    }}
+                                  >
+                                    <span>{month}</span>
+                                    {isSelected && (
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Metrics Summary Grid */}
