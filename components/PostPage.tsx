@@ -191,6 +191,7 @@ export default function PostPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [related, setRelated] = useState<Post[]>([]);
   const [user, setUser] = useState<{ id: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
@@ -355,7 +356,13 @@ export default function PostPage() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      if (user) {
+        supabase.from("profiles").select("*").eq("id", user.id).single()
+          .then(({ data }) => setUserProfile(data));
+      }
+    });
     if (slug) loadPost();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
@@ -550,6 +557,8 @@ export default function PostPage() {
   const author = post.profiles as any;
   const cat = CATEGORIES.find((c) => c.id === post.category);
   const isAuthor = user?.id === post.author_id;
+  const isStaffOrAdmin = userProfile?.role === "staff" || userProfile?.role === "admin";
+  const canViewStats = isAuthor || isStaffOrAdmin;
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
@@ -655,42 +664,50 @@ export default function PostPage() {
                 </div>
               )}
             </div>
-            {isAuthor && (
+            {canViewStats && (
               <div ref={writerMenuRef} style={{ position: "relative" }}>
                 <button
                   onClick={() => setWriterMenuOpen(!writerMenuOpen)}
                   className="article-action-btn"
                   style={{ gap: 6 }}
-                  title="Writer options"
+                  title={isAuthor ? "Writer options" : "Staff options"}
                 >
-                  ⚙️ <span style={{ fontSize: 13, fontWeight: 550 }}>Writer Options</span>
+                  {isStaffOrAdmin && !isAuthor ? "🛡️ Staff Options" : "⚙️ Writer Options"}
                   <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth={1.5}>
                     <path d="M1 1l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
                 {writerMenuOpen && (
                   <div className="share-dropdown" style={{ width: 190, right: 0, top: "calc(100% + 8px)" }}>
-                    <Link href={`/write/${post.id}`} className="share-item" style={{ textDecoration: "none", color: "var(--ink)", display: "block" }}>
-                      ✍️ Edit Story
-                    </Link>
+                    {isAuthor && (
+                      <Link href={`/write/${post.id}`} className="share-item" style={{ textDecoration: "none", color: "var(--ink)", display: "block" }}>
+                        ✍️ Edit Story
+                      </Link>
+                    )}
                     <button onClick={() => { setWriterMenuOpen(false); setStatsModalOpen(true); }} className="share-item">
                       📊 View Stats
                     </button>
-                    <button onClick={() => { setWriterMenuOpen(false); handleDuplicatePost(); }} className="share-item">
-                      👥 Duplicate Story
-                    </button>
-                    <button onClick={() => { setWriterMenuOpen(false); handleCrossPost(); }} className="share-item">
-                      📢 Cross-post
-                    </button>
-                    <button onClick={() => { setWriterMenuOpen(false); handlePinPost(); }} className="share-item">
-                      📌 Pin to Homepage
-                    </button>
+                    {isAuthor && (
+                      <>
+                        <button onClick={() => { setWriterMenuOpen(false); handleDuplicatePost(); }} className="share-item">
+                          👥 Duplicate Story
+                        </button>
+                        <button onClick={() => { setWriterMenuOpen(false); handleCrossPost(); }} className="share-item">
+                          📢 Cross-post
+                        </button>
+                        <button onClick={() => { setWriterMenuOpen(false); handlePinPost(); }} className="share-item">
+                          📌 Pin to Homepage
+                        </button>
+                      </>
+                    )}
                     <button onClick={() => { setWriterMenuOpen(false); handleExportPDF(); }} className="share-item">
                       📄 Open as PDF
                     </button>
-                    <button onClick={() => { setWriterMenuOpen(false); handleDeletePost(); }} className="share-item" style={{ color: "var(--red)" }}>
-                      🗑️ Delete Story
-                    </button>
+                    {(isAuthor || userProfile?.role === "admin") && (
+                      <button onClick={() => { setWriterMenuOpen(false); handleDeletePost(); }} className="share-item" style={{ color: "var(--red)" }}>
+                        🗑️ Delete Story
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

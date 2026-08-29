@@ -1197,9 +1197,19 @@ export default function DashboardPage() {
                                 <h3 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, color: "var(--black)", margin: "4px 0 8px" }}>{post.title}</h3>
                                 {post.excerpt && <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--muted)", margin: 0, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{post.excerpt}</p>}
                               </Link>
-                              <div style={{ display: "flex", gap: 12, marginTop: 8, color: "var(--muted-2)", fontSize: 12 }}>
+                              <div style={{ display: "flex", gap: 12, marginTop: 8, color: "var(--muted-2)", fontSize: 12, alignItems: "center", flexWrap: "wrap" }}>
                                 <span>{post.read_time} min read</span>
                                 {cat && <span>· {cat.icon} {cat.label}</span>}
+                                <span>· 👁️ {post.view_count || 0} views</span>
+                                <span>· 💖 {post.like_count || 0} likes</span>
+                                {(profile?.role === "staff" || profile?.role === "admin" || currentUser?.id === post.author_id) && (
+                                  <Link 
+                                    href={`/post/${post.slug}?stats=true`}
+                                    style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 10px", borderRadius: 999, background: "var(--brand-light)", border: "1px solid rgba(124, 58, 237, 0.15)" }}
+                                  >
+                                    📊 View Stats
+                                  </Link>
+                                )}
                               </div>
                             </div>
                             <Link href={`/post/${post.slug}`} style={{ width: 90, height: 90, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>
