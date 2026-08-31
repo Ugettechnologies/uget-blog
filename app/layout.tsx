@@ -26,6 +26,37 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com";
+  
+  const globalJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${baseUrl}/#website`,
+        url: baseUrl,
+        name: "EchoGist",
+        description: "Read and write stories that matter on EchoGist.",
+        publisher: {
+          "@type": "Organization",
+          name: "EchoGist",
+          logo: {
+            "@type": "ImageObject",
+            url: `${baseUrl}/favicon.png`,
+          },
+        },
+      },
+      {
+        "@type": "Organization",
+        "@id": `${baseUrl}/#organization`,
+        name: "EchoGist",
+        url: baseUrl,
+        logo: `${baseUrl}/favicon.png`,
+        sameAs: [],
+      },
+    ],
+  };
+
   const themeScript = `
     (function() {
       try {
@@ -51,6 +82,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(globalJsonLd) }}
+        />
         {/* Google AdSense */}
         <Script
           id="google-adsense"
@@ -81,3 +116,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
+
