@@ -854,6 +854,10 @@ export default function HomePage() {
     if (!user) { router.push("/?auth=signin"); return; }
     const { error } = await supabase.from("follows").insert({ follower_id: user.id, following_id: writerId });
     if (!error) {
+      const { data: prof } = await supabase.from("profiles").select("follower_count").eq("id", writerId).single();
+      if (prof) {
+        await supabase.from("profiles").update({ follower_count: (prof.follower_count || 0) + 1 }).eq("id", writerId);
+      }
       loadFollowingProfiles(user.id);
       loadSuggestedWriters();
     }

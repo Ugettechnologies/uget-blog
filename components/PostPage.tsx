@@ -465,9 +465,17 @@ export default function PostPage() {
     if (isFollowingAuthor) {
       await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", post.author_id);
       setIsFollowingAuthor(false);
+      const { data: prof } = await supabase.from("profiles").select("follower_count").eq("id", post.author_id).single();
+      if (prof) {
+        await supabase.from("profiles").update({ follower_count: Math.max(0, (prof.follower_count || 1) - 1) }).eq("id", post.author_id);
+      }
     } else {
       await supabase.from("follows").insert({ follower_id: user.id, following_id: post.author_id });
       setIsFollowingAuthor(true);
+      const { data: prof } = await supabase.from("profiles").select("follower_count").eq("id", post.author_id).single();
+      if (prof) {
+        await supabase.from("profiles").update({ follower_count: (prof.follower_count || 0) + 1 }).eq("id", post.author_id);
+      }
     }
   };
 

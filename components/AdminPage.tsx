@@ -525,8 +525,10 @@ export default function AdminPage() {
                     const totalImpressions = userProfileViews + postViewsTotal;
                     
                     // Followers gained for user in period
+                    const actualFollowsCount = allFollows.filter(f => f.following_id === u.id).length;
                     const newFollowers = filteredFollows.filter(f => f.following_id === u.id).length;
-                    const totalFollowers = u.follower_count || allFollows.filter(f => f.following_id === u.id).length;
+                    // Total followers can NEVER be smaller than new followers gained in period
+                    const totalFollowers = Math.max(actualFollowsCount, u.follower_count || 0, newFollowers);
 
                     // Likes gained for user in period
                     const likesGained = filteredLikes.filter(l => {
@@ -926,12 +928,35 @@ export default function AdminPage() {
                                     </span>
                                   </td>
                                   <td>
-                                    <span style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "#10b981" }}>
-                                      +{c.newFollowers} new
-                                    </span>
-                                    <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>
-                                      ({c.totalFollowers} total)
-                                    </span>
+                                    <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                                      <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>
+                                        {c.totalFollowers.toLocaleString()}
+                                      </span>
+                                      <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", fontWeight: 500 }}>
+                                        followers
+                                      </span>
+                                    </div>
+                                    {c.newFollowers > 0 ? (
+                                      <span style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: 3,
+                                        fontFamily: "var(--sans)",
+                                        fontSize: 11.5,
+                                        fontWeight: 600,
+                                        color: "#059669",
+                                        background: "rgba(16, 185, 129, 0.1)",
+                                        padding: "1px 6px",
+                                        borderRadius: 4,
+                                        marginTop: 3
+                                      }}>
+                                        +{c.newFollowers.toLocaleString()} new in period
+                                      </span>
+                                    ) : (
+                                      <span style={{ display: "block", fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted-2)", marginTop: 2 }}>
+                                        0 new in period
+                                      </span>
+                                    )}
                                   </td>
                                   <td>
                                     <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--black)", fontWeight: 600 }}>
