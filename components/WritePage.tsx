@@ -349,12 +349,27 @@ export default function WritePage() {
         />
         <textarea
           value={subtitle} onChange={(e) => setSubtitle(e.target.value)}
-          placeholder="Add a subtitle…"
+          placeholder="Add a subtitle / direct answer summary…"
           className="editor-subtitle-input"
           style={{ resize: "none", overflow: "hidden", width: "100%", border: "none", outline: "none" }}
           rows={1}
           onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }}
         />
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 14px",
+          background: "var(--brand-light)",
+          borderRadius: "var(--radius)",
+          marginBottom: 20,
+          border: "1px solid rgba(124, 58, 237, 0.15)",
+        }}>
+          <span style={{ fontSize: 14 }}>💡</span>
+          <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--brand)", fontWeight: 500, lineHeight: 1.4 }}>
+            <strong>Direct Answer / AI Overview:</strong> Provide a concise 1–2 sentence answer to the story's main topic. Google's AI Overviews and search engines feature this snippet at the top of search results.
+          </span>
+        </div>
         <div style={{ borderTop: "1px solid var(--border-2)", marginBottom: 24 }} />
         <TipTapEditor content={content} onChange={setContent} />
       </div>
@@ -369,7 +384,7 @@ export default function WritePage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 32, marginBottom: 32 }}>
               {/* Cover preview card */}
               <div>
-                <div style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Story preview</div>
+                <div style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Story & AI Search Preview</div>
                 
                 <div style={{ 
                   border: "1px solid var(--border)", 

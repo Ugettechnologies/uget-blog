@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -542,6 +542,24 @@ export default function PostPage() {
     setComments(comments.filter((c) => c.id !== commentId));
   };
 
+  const leadSummary = useMemo(() => {
+    if (post?.excerpt?.trim()) return post.excerpt.trim();
+    if (!post?.content) return "";
+    const clean = post.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+    return clean ? clean.slice(0, 180) + "…" : "";
+  }, [post?.excerpt, post?.content]);
+
+  const processedContent = useMemo(() => {
+    if (!post?.content) return "";
+    return post.content.replace(/<(h[2-3])([^>]*)>([\s\S]*?)<\/\1>/gi, (match, tag, attrs, innerText) => {
+      const idMatch = attrs.match(/id=["'](.*?)["']/);
+      const cleanText = innerText.replace(/<[^>]*>/g, "").trim();
+      const id = idMatch ? idMatch[1] : cleanText.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      const otherAttrs = attrs.replace(/\s*id=["'].*?["']/, "");
+      return `<${tag} id="${id}"${otherAttrs}>${innerText}<a href="#${id}" class="article-heading-anchor" title="Direct link to this section" aria-hidden="true">#</a></${tag}>`;
+    });
+  }, [post?.content]);
+
   if (loading) return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <Navbar />
@@ -722,12 +740,81 @@ export default function PostPage() {
         </div>
       )}
 
+      {/* ── GEO Direct Answer / Key Takeaway Callout ── */}
+      {(post.excerpt || leadSummary) && (
+        <aside
+          className="post-key-takeaways"
+          itemProp="abstract"
+          aria-label="Key Takeaways"
+        >
+          <div className="post-key-takeaways-badge">
+            <span>⚡</span>
+            <span>Key Takeaways / Overview</span>
+          </div>
+          <p className="post-key-takeaways-text">
+            {post.excerpt || leadSummary}
+          </p>
+        </aside>
+      )}
+
       {/* Article body */}
       <div 
         className="article-body" 
         onMouseUp={handleMouseUp}
-        dangerouslySetInnerHTML={{ __html: post.content }} 
+        dangerouslySetInnerHTML={{ __html: processedContent }} 
       />
+
+      {/* In-Article "Keep Exploring" Contextual Internal Links */}
+      {related.length > 0 && (
+        <div style={{ maxWidth: 680, margin: "0 auto 36px", padding: "0 24px" }}>
+          <div style={{
+            background: "var(--bg-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)",
+            padding: "24px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 18 }}>📚</span>
+                <h4 style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, margin: 0, color: "var(--black)" }}>
+                  Keep Exploring: More on {cat?.label || "this topic"}
+                </h4>
+              </div>
+              <Link 
+                href={`/?category=${encodeURIComponent(post.category || "")}`}
+                style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}
+              >
+                View all →
+              </Link>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {related.slice(0, 2).map((r) => {
+                const rAuthor = r.profiles as any;
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/post/${r.slug}`}
+                    className="article-continue-card"
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>
+                        By {rAuthor?.full_name || "Writer"} · {r.read_time} min read
+                      </span>
+                      <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--brand)", fontWeight: 600 }}>
+                        Read story →
+                      </span>
+                    </div>
+                    <span style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--black)", lineHeight: 1.35 }}>
+                      {r.title}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ad Banner for article readers */}
       <div style={{ maxWidth: 680, margin: "32px auto", padding: "0 24px" }}>
