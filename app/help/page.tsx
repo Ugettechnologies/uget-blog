@@ -27,6 +27,22 @@ export default function HelpPage() {
               <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6 }}>{faq.a}</p>
             </div>
           ))}
+
+          <div style={{ marginTop: 24, padding: "24px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12 }}>
+            <h3 style={{ fontFamily: "var(--sans)", fontSize: 17, fontWeight: 700, color: "var(--black)", marginBottom: 6 }}>
+              Still have questions?
+            </h3>
+            <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "0 0 16px", lineHeight: 1.6 }}>
+              Our support and editorial team is available to assist you with inquiries, publication guidelines, or technical questions.
+            </p>
+            <a 
+              href="mailto:support@echo-gist.com" 
+              className="btn btn-primary btn-sm"
+              style={{ display: "inline-block", textDecoration: "none" }}
+            >
+              Contact Support (support@echo-gist.com)
+            </a>
+          </div>
         </div>
       </main>
 

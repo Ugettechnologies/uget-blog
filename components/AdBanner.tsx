@@ -48,19 +48,21 @@ export default function AdBanner({
     <div className={`my-6 text-center ${className}`}>
       <div 
         style={{ 
-          display: adSenseFilled ? "block" : "none",
-          padding: "12px", 
+          padding: adSenseFilled ? "12px" : "0", 
           borderRadius: "12px", 
-          background: "var(--bg-2, #18181b)", 
-          border: "1px solid var(--border, #27272a)" 
+          background: adSenseFilled ? "var(--bg-2)" : "transparent", 
+          border: adSenseFilled ? "1px solid var(--border)" : "none",
+          overflow: "hidden"
         }}
       >
-        <div style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted, #a1a1aa)", marginBottom: "8px" }}>
-          Advertisement
-        </div>
+        {adSenseFilled && (
+          <div style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: "8px" }}>
+            Advertisement
+          </div>
+        )}
         <ins
           className="adsbygoogle"
-          style={{ display: "block" }}
+          style={{ display: "block", minHeight: adSenseFilled ? "90px" : "1px" }}
           data-ad-client="ca-pub-7030150096951668"
           data-ad-slot={dataAdSlot}
           data-ad-format={dataAdFormat}
