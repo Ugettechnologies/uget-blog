@@ -462,7 +462,7 @@ export default function WritePage() {
                         alignItems: "center",
                         gap: 4
                       }}>
-                        {CATEGORIES.find(c => c.id === category)?.icon} {CATEGORIES.find(c => c.id === category)?.label || category}
+                        {CATEGORIES.find(c => c.id === category)?.label || category}
                       </span>
                     </div>
                   ) : null}
@@ -548,8 +548,7 @@ export default function WritePage() {
                   onChange={setCategory}
                   options={CATEGORIES.map(c => ({
                     value: c.id,
-                    label: c.label,
-                    icon: c.icon
+                    label: c.label
                   }))}
                 />
 

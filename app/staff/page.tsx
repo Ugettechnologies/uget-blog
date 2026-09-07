@@ -367,7 +367,7 @@ export default function StaffPage() {
                             
                             <div style={{ display: "flex", gap: 12, marginTop: 16, color: "var(--muted-2)", fontSize: 12, alignItems: "center" }}>
                               <span>{post.read_time} min read</span>
-                              {cat && <span style={{ background: "var(--bg-3)", padding: "2px 8px", borderRadius: 12 }}>{cat.icon} {cat.label}</span>}
+                              {cat && <span style={{ background: "var(--bg-3)", padding: "2px 8px", borderRadius: 12 }}>{cat.label}</span>}
                             </div>
                           </div>
                           <Link href={`/post/${post.slug}`} style={{ width: 112, height: 112, borderRadius: 6, overflow: "hidden", flexShrink: 0, display: "block" }}>

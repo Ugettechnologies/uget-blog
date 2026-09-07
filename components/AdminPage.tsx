@@ -1108,7 +1108,7 @@ export default function AdminPage() {
                             </td>
                             <td>
                               <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", background: "var(--bg-3)", padding: "3px 8px", borderRadius: 999 }}>
-                                {cat?.icon} {cat?.label || p.category}
+                                {cat?.label || p.category}
                               </span>
                             </td>
                             <td>

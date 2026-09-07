@@ -72,9 +72,94 @@ export default function ProfilePage() {
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
   const [userBookmarks, setUserBookmarks] = useState<Set<string>>(new Set());
 
+  const [copiedPostId, setCopiedPostId] = useState<string | null>(null);
+
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleSharePost = async (e: React.MouseEvent, post: Post) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/post/${post.slug}` : "";
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt || post.title,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // Fallback
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedPostId(post.id);
+      setTimeout(() => setCopiedPostId(null), 2000);
+    }
+  };
+
+  const handleToggleLike = async (postId: string) => {
+    if (!currentUser) {
+      router.push("/?auth=signin");
+      return;
+    }
+    const isLiked = userLikes.has(postId);
+    const newLikes = new Set(userLikes);
+    if (isLiked) {
+      newLikes.delete(postId);
+    } else {
+      newLikes.add(postId);
+    }
+    setUserLikes(newLikes);
+
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, like_count: Math.max(0, (p.like_count || 0) + (isLiked ? -1 : 1)) }
+          : p
+      )
+    );
+
+    try {
+      if (isLiked) {
+        await supabase.from("likes").delete().eq("post_id", postId).eq("user_id", currentUser.id);
+      } else {
+        await supabase.from("likes").insert({ post_id: postId, user_id: currentUser.id });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleBookmark = async (postId: string) => {
+    if (!currentUser) {
+      router.push("/?auth=signin");
+      return;
+    }
+    const isBookmarked = userBookmarks.has(postId);
+    const newBookmarks = new Set(userBookmarks);
+    if (isBookmarked) {
+      newBookmarks.delete(postId);
+    } else {
+      newBookmarks.add(postId);
+    }
+    setUserBookmarks(newBookmarks);
+
+    try {
+      if (isBookmarked) {
+        await supabase.from("bookmarks").delete().eq("post_id", postId).eq("user_id", currentUser.id);
+        showMsg("Removed from Library");
+      } else {
+        await supabase.from("bookmarks").insert({ post_id: postId, user_id: currentUser.id });
+        showMsg("Saved to Library");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Bio editor state
@@ -1210,6 +1295,9 @@ export default function ProfilePage() {
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     {posts.map((post) => {
                       const cat = CATEGORIES.find((c) => c.id === post.category);
+                      const isLiked = userLikes.has(post.id);
+                      const isBookmarked = userBookmarks.has(post.id);
+                      const isCopied = copiedPostId === post.id;
                       return (
                         <article key={post.id} className="post-card" style={{ padding: "24px 0", borderBottom: "1px solid var(--border-2)" }}>
                           <div className="post-card-content">
@@ -1222,9 +1310,70 @@ export default function ProfilePage() {
                               {post.excerpt && <p className="post-card-excerpt" style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>{post.excerpt}</p>}
                             </Link>
                             <div className="post-card-meta" style={{ marginTop: 8 }}>
-                              <span>{post.read_time || 1} min read</span>
-                              <span>· {post.view_count || 0} views</span>
-                              <span>· {post.like_count || 0} likes</span>
+                              <div className="post-card-meta-left">
+                                <span>{post.read_time || 1} min read</span>
+                                <span>·</span>
+                                <span className="flex items-center gap-1" title={`${post.view_count || 0} views`}>
+                                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.573 16.49 16.638 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                  {post.view_count || 0} views
+                                </span>
+                              </div>
+                              <div className="post-card-meta-actions">
+                                {/* Likes */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleLike(post.id); }}
+                                  className={`post-card-action-btn ${isLiked ? "active-like" : ""}`}
+                                  title={isLiked ? "Unlike" : "Like"}
+                                  aria-label="Like story"
+                                >
+                                  <svg width="15" height="15" fill={isLiked ? "#ef4444" : "none"} viewBox="0 0 24 24" stroke={isLiked ? "#ef4444" : "currentColor"} strokeWidth={isLiked ? "0" : "2"}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                  </svg>
+                                  <span>{post.like_count || 0}</span>
+                                </button>
+
+                                {/* Comments */}
+                                <Link
+                                  href={`/post/${post.slug}#comments`}
+                                  className="post-card-action-btn"
+                                  title="Comments"
+                                  aria-label="View comments"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a.75.75 0 01-.84-.84c.162-.976.438-1.932.825-2.826C3.917 15.892 3 14.043 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                                  </svg>
+                                  <span>{post.comment_count || 0}</span>
+                                </Link>
+
+                                {/* Share */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleSharePost(e, post)}
+                                  className="post-card-action-btn"
+                                  title={isCopied ? "Link Copied!" : "Share story"}
+                                  aria-label="Share story"
+                                >
+                                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                  </svg>
+                                  {isCopied && <span className="share-copied-toast">Copied!</span>}
+                                </button>
+
+                                {/* Bookmark */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleBookmark(post.id); }}
+                                  className={`post-card-action-btn ${isBookmarked ? "active-bookmark" : ""}`}
+                                  title={isBookmarked ? "Remove from Library" : "Save to Library"}
+                                  aria-label="Bookmark story"
+                                >
+                                  <svg width="15" height="15" fill={isBookmarked ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                           </div>
                           {post.cover_image && (

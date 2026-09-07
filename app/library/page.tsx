@@ -1048,7 +1048,7 @@ export default function LibraryPage() {
                                     {post.excerpt && <p style={{ fontFamily: "var(--serif)", fontSize: 13, color: "var(--muted)", margin: "0 0 16px", lineHeight: 1.4 }} className="truncate-2">{post.excerpt}</p>}
                                   </Link>
                                   <div className="post-card-meta" style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
-                                    {cat && <span style={{ background: "var(--bg-3)", padding: "2px 8px", borderRadius: 4 }}>{cat.icon} {cat.label}</span>}
+                                    {cat && <span style={{ background: "var(--bg-3)", padding: "2px 8px", borderRadius: 4 }}>{cat.label}</span>}
                                     <span>{formatDate(post.created_at)}</span>
                                     <span>·</span>
                                     <span>{post.read_time || 1} min read</span>

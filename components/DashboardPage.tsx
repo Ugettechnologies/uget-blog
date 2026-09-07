@@ -805,7 +805,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Content Area */}
-        <div className="w-full max-w-full py-6 box-border" style={{ paddingLeft: "max(24px, 5vw)", paddingRight: "max(24px, 5vw)", boxSizing: "border-box" }}>
+        <div className="w-full max-w-full box-border" style={{ paddingLeft: "max(24px, 5vw)", paddingRight: "max(24px, 5vw)", paddingTop: 36, paddingBottom: 48, boxSizing: "border-box" }}>
           {loading ? (
             <div style={{ padding: "100px 0", textAlign: "center" }}>
               <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)", margin: "0 auto" }} />
@@ -814,7 +814,7 @@ export default function DashboardPage() {
             <>
               {/* ── STORIES TAB ── */}
               {activeTab === "stories" && (
-                <div>
+                <div style={{ marginTop: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
                     <h2 style={{ fontFamily: "var(--display)", fontSize: 32, fontWeight: 800, color: "var(--black)", letterSpacing: "-0.02em", margin: 0 }}>
                       Your stories
@@ -1778,7 +1778,7 @@ export default function DashboardPage() {
                               </Link>
                               <div style={{ display: "flex", gap: 12, marginTop: 8, color: "var(--muted-2)", fontSize: 12, alignItems: "center", flexWrap: "wrap" }}>
                                 <span>{post.read_time} min read</span>
-                                {cat && <span>· {cat.icon} {cat.label}</span>}
+                                {cat && <span>· {cat.label}</span>}
                                 <span>· 👁️ {post.view_count || 0} views</span>
                                 <span>· 💖 {post.like_count || 0} likes</span>
                                 {(profile?.role === "staff" || profile?.role === "admin" || currentUser?.id === post.author_id) && (

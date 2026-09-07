@@ -592,7 +592,7 @@ export default function PostPage() {
 
       {/* Article header */}
       <div className="article-header">
-        <span className="article-category">{cat?.icon} {cat?.label}</span>
+        <span className="article-category">{cat?.label}</span>
         <h1 className="article-title">{post.title}</h1>
         {post.excerpt && <p className="article-subtitle">{post.excerpt}</p>}
 
