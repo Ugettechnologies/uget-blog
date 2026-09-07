@@ -1483,67 +1483,53 @@ export default function DashboardPage() {
                           )}
                         </div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
                           {exploreWriters.map((cand) => (
                             <div 
                               key={cand.id} 
                               style={{ 
-                                padding: "20px", 
-                                background: "var(--bg-2)", 
-                                border: "1px solid var(--border)", 
-                                borderRadius: 18, 
                                 display: "flex", 
-                                flexDirection: "column", 
-                                justifyContent: "space-between", 
-                                gap: 14,
-                                transition: "transform 0.15s ease, box-shadow 0.15s ease"
+                                gap: 16, 
+                                alignItems: "center", 
+                                padding: "16px 0", 
+                                borderBottom: "1px solid var(--border-2)" 
                               }}
                             >
-                              <div>
-                                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
-                                  <Link href={`/profile/${cand.username || cand.id}`} style={{ textDecoration: "none", flexShrink: 0 }}>
-                                    <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                                      {cand.avatar_url ? <Image src={cand.avatar_url} alt="" width={46} height={46} style={{ objectFit: "cover" }} /> : getInitials(cand.full_name)}
-                                    </div>
-                                  </Link>
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                      <Link href={`/profile/${cand.username || cand.id}`} style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--ink)", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                        {cand.full_name || "EchoGist Writer"}
-                                      </Link>
-                                      {(cand.role === "admin" || cand.role === "staff") && (
-                                        <span style={{ fontSize: 10, fontWeight: 700, background: "var(--brand-light)", color: "var(--brand)", padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>
-                                          STAFF
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>@{cand.username || "writer"}</div>
-                                  </div>
+                              <Link href={`/profile/${cand.username || cand.id}`} style={{ display: "block", flexShrink: 0 }}>
+                                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
+                                  {cand.avatar_url ? <Image src={cand.avatar_url} alt="" width={44} height={44} style={{ objectFit: "cover" }} /> : getInitials(cand.full_name)}
                                 </div>
-
-                                {cand.bio ? (
-                                  <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 8px", lineHeight: 1.4, fontFamily: "var(--sans)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                              </Link>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                  <Link href={`/profile/${cand.username || cand.id}`} style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>
+                                    {cand.full_name || "EchoGist Writer"}
+                                  </Link>
+                                  <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>@{cand.username || "writer"}</span>
+                                  {(cand.role === "admin" || cand.role === "staff") && (
+                                    <span style={{ fontSize: 10, fontWeight: 700, background: "var(--brand-light)", color: "var(--brand)", padding: "1px 6px", borderRadius: 4 }}>
+                                      STAFF
+                                    </span>
+                                  )}
+                                </div>
+                                {cand.bio && (
+                                  <p style={{ fontSize: 13, color: "var(--muted)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--sans)" }}>
                                     {cand.bio}
                                   </p>
-                                ) : (
-                                  <p style={{ fontSize: 12, color: "var(--muted-2)", margin: "0 0 8px", fontStyle: "italic", fontFamily: "var(--serif)" }}>
-                                    EchoGist author & contributor
-                                  </p>
                                 )}
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                                  <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
+                                    👥 {cand.totalFollowerCount} {cand.totalFollowerCount === 1 ? "follower" : "followers"}
+                                  </span>
+                                </div>
                               </div>
-
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--border-2)", paddingTop: 12, marginTop: 4 }}>
-                                <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
-                                  {cand.totalFollowerCount} {cand.totalFollowerCount === 1 ? "follower" : "followers"}
-                                </span>
-                                <button
-                                  onClick={() => handleFollowToggle(cand.id, false)}
-                                  className="btn btn-primary btn-sm"
-                                  style={{ borderRadius: 999, padding: "6px 18px", fontWeight: 600 }}
-                                >
-                                  + Follow
-                                </button>
-                              </div>
+                              <button
+                                onClick={() => handleFollowToggle(cand.id, false)}
+                                className="btn btn-primary btn-sm"
+                                style={{ borderRadius: 999, padding: "6px 20px", fontWeight: 600, flexShrink: 0 }}
+                              >
+                                + Follow
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -1570,60 +1556,53 @@ export default function DashboardPage() {
                           <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>You are following all active writers on EchoGist.</p>
                         </div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
                           {suggestions.map((cand) => (
                             <div 
                               key={cand.id} 
                               style={{ 
-                                padding: "20px", 
-                                background: "var(--bg-2)", 
-                                border: "1px solid var(--border)", 
-                                borderRadius: 18, 
                                 display: "flex", 
-                                flexDirection: "column", 
-                                justifyContent: "space-between", 
-                                gap: 14,
-                                transition: "transform 0.15s ease, box-shadow 0.15s ease"
+                                gap: 16, 
+                                alignItems: "center", 
+                                padding: "16px 0", 
+                                borderBottom: "1px solid var(--border-2)" 
                               }}
                             >
-                              <div>
-                                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
-                                  <Link href={`/profile/${cand.username || cand.id}`} style={{ textDecoration: "none", flexShrink: 0 }}>
-                                    <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                                      {cand.avatar_url ? <Image src={cand.avatar_url} alt="" width={46} height={46} style={{ objectFit: "cover" }} /> : getInitials(cand.full_name)}
-                                    </div>
+                              <Link href={`/profile/${cand.username || cand.id}`} style={{ display: "block", flexShrink: 0 }}>
+                                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
+                                  {cand.avatar_url ? <Image src={cand.avatar_url} alt="" width={44} height={44} style={{ objectFit: "cover" }} /> : getInitials(cand.full_name)}
+                                </div>
+                              </Link>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                  <Link href={`/profile/${cand.username || cand.id}`} style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>
+                                    {cand.full_name}
                                   </Link>
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <Link href={`/profile/${cand.username || cand.id}`} style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--ink)", textDecoration: "none", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                      {cand.full_name}
-                                    </Link>
-                                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>@{cand.username || "writer"}</div>
-                                  </div>
+                                  <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>@{cand.username || "writer"}</span>
+                                  {cand.reason && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", background: "var(--brand-light)", borderRadius: 999, color: "var(--brand)", fontSize: 11, fontWeight: 600, fontFamily: "var(--sans)" }}>
+                                      ✨ {cand.reason}
+                                    </span>
+                                  )}
                                 </div>
-
-                                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", background: "var(--brand-light)", borderRadius: 999, color: "var(--brand)", fontSize: 11, fontWeight: 600, fontFamily: "var(--sans)", marginBottom: 10 }}>
-                                  <span>✨</span> {cand.reason}
-                                </div>
-
                                 {cand.bio && (
-                                  <p style={{ fontSize: 13, color: "var(--muted)", margin: 0, lineHeight: 1.4, fontFamily: "var(--sans)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                  <p style={{ fontSize: 13, color: "var(--muted)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--sans)" }}>
                                     {cand.bio}
                                   </p>
                                 )}
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                                  <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
+                                    👥 {cand.totalFollowerCount} {cand.totalFollowerCount === 1 ? "follower" : "followers"}
+                                  </span>
+                                </div>
                               </div>
-
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--border-2)", paddingTop: 12, marginTop: 4 }}>
-                                <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
-                                  {cand.totalFollowerCount} {cand.totalFollowerCount === 1 ? "follower" : "followers"}
-                                </span>
-                                <button
-                                  onClick={() => handleFollowToggle(cand.id, false)}
-                                  className="btn btn-primary btn-sm"
-                                  style={{ borderRadius: 999, padding: "6px 18px", fontWeight: 600 }}
-                                >
-                                  + Follow
-                                </button>
-                              </div>
+                              <button
+                                onClick={() => handleFollowToggle(cand.id, false)}
+                                className="btn btn-primary btn-sm"
+                                style={{ borderRadius: 999, padding: "6px 20px", fontWeight: 600, flexShrink: 0 }}
+                              >
+                                + Follow
+                              </button>
                             </div>
                           ))}
                         </div>
