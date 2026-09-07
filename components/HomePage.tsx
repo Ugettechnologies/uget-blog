@@ -13,7 +13,6 @@ import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon,
 import SafeImage from "./SafeImage";
 import SponsoredCard from "./SponsoredCard";
 import AdBanner from "./AdBanner";
-import FeedPostCard from "./FeedPostCard";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -1267,15 +1266,7 @@ export default function HomePage() {
                 ) : (
                   (query ? posts : posts.slice(0, 10)).map((post, idx) => (
                     <div key={post.id}>
-                      <FeedPostCard
-                        post={post}
-                        currentUser={user}
-                        currentUserProfile={userProfile}
-                        isInitiallyLiked={userLikes.has(post.id)}
-                        isInitiallyBookmarked={userBookmarks.has(post.id)}
-                        isInitiallyFollowing={followingProfiles.some((p) => p.id === post.author_id)}
-                        onFollowToggle={handleFollowSuggestedWriter}
-                      />
+                      <PostCard post={post} />
                       {(idx + 1) % 8 === 0 && <SponsoredCard variant="feed" />}
                     </div>
                   ))
@@ -1917,18 +1908,7 @@ export default function HomePage() {
                 </div>
               ) : null
             ) : (
-              feedPosts.map((post) => (
-                <FeedPostCard
-                  key={post.id}
-                  post={post}
-                  currentUser={user}
-                  currentUserProfile={userProfile}
-                  isInitiallyLiked={userLikes.has(post.id)}
-                  isInitiallyBookmarked={userBookmarks.has(post.id)}
-                  isInitiallyFollowing={followingProfiles.some((p) => p.id === post.author_id)}
-                  onFollowToggle={handleFollowSuggestedWriter}
-                />
-              ))
+              feedPosts.map((post) => <PostCard key={post.id} post={post} />)
             )}
           </div>
 

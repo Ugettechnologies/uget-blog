@@ -10,7 +10,6 @@ import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon, NavNotificationButton } from "@/components/SidebarNav";
 import SafeImage from "./SafeImage";
 import { ShareProfileModal } from "@/components/ShareProfileModal";
-import FeedPostCard from "./FeedPostCard";
 
 function getAvatarGradient(name: string | null | undefined) {
   const gradients = [
@@ -1209,27 +1208,33 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    {posts.map((post) => (
-                      <FeedPostCard
-                        key={post.id}
-                        post={{ ...post, profiles: post.profiles || profile || undefined }}
-                        currentUser={currentUser}
-                        currentUserProfile={currentUserProfile}
-                        isInitiallyLiked={userLikes.has(post.id)}
-                        isInitiallyBookmarked={userBookmarks.has(post.id)}
-                        isInitiallyFollowing={isFollowing}
-                        onFollowToggle={async (authorId, willFollow) => {
-                          if (!currentUser) return;
-                          if (willFollow) {
-                            await supabase.from("follows").insert({ follower_id: currentUser.id, following_id: authorId });
-                            setIsFollowing(true);
-                          } else {
-                            await supabase.from("follows").delete().eq("follower_id", currentUser.id).eq("following_id", authorId);
-                            setIsFollowing(false);
-                          }
-                        }}
-                      />
-                    ))}
+                    {posts.map((post) => {
+                      const cat = CATEGORIES.find((c) => c.id === post.category);
+                      return (
+                        <article key={post.id} className="post-card" style={{ padding: "24px 0", borderBottom: "1px solid var(--border-2)" }}>
+                          <div className="post-card-content">
+                            <div className="post-card-meta" style={{ marginBottom: 8 }}>
+                              {cat && <span className="post-card-tag">{cat.label}</span>}
+                              <span>{formatDate(post.created_at)}</span>
+                            </div>
+                            <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>
+                              <h2 className="post-card-title" style={{ fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 8 }}>{post.title}</h2>
+                              {post.excerpt && <p className="post-card-excerpt" style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>{post.excerpt}</p>}
+                            </Link>
+                            <div className="post-card-meta" style={{ marginTop: 8 }}>
+                              <span>{post.read_time || 1} min read</span>
+                              <span>· {post.view_count || 0} views</span>
+                              <span>· {post.like_count || 0} likes</span>
+                            </div>
+                          </div>
+                          {post.cover_image && (
+                            <Link href={`/post/${post.slug}`} className="post-card-image">
+                              <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
+                            </Link>
+                          )}
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
               </div>
