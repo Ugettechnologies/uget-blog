@@ -1365,28 +1365,28 @@ export default function DashboardPage() {
                       onClick={() => setFollowSubTab("explore")} 
                       style={{ padding: "12px 0", cursor: "pointer" }}
                     >
-                      Explore All ({exploreWriters.length})
+                      Explore All
                     </button>
                     <button 
                       className={`dash-tab ${followSubTab === "suggestions" ? "active" : ""}`} 
                       onClick={() => setFollowSubTab("suggestions")} 
                       style={{ padding: "12px 0", cursor: "pointer" }}
                     >
-                      Suggestions ({suggestions.length})
+                      Suggestions
                     </button>
                     <button 
                       className={`dash-tab ${followSubTab === "following" ? "active" : ""}`} 
                       onClick={() => setFollowSubTab("following")} 
                       style={{ padding: "12px 0", cursor: "pointer" }}
                     >
-                      Following ({following.length})
+                      Following
                     </button>
                     <button 
                       className={`dash-tab ${followSubTab === "followers" ? "active" : ""}`} 
                       onClick={() => setFollowSubTab("followers")} 
                       style={{ padding: "12px 0", cursor: "pointer" }}
                     >
-                      Followers ({followers.length})
+                      Followers
                     </button>
                   </div>
 

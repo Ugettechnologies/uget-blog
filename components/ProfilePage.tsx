@@ -1712,7 +1712,7 @@ export default function ProfilePage() {
                     color: followModal.tab === "followers" ? "#fff" : "var(--ink)"
                   }}
                 >
-                  Followers ({profileFollowers.length})
+                  Followers
                 </button>
                 <button
                   onClick={() => setFollowModal(prev => ({ ...prev, tab: "following" }))}
@@ -1728,7 +1728,7 @@ export default function ProfilePage() {
                     color: followModal.tab === "following" ? "#fff" : "var(--ink)"
                   }}
                 >
-                  Following ({profileFollowing.length})
+                  Following
                 </button>
               </div>
               <button 
