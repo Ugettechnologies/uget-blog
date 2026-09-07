@@ -470,7 +470,7 @@ export default function DashboardPage() {
           align-items: center;
           justify-content: space-between;
           padding: 0 32px;
-          z-index: 90;
+          z-index: 999;
         }
         .uget-header-search {
           align-items: center;
@@ -536,18 +536,27 @@ export default function DashboardPage() {
         .story-row-wrapper {
           display: flex;
           align-items: center;
-          gap: 20px;
-          padding: 20px 0;
+          gap: 16px;
+          padding: 16px 0;
           border-bottom: 1px solid var(--border-2);
           position: relative;
         }
         .story-row-wrapper:last-child {
           border-bottom: none;
         }
+        .post-thumb {
+          width: 80px;
+          height: 60px;
+          border-radius: 8px;
+          overflow: hidden;
+          flex-shrink: 0;
+          background: var(--bg-3);
+          position: relative;
+        }
         .story-options-menu {
           position: absolute;
           right: 0;
-          top: 40px;
+          top: 36px;
           background-color: var(--modal-bg, var(--bg-2));
           border: 1px solid var(--border);
           border-radius: 12px;
@@ -578,42 +587,15 @@ export default function DashboardPage() {
           background-color: var(--bg-3);
           color: var(--ink);
         }
-        .story-quick-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          border-radius: 999px;
-          font-family: var(--sans);
-          font-size: 12px;
-          font-weight: 600;
-          background: var(--bg-2);
-          border: 1px solid var(--border-2);
-          color: var(--ink);
-          cursor: pointer;
-          text-decoration: none;
-          transition: all 0.15s ease;
-        }
-        .story-quick-btn:hover {
-          background: var(--bg-3);
-          border-color: var(--border);
-        }
-        .story-quick-delete-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 7px;
-          border-radius: 50%;
-          background: transparent;
-          border: 1px solid transparent;
-          color: var(--muted);
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-        .story-quick-delete-btn:hover {
-          background: rgba(239, 68, 68, 0.1);
-          border-color: rgba(239, 68, 68, 0.2);
-          color: var(--red, #ef4444);
+        @media (max-width: 640px) {
+          .story-row-wrapper {
+            gap: 12px;
+            padding: 14px 0;
+          }
+          .post-thumb {
+            width: 68px;
+            height: 52px;
+          }
         }
         @media (max-width: 1024px) {
           .uget-sidebar {
@@ -894,7 +876,7 @@ export default function DashboardPage() {
                               <SafeImage src={post.cover_image} alt="" width={80} height={60} fallbackSeed={post.id || post.slug} />
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
                                 <span style={{ fontFamily: "var(--sans)", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: post.published ? "var(--accent-bg)" : "var(--bg-3)", color: post.published ? "var(--accent-hover)" : "var(--muted)" }}>
                                   {post.published ? "Published" : "Draft"}
                                 </span>
@@ -904,109 +886,90 @@ export default function DashboardPage() {
                               <Link href={post.published ? `/post/${post.slug}` : `/write/${post.id}`} style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", textDecoration: "none", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                                 {post.title || "Untitled Story"}
                               </Link>
-                              <div style={{ display: "flex", gap: 12, marginTop: 6, color: "var(--muted-2)" }}>
-                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}><span style={{ fontSize: 14 }}>👁</span> {post.view_count || 0} views</span>
-                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}><span style={{ fontSize: 12 }}>💖</span> {post.like_count || 0} likes</span>
+                              <div style={{ display: "flex", gap: 12, marginTop: 6, color: "var(--muted-2)", alignItems: "center" }}>
+                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+                                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.573 16.49 16.638 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                  {post.view_count || 0} views
+                                </span>
+                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+                                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                                  {post.like_count || 0} likes
+                                </span>
                               </div>
                             </div>
 
-                            {/* Quick Action Buttons & Dropdown Options menu */}
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              {/* Quick Edit button */}
-                              <Link 
-                                href={`/write/${post.id}`} 
-                                className="story-quick-btn"
-                                title="Edit this story"
+                            {/* Dropdown Options menu trigger */}
+                            <div className="relative story-options-trigger" style={{ flexShrink: 0 }}>
+                              <button
+                                onClick={() => setActiveStoryMenuId(activeStoryMenuId === post.id ? null : post.id)}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full text-gray-500 transition-colors"
+                                title="Story options"
+                                aria-label="Story options"
                               >
-                                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                                <span>Edit</span>
-                              </Link>
-
-                              {/* Quick Delete button */}
-                              <button 
-                                onClick={() => handleDelete(post.id)} 
-                                className="story-quick-delete-btn"
-                                title="Delete story"
-                              >
-                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                <OptionsIcon />
                               </button>
 
-                              {/* Dropdown Options menu trigger */}
-                              <div className="relative story-options-trigger">
-                                <button
-                                  onClick={() => setActiveStoryMenuId(activeStoryMenuId === post.id ? null : post.id)}
-                                  className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full text-gray-500 transition-colors"
-                                  title="More options"
-                                >
-                                  <OptionsIcon />
-                                </button>
+                              {activeStoryMenuId === post.id && (
+                                <div className="story-options-menu">
+                                  {/* Edit */}
+                                  <Link href={`/write/${post.id}`} className="story-options-item">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                    Edit story
+                                  </Link>
 
-                                {activeStoryMenuId === post.id && (
-                                  <div className="story-options-menu">
-                                    {/* Stats */}
-                                    <button onClick={() => { setActiveStoryMenuId(null); router.push(`/post/${post.slug}?stats=true`); }} className="story-options-item">
-                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                      View post analytics
-                                    </button>
+                                  {/* View / Analytics */}
+                                  <button onClick={() => { setActiveStoryMenuId(null); router.push(`/post/${post.slug}?stats=true`); }} className="story-options-item">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                    View post analytics
+                                  </button>
 
-                                    {/* Edit */}
-                                    <Link href={`/write/${post.id}`} className="story-options-item">
-                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                      Edit story
-                                    </Link>
+                                  {/* Duplicate */}
+                                  <button onClick={() => handleDuplicate(post)} className="story-options-item">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    Duplicate
+                                  </button>
 
-                                    {/* Duplicate */}
-                                    <button onClick={() => handleDuplicate(post)} className="story-options-item">
-                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                                      Duplicate
-                                    </button>
+                                  {/* Pin to homepage */}
+                                  <button onClick={() => handleTogglePin(post)} className="story-options-item">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                    {(post as any).pinned ? "Unpin from homepage" : "Pin to homepage"}
+                                  </button>
 
-                                    {/* Pin to homepage */}
-                                    <button onClick={() => handleTogglePin(post)} className="story-options-item">
-                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                      {(post as any).pinned ? "Unpin from homepage" : "Pin to homepage"}
-                                    </button>
+                                  <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
 
-                                    <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
+                                  {/* Share sub-section */}
+                                  <button onClick={() => handleSharePost(post, "x")} className="story-options-item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                    Share on X
+                                  </button>
+                                  <button onClick={() => handleSharePost(post, "facebook")} className="story-options-item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                    Share on Facebook
+                                  </button>
+                                  <button onClick={() => handleSharePost(post, "linkedin")} className="story-options-item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                    Share on LinkedIn
+                                  </button>
+                                  <button onClick={() => copyPostLink(post)} className="story-options-item">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                    Copy link
+                                  </button>
 
-                                    {/* Share sub-section */}
-                                    <button onClick={() => handleSharePost(post, "x")} className="story-options-item">
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                                      Share on X
-                                    </button>
-                                    <button onClick={() => handleSharePost(post, "facebook")} className="story-options-item">
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                                      Share on Facebook
-                                    </button>
-                                    <button onClick={() => handleSharePost(post, "linkedin")} className="story-options-item">
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                                      Share on LinkedIn
-                                    </button>
-                                    <button onClick={() => copyPostLink(post)} className="story-options-item">
-                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                      Copy link
-                                    </button>
+                                  <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
 
-                                    <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
+                                  {/* Publish toggle */}
+                                  <button onClick={() => handleTogglePublish(post)} className="story-options-item">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    {post.published ? "Unpublish story" : "Publish story"}
+                                  </button>
 
-                                    {/* Publish toggle */}
-                                    <button onClick={() => handleTogglePublish(post)} className="story-options-item">
-                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                      {post.published ? "Unpublish story" : "Publish story"}
-                                    </button>
-
-                                    {/* Delete */}
-                                    <button onClick={() => handleDelete(post.id)} className="story-options-item" style={{ color: "var(--red, #ef4444)" }}>
-                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                      Delete story
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
+                                  {/* Delete */}
+                                  <button onClick={() => handleDelete(post.id)} className="story-options-item" style={{ color: "var(--red, #ef4444)" }}>
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    Delete story
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         );

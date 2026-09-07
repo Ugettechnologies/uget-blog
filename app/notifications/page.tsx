@@ -522,15 +522,11 @@ export default function NotificationsPage() {
           min-width: 0;
         }
         .uget-right-sidebar {
-          position: sticky;
-          top: 80px;
-          height: calc(100vh - 96px);
-          overflow-y: auto;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
           display: flex;
           flex-direction: column;
           gap: 20px;
+          position: relative;
+          padding-bottom: 40px;
         }
 
         /* ── Tabs Bar ── */

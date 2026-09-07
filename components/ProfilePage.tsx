@@ -10,6 +10,7 @@ import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon, WriteIcon, BellIcon, SettingsIcon, HelpIcon, SignOutIcon, NavNotificationButton } from "@/components/SidebarNav";
 import SafeImage from "./SafeImage";
 import { ShareProfileModal } from "@/components/ShareProfileModal";
+import FeedPostCard from "./FeedPostCard";
 
 function getAvatarGradient(name: string | null | undefined) {
   const gradients = [
@@ -69,6 +70,8 @@ export default function ProfilePage() {
   const [currentUserFollowingIds, setCurrentUserFollowingIds] = useState<Set<string>>(new Set());
   const [followModal, setFollowModal] = useState<{ open: boolean; tab: "followers" | "following" }>({ open: false, tab: "followers" });
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+  const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
+  const [userBookmarks, setUserBookmarks] = useState<Set<string>>(new Set());
 
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -158,16 +161,20 @@ export default function ProfilePage() {
         setIsFollowing(!!followRes);
       }
 
-      const [postsRes, commentsRes] = await Promise.all([
+      const [postsRes, commentsRes, likesRes, bmRes] = await Promise.all([
         supabase.from("posts")
-          .select("*").eq("author_id", prof.id).eq("published", true)
+          .select("*, profiles(*)").eq("author_id", prof.id).eq("published", true)
           .order("created_at", { ascending: false }),
         supabase.from("comments")
           .select("*, posts(slug, title)").eq("user_id", prof.id)
           .order("created_at", { ascending: false }),
+        user ? supabase.from("likes").select("post_id").eq("user_id", user.id) : Promise.resolve({ data: [] }),
+        user ? supabase.from("bookmarks").select("post_id").eq("user_id", user.id) : Promise.resolve({ data: [] }),
       ]);
       setPosts(postsRes.data as Post[] || []);
       setUserComments(commentsRes.data || []);
+      if (Array.isArray(likesRes.data)) setUserLikes(new Set(likesRes.data.map((l: any) => l.post_id)));
+      if (Array.isArray(bmRes.data)) setUserBookmarks(new Set(bmRes.data.map((b: any) => b.post_id)));
 
       // Track profile view (analytics)
       if (prof.id && (!user || user.id !== prof.id)) {
@@ -442,7 +449,7 @@ export default function ProfilePage() {
           align-items: center;
           justify-content: space-between;
           padding: 0 32px;
-          z-index: 90;
+          z-index: 999;
         }
         .uget-header-search {
           align-items: center;
@@ -1202,31 +1209,27 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    {posts.map((post) => {
-                      const cat = CATEGORIES.find((c) => c.id === post.category);
-                      return (
-                        <article key={post.id} className="post-card" style={{ padding: "24px 0", borderBottom: "1px solid var(--border-2)" }}>
-                          <div className="post-card-content">
-                            <div className="post-card-meta" style={{ marginBottom: 8 }}>
-                              {cat && <span className="post-card-tag">{cat.label}</span>}
-                              <span>{formatDate(post.created_at)}</span>
-                            </div>
-                            <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>
-                              <h2 className="post-card-title" style={{ fontSize: 20, fontWeight: 700, color: "var(--black)", marginBottom: 8 }}>{post.title}</h2>
-                              {post.excerpt && <p className="post-card-excerpt" style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>{post.excerpt}</p>}
-                            </Link>
-                            <div className="post-card-meta" style={{ marginTop: 8 }}>
-                              <span>{post.read_time || 1} min read</span>
-                              <span>· {post.view_count} views</span>
-                              <span>· {post.like_count} likes</span>
-                            </div>
-                          </div>
-                          <Link href={`/post/${post.slug}`} className="post-card-image">
-                            <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
-                          </Link>
-                        </article>
-                      );
-                    })}
+                    {posts.map((post) => (
+                      <FeedPostCard
+                        key={post.id}
+                        post={{ ...post, profiles: post.profiles || profile || undefined }}
+                        currentUser={currentUser}
+                        currentUserProfile={currentUserProfile}
+                        isInitiallyLiked={userLikes.has(post.id)}
+                        isInitiallyBookmarked={userBookmarks.has(post.id)}
+                        isInitiallyFollowing={isFollowing}
+                        onFollowToggle={async (authorId, willFollow) => {
+                          if (!currentUser) return;
+                          if (willFollow) {
+                            await supabase.from("follows").insert({ follower_id: currentUser.id, following_id: authorId });
+                            setIsFollowing(true);
+                          } else {
+                            await supabase.from("follows").delete().eq("follower_id", currentUser.id).eq("following_id", authorId);
+                            setIsFollowing(false);
+                          }
+                        }}
+                      />
+                    ))}
                   </div>
                 )}
               </div>

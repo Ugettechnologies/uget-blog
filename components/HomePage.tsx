@@ -13,6 +13,7 @@ import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon,
 import SafeImage from "./SafeImage";
 import SponsoredCard from "./SponsoredCard";
 import AdBanner from "./AdBanner";
+import FeedPostCard from "./FeedPostCard";
 
 function PostCard({ post }: { post: Post }) {
   const cat = CATEGORIES.find((c) => c.id === post.category);
@@ -779,6 +780,8 @@ export default function HomePage() {
   const [followingProfiles, setFollowingProfiles] = useState<any[]>([]);
   const [searchedProfiles, setSearchedProfiles] = useState<any[]>([]);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
+  const [userBookmarks, setUserBookmarks] = useState<Set<string>>(new Set());
 
   const loadNotifications = async (userId: string) => {
     try {
@@ -925,8 +928,19 @@ export default function HomePage() {
         }
         loadNotifications(user.id);
         loadFollowingProfiles(user.id);
+        
+        // Load user's liked and bookmarked post IDs
+        const [likesRes, bmRes] = await Promise.all([
+          supabase.from("likes").select("post_id").eq("user_id", user.id),
+          supabase.from("bookmarks").select("post_id").eq("user_id", user.id),
+        ]);
+        if (Array.isArray(likesRes.data)) setUserLikes(new Set(likesRes.data.map((l: any) => l.post_id)));
+        if (Array.isArray(bmRes.data)) setUserBookmarks(new Set(bmRes.data.map((b: any) => b.post_id)));
+
         setIsCheckingAuth(false);
       } else {
+        setUserLikes(new Set());
+        setUserBookmarks(new Set());
         setIsCheckingAuth(false);
       }
       loadSuggestedWriters();
@@ -1253,14 +1267,22 @@ export default function HomePage() {
                 ) : (
                   (query ? posts : posts.slice(0, 10)).map((post, idx) => (
                     <div key={post.id}>
-                      <PostCard post={post} />
+                      <FeedPostCard
+                        post={post}
+                        currentUser={user}
+                        currentUserProfile={userProfile}
+                        isInitiallyLiked={userLikes.has(post.id)}
+                        isInitiallyBookmarked={userBookmarks.has(post.id)}
+                        isInitiallyFollowing={followingProfiles.some((p) => p.id === post.author_id)}
+                        onFollowToggle={handleFollowSuggestedWriter}
+                      />
                       {(idx + 1) % 8 === 0 && <SponsoredCard variant="feed" />}
                     </div>
                   ))
                 )}
               </main>
 
-              <aside className="home-sidebar" style={{ display: "flex", flexDirection: "column", gap: 20, position: "sticky", top: 84, maxHeight: "calc(100vh - 96px)", overflowY: "auto", scrollbarWidth: "none", alignSelf: "start", paddingBottom: 24 }}>
+              <aside className="home-sidebar" style={{ display: "flex", flexDirection: "column", gap: 20, position: "relative", paddingBottom: 32 }}>
                 <SidebarTrending posts={posts} />
                 <SidebarStaffPicks posts={posts} />
                 
@@ -1383,7 +1405,7 @@ export default function HomePage() {
           align-items: center;
           justify-content: space-between;
           padding: 0 32px;
-          z-index: 90;
+          z-index: 999;
         }
         .uget-header-search {
           align-items: center;
@@ -1418,22 +1440,7 @@ export default function HomePage() {
           flex-direction: column;
           gap: 20px;
           position: relative;
-        }
-        @media (min-width: 1025px) {
-          .uget-right-sidebar {
-            position: sticky;
-            top: 80px;
-            max-height: calc(100vh - 92px);
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            align-self: start;
-            padding-bottom: 32px;
-          }
-          .uget-right-sidebar::-webkit-scrollbar {
-            display: none;
-          }
+          padding-bottom: 40px;
         }
         .uget-mobile-drawer {
           position: fixed;
@@ -1910,7 +1917,18 @@ export default function HomePage() {
                 </div>
               ) : null
             ) : (
-              feedPosts.map((post) => <PostCard key={post.id} post={post} />)
+              feedPosts.map((post) => (
+                <FeedPostCard
+                  key={post.id}
+                  post={post}
+                  currentUser={user}
+                  currentUserProfile={userProfile}
+                  isInitiallyLiked={userLikes.has(post.id)}
+                  isInitiallyBookmarked={userBookmarks.has(post.id)}
+                  isInitiallyFollowing={followingProfiles.some((p) => p.id === post.author_id)}
+                  onFollowToggle={handleFollowSuggestedWriter}
+                />
+              ))
             )}
           </div>
 
