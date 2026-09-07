@@ -1345,7 +1345,7 @@ export default function DashboardPage() {
               {/* ── FOLLOWERS & SOCIAL NETWORK TAB ── */}
               {activeTab === "followers" && (
                 <div>
-                  <div style={{ marginBottom: 28 }}>
+                  <div style={{ marginTop: 24, marginBottom: 32 }}>
                     <h2 className="font-display text-3xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em", marginBottom: 6 }}>
                       Social Network
                     </h2>
