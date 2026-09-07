@@ -448,14 +448,14 @@ export default function AdminPage() {
                         gap: 8,
                         padding: "8px 18px",
                         borderRadius: 999,
-                        border: analyticsSubTab === "traffic" ? "1px solid var(--ink)" : "1px solid var(--border)",
-                        background: analyticsSubTab === "traffic" ? "var(--ink)" : "var(--bg-2)",
-                        color: analyticsSubTab === "traffic" ? "#fff" : "var(--muted)",
+                        border: analyticsSubTab === "traffic" ? "1px solid var(--brand)" : "1px solid var(--border)",
+                        background: analyticsSubTab === "traffic" ? "var(--brand)" : "var(--bg-2)",
+                        color: analyticsSubTab === "traffic" ? "#ffffff" : "var(--muted)",
                         fontFamily: "var(--sans)",
                         fontSize: 13,
                         fontWeight: 600,
                         cursor: "pointer",
-                        boxShadow: analyticsSubTab === "traffic" ? "0 2px 6px rgba(0,0,0,0.12)" : "none",
+                        boxShadow: analyticsSubTab === "traffic" ? "0 2px 8px rgba(124,58,237,0.25)" : "none",
                         transition: "all 0.15s ease"
                       }}
                     >
@@ -471,14 +471,14 @@ export default function AdminPage() {
                         gap: 8,
                         padding: "8px 18px",
                         borderRadius: 999,
-                        border: analyticsSubTab === "creators" ? "1px solid var(--ink)" : "1px solid var(--border)",
-                        background: analyticsSubTab === "creators" ? "var(--ink)" : "var(--bg-2)",
-                        color: analyticsSubTab === "creators" ? "#fff" : "var(--muted)",
+                        border: analyticsSubTab === "creators" ? "1px solid var(--brand)" : "1px solid var(--border)",
+                        background: analyticsSubTab === "creators" ? "var(--brand)" : "var(--bg-2)",
+                        color: analyticsSubTab === "creators" ? "#ffffff" : "var(--muted)",
                         fontFamily: "var(--sans)",
                         fontSize: 13,
                         fontWeight: 600,
                         cursor: "pointer",
-                        boxShadow: analyticsSubTab === "creators" ? "0 2px 6px rgba(0,0,0,0.12)" : "none",
+                        boxShadow: analyticsSubTab === "creators" ? "0 2px 8px rgba(124,58,237,0.25)" : "none",
                         transition: "all 0.15s ease"
                       }}
                     >
@@ -647,15 +647,15 @@ export default function AdminPage() {
                                   }}
                                   style={{
                                     border: "none",
-                                    background: active ? "var(--bg-2)" : "transparent",
-                                    color: active ? "var(--black)" : "var(--muted)",
+                                    background: active ? "var(--brand)" : "transparent",
+                                    color: active ? "#ffffff" : "var(--muted)",
                                     fontFamily: "var(--sans)",
                                     fontSize: 13,
                                     fontWeight: active ? 700 : 500,
                                     padding: "6px 14px",
                                     borderRadius: 8,
                                     cursor: "pointer",
-                                    boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                                    boxShadow: active ? "0 1px 4px rgba(124,58,237,0.25)" : "none",
                                     transition: "all 0.15s ease",
                                   }}
                                 >
@@ -1234,9 +1234,10 @@ export default function AdminPage() {
                                   fontSize: 12,
                                   fontWeight: 600,
                                   cursor: "pointer",
-                                  background: analyticsQuota === q.id ? "var(--bg-2)" : "transparent",
-                                  color: analyticsQuota === q.id ? "var(--black)" : "var(--muted)",
-                                  boxShadow: analyticsQuota === q.id ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                                  background: analyticsQuota === q.id ? "var(--brand)" : "transparent",
+                                  color: analyticsQuota === q.id ? "#ffffff" : "var(--muted)",
+                                  boxShadow: analyticsQuota === q.id ? "0 1px 4px rgba(124,58,237,0.2)" : "none",
+                                  transition: "all 0.15s ease",
                                 }}
                               >
                                 {q.label}
@@ -1263,13 +1264,14 @@ export default function AdminPage() {
                                   style={{
                                     padding: "5px 12px",
                                     borderRadius: 6,
-                                    border: isSelected ? "1px solid var(--ink)" : "1px solid var(--border)",
-                                    background: isSelected ? "var(--ink)" : "var(--bg-2)",
-                                    color: isSelected ? "#fff" : "var(--ink)",
+                                    border: isSelected ? "1px solid var(--brand)" : "1px solid var(--border)",
+                                    background: isSelected ? "var(--brand)" : "var(--bg-2)",
+                                    color: isSelected ? "#ffffff" : "var(--ink)",
                                     fontFamily: "var(--sans)",
                                     fontSize: 12,
                                     fontWeight: isSelected ? 600 : 500,
                                     cursor: "pointer",
+                                    transition: "all 0.15s ease",
                                   }}
                                 >
                                   {p.label}
@@ -1287,13 +1289,14 @@ export default function AdminPage() {
                               style={{
                                 padding: "5px 12px",
                                 borderRadius: 6,
-                                border: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "1px solid var(--ink)" : "1px solid var(--border)",
-                                background: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "var(--ink)" : "var(--bg-2)",
-                                color: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "#fff" : "var(--ink)",
+                                border: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "1px solid var(--brand)" : "1px solid var(--border)",
+                                background: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "var(--brand)" : "var(--bg-2)",
+                                color: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? "#ffffff" : "var(--ink)",
                                 fontFamily: "var(--sans)",
                                 fontSize: 12,
                                 fontWeight: ["6months", "year", "16months", "custom"].includes(analyticsPeriod) ? 600 : 500,
                                 cursor: "pointer",
+                                transition: "all 0.15s ease",
                               }}
                             >
                               {analyticsPeriod === "6months" ? "6 months" :
@@ -1308,13 +1311,14 @@ export default function AdminPage() {
                               style={{
                                 padding: "5px 12px",
                                 borderRadius: 6,
-                                border: analyticsPeriod === "all" ? "1px solid var(--ink)" : "1px solid var(--border)",
-                                background: analyticsPeriod === "all" ? "var(--ink)" : "var(--bg-2)",
-                                color: analyticsPeriod === "all" ? "#fff" : "var(--ink)",
+                                border: analyticsPeriod === "all" ? "1px solid var(--brand)" : "1px solid var(--border)",
+                                background: analyticsPeriod === "all" ? "var(--brand)" : "var(--bg-2)",
+                                color: analyticsPeriod === "all" ? "#ffffff" : "var(--ink)",
                                 fontFamily: "var(--sans)",
                                 fontSize: 12,
                                 fontWeight: analyticsPeriod === "all" ? 600 : 500,
                                 cursor: "pointer",
+                                transition: "all 0.15s ease",
                               }}
                             >
                               All time
@@ -1339,9 +1343,10 @@ export default function AdminPage() {
                                   fontSize: 12,
                                   fontWeight: 600,
                                   cursor: "pointer",
-                                  background: analyticsRankTab === t.id ? "var(--bg-2)" : "transparent",
-                                  color: analyticsRankTab === t.id ? "var(--black)" : "var(--muted)",
-                                  boxShadow: analyticsRankTab === t.id ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                                  background: analyticsRankTab === t.id ? "var(--brand)" : "transparent",
+                                  color: analyticsRankTab === t.id ? "#ffffff" : "var(--muted)",
+                                  boxShadow: analyticsRankTab === t.id ? "0 1px 4px rgba(124,58,237,0.2)" : "none",
+                                  transition: "all 0.15s ease",
                                 }}
                               >
                                 {t.label}
