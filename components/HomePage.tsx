@@ -1260,7 +1260,7 @@ export default function HomePage() {
                 )}
               </main>
 
-              <aside className="home-sidebar" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <aside className="home-sidebar" style={{ display: "flex", flexDirection: "column", gap: 20, position: "sticky", top: 84, maxHeight: "calc(100vh - 96px)", overflowY: "auto", scrollbarWidth: "none", alignSelf: "start", paddingBottom: 24 }}>
                 <SidebarTrending posts={posts} />
                 <SidebarStaffPicks posts={posts} />
                 
@@ -1274,8 +1274,8 @@ export default function HomePage() {
                   onFollow={handleFollowSuggestedWriter} 
                 />
 
-                {/* Sticky Ad container so scrolling down never leaves free space! */}
-                <div style={{ position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Ad & Footer container */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <SponsoredCard variant="sidebar" />
                   <AdBanner dataAdSlot="9876543210" />
                 </div>
@@ -1422,10 +1422,17 @@ export default function HomePage() {
         @media (min-width: 1025px) {
           .uget-right-sidebar {
             position: sticky;
-            top: 84px;
-            height: fit-content;
-            overflow: hidden;
+            top: 80px;
+            max-height: calc(100vh - 92px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             align-self: start;
+            padding-bottom: 32px;
+          }
+          .uget-right-sidebar::-webkit-scrollbar {
+            display: none;
           }
         }
         .uget-mobile-drawer {
@@ -1930,8 +1937,8 @@ export default function HomePage() {
               onFollow={handleFollowSuggestedWriter} 
             />
 
-            {/* Sticky Ad & Footer Container — stays pinned at top 88px as user scrolls endlessly down the feed! */}
-            <div style={{ position: "sticky", top: 88, display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Ad & Footer Container */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <SponsoredCard variant="sidebar" />
               <AdBanner dataAdSlot="1234567890" />
 
