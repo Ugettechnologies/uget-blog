@@ -591,24 +591,27 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   font-family: var(--sans);
   font-size: 12px;
   color: var(--muted-2);
   margin-top: auto;
   padding-top: 8px;
+  flex-wrap: nowrap;
+  width: 100%;
 }
 .post-card-meta-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 1;
   min-width: 0;
+  white-space: nowrap;
 }
 .post-card-meta-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -753,32 +756,32 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    gap: 14px;
-    padding: 18px 0;
+    gap: 12px;
+    padding: 16px 0;
     margin-left: 0;
     margin-right: 0;
   }
   .post-card-image {
-    width: 110px !important;
-    min-width: 110px !important;
-    height: 92px !important;
-    border-radius: 10px !important;
+    width: 100px !important;
+    min-width: 100px !important;
+    height: 85px !important;
+    border-radius: 8px !important;
   }
   .post-card-image-tag {
-    top: 5px;
-    right: 5px;
-    padding: 2px 6px;
-    font-size: 8.5px;
+    top: 4px;
+    right: 4px;
+    padding: 2px 5px;
+    font-size: 8px;
     border-radius: 4px;
   }
   .post-card-title {
-    font-size: 15.5px !important;
+    font-size: 15px !important;
     line-height: 1.35 !important;
     margin-bottom: 4px;
     -webkit-line-clamp: 2;
   }
   .post-card-excerpt {
-    font-size: 13px;
+    font-size: 12.5px;
     line-height: 1.45;
     margin-bottom: 8px;
     -webkit-line-clamp: 2;
@@ -788,52 +791,77 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
     gap: 6px;
   }
   .post-card-author-avatar {
-    width: 20px;
-    height: 20px;
-    font-size: 9px;
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
   }
   .post-card-author-info {
-    font-size: 12px;
+    font-size: 11.5px;
   }
   .post-card-meta {
     padding-top: 4px;
     gap: 6px;
     font-size: 11px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
   .post-card-meta-left {
-    gap: 6px;
+    gap: 4px;
+    font-size: 11px;
+    flex-shrink: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .post-card-views-label {
+    display: none;
   }
   .post-card-meta-actions {
-    gap: 6px;
+    gap: 4px;
+    flex-shrink: 0;
   }
   .post-card-action-btn {
-    padding: 2px 4px;
-    font-size: 11.5px;
+    padding: 2px 3px;
+    font-size: 11px;
+    gap: 2px;
+  }
+  .post-card-action-btn svg {
+    width: 13px !important;
+    height: 13px !important;
   }
 }
 @media (max-width: 440px) {
   .post-card {
-    gap: 12px;
-    padding: 16px 0;
+    gap: 10px;
+    padding: 14px 0;
   }
   .post-card-image {
-    width: 95px !important;
-    min-width: 95px !important;
-    height: 82px !important;
+    width: 88px !important;
+    min-width: 88px !important;
+    height: 76px !important;
   }
   .post-card-title {
-    font-size: 14.5px !important;
+    font-size: 14px !important;
     -webkit-line-clamp: 2;
   }
   .post-card-excerpt {
     display: none;
   }
-  .post-card-image-tag {
-    font-size: 8px;
-    padding: 2px 5px;
-    top: 4px;
-    right: 4px;
+  .post-card-meta {
+    gap: 4px;
+  }
+  .post-card-meta-actions {
+    gap: 2px;
+  }
+  .post-card-action-btn {
+    padding: 1px 2px;
+    font-size: 10.5px;
+  }
+  .post-card-action-btn svg {
+    width: 12px !important;
+    height: 12px !important;
   }
 }
 
