@@ -686,10 +686,12 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
   border-color: var(--brand);
 }
 .post-card-image {
+  position: relative;
   width: 160px; min-width: 160px; height: 108px;
   border-radius: var(--radius); overflow: hidden;
   background: var(--bg-3); flex-shrink: 0;
   transition: all 0.25s ease;
+  display: block;
 }
 .post-card-image img {
   width: 100%; height: 100%; object-fit: cover;
@@ -698,7 +700,35 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 .post-card:hover .post-card-image img {
   transform: scale(1.05);
 }
+.post-card-image-tag {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 2;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+.post-card:hover .post-card-image-tag {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+}
 .post-card-placeholder {
+  position: relative;
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   font-size: 32px;
@@ -715,15 +745,96 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 
 /* ── Post card responsive ── */
 .nav-write-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--brand); color: white !important; text-decoration: none; border-radius: 999px; transition: all 0.2s; padding: 6px 16px; font-family: var(--sans); font-size: 14px; font-weight: 600; } .nav-write-btn:hover { background: var(--brand-hover); } @media (max-width: 640px) { .nav-write-btn { width: 36px; height: 36px; padding: 0; gap: 0; } .nav-write-btn-text { display: none; } } @media (max-width: 768px) {
-  .post-card-image { width: 120px; min-width: 120px; height: 90px; }
+  .post-card { gap: 16px; padding: 22px 0; }
+  .post-card-image { width: 130px; min-width: 130px; height: 95px; }
 }
 @media (max-width: 640px) {
-  .post-card { flex-direction: column-reverse; gap: 12px; padding: 20px 0; }
-  .post-card-image { width: 100% !important; min-width: unset !important; height: 180px !important; border-radius: var(--radius); }
-  .post-card-title { font-size: 18px !important; }
-  .post-card-excerpt { font-size: 14px; }
-  .post-card-meta { flex-wrap: wrap; gap: 8px; font-size: 11px; }
-  .post-card-meta-actions { gap: 8px; }
+  .post-card {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .post-card-image {
+    width: 110px !important;
+    min-width: 110px !important;
+    height: 92px !important;
+    border-radius: 10px !important;
+  }
+  .post-card-image-tag {
+    top: 5px;
+    right: 5px;
+    padding: 2px 6px;
+    font-size: 8.5px;
+    border-radius: 4px;
+  }
+  .post-card-title {
+    font-size: 15.5px !important;
+    line-height: 1.35 !important;
+    margin-bottom: 4px;
+    -webkit-line-clamp: 2;
+  }
+  .post-card-excerpt {
+    font-size: 13px;
+    line-height: 1.45;
+    margin-bottom: 8px;
+    -webkit-line-clamp: 2;
+  }
+  .post-card-author {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  .post-card-author-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+  }
+  .post-card-author-info {
+    font-size: 12px;
+  }
+  .post-card-meta {
+    padding-top: 4px;
+    gap: 6px;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .post-card-meta-left {
+    gap: 6px;
+  }
+  .post-card-meta-actions {
+    gap: 6px;
+  }
+  .post-card-action-btn {
+    padding: 2px 4px;
+    font-size: 11.5px;
+  }
+}
+@media (max-width: 440px) {
+  .post-card {
+    gap: 12px;
+    padding: 16px 0;
+  }
+  .post-card-image {
+    width: 95px !important;
+    min-width: 95px !important;
+    height: 82px !important;
+  }
+  .post-card-title {
+    font-size: 14.5px !important;
+    -webkit-line-clamp: 2;
+  }
+  .post-card-excerpt {
+    display: none;
+  }
+  .post-card-image-tag {
+    font-size: 8px;
+    padding: 2px 5px;
+    top: 4px;
+    right: 4px;
+  }
 }
 
 /* ══════════════════════════════════════

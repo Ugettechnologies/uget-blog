@@ -1231,13 +1231,13 @@ export default function LibraryPage() {
                                   {post.excerpt && <p className="post-card-excerpt">{post.excerpt}</p>}
                                 </Link>
                                 <div className="post-card-meta">
-                                  {cat && <span className="post-card-tag">{cat.label}</span>}
                                   <span>{post.read_time} min read</span>
                                 </div>
                               </div>
                               {post.cover_image && (
                                 <Link href={`/post/${post.slug}`} className="post-card-image">
                                   <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
+                                  {cat && <span className="post-card-image-tag">{cat.label}</span>}
                                 </Link>
                               )}
                             </article>

@@ -95,7 +95,6 @@ function PostCard({
         </Link>
         <div className="post-card-meta">
           <div className="post-card-meta-left">
-            {cat && <span className="post-card-tag">{cat.label}</span>}
             <span>{post.read_time} min read</span>
             <span>·</span>
             <span className="flex items-center gap-1" title={`${post.view_count || 0} views`}>
@@ -165,6 +164,13 @@ function PostCard({
       {post.cover_image ? (
         <Link href={`/post/${post.slug}`} className="post-card-image">
           <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
+          {cat && <span className="post-card-image-tag">{cat.label}</span>}
+        </Link>
+      ) : cat ? (
+        <Link href={`/post/${post.slug}`} className="post-card-image">
+          <div className="post-card-placeholder">
+            <span className="post-card-image-tag">{cat.label}</span>
+          </div>
         </Link>
       ) : null}
     </article>

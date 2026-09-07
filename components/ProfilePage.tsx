@@ -1302,7 +1302,6 @@ export default function ProfilePage() {
                         <article key={post.id} className="post-card" style={{ padding: "24px 0", borderBottom: "1px solid var(--border-2)" }}>
                           <div className="post-card-content">
                             <div className="post-card-meta" style={{ marginBottom: 8 }}>
-                              {cat && <span className="post-card-tag">{cat.label}</span>}
                               <span>{formatDate(post.created_at)}</span>
                             </div>
                             <Link href={`/post/${post.slug}`} style={{ textDecoration: "none" }}>
@@ -1379,6 +1378,7 @@ export default function ProfilePage() {
                           {post.cover_image && (
                             <Link href={`/post/${post.slug}`} className="post-card-image">
                               <SafeImage src={post.cover_image} alt={post.title} fill fallbackSeed={post.id || post.slug} />
+                              {cat && <span className="post-card-image-tag">{cat.label}</span>}
                             </Link>
                           )}
                         </article>
@@ -1427,9 +1427,6 @@ export default function ProfilePage() {
                             </div>
                             <article className="post-card" style={{ padding: 0, border: "none" }}>
                               <div className="post-card-content">
-                                <div className="post-card-meta" style={{ marginBottom: 6 }}>
-                                  {cat && <span className="post-card-tag">{cat.label}</span>}
-                                </div>
                                 <Link href={`/post/${act.slug}`} style={{ textDecoration: "none" }}>
                                   <h3 className="post-card-title" style={{ fontSize: 18, fontWeight: 700, color: "var(--black)", marginBottom: 6 }}>{act.title}</h3>
                                   {act.excerpt && <p className="post-card-excerpt" style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>{act.excerpt}</p>}
@@ -1443,6 +1440,7 @@ export default function ProfilePage() {
                               {act.cover_image && (
                                 <Link href={`/post/${act.slug}`} className="post-card-image">
                                   <SafeImage src={act.cover_image} alt={act.title} fill fallbackSeed={act.id} />
+                                  {cat && <span className="post-card-image-tag">{cat.label}</span>}
                                 </Link>
                               )}
                             </article>
