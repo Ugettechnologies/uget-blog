@@ -64,6 +64,10 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"home" | "activity" | "about">("home");
   const [followingDropdownOpen, setFollowingDropdownOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [profileFollowers, setProfileFollowers] = useState<any[]>([]);
+  const [profileFollowing, setProfileFollowing] = useState<any[]>([]);
+  const [currentUserFollowingIds, setCurrentUserFollowingIds] = useState<Set<string>>(new Set());
+  const [followModal, setFollowModal] = useState<{ open: boolean; tab: "followers" | "following" }>({ open: false, tab: "followers" });
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
 
   const showMsg = (msg: string, type: "ok" | "err" = "ok") => {
@@ -125,10 +129,11 @@ export default function ProfilePage() {
       }
       if (!prof) { setLoading(false); return; }
 
-      // Fetch follower/following counts for target profile
-      const [followersRes, followingRes] = await Promise.all([
-        supabase.from("follows").select("*").eq("following_id", prof.id),
-        supabase.from("follows").select("*").eq("follower_id", prof.id),
+      // Fetch follower/following counts and profile data for target profile
+      const [followersRes, followingRes, curFollowsRes] = await Promise.all([
+        supabase.from("follows").select("*, follower_profile:profiles(*), following_profile:profiles(*)").eq("following_id", prof.id),
+        supabase.from("follows").select("*, follower_profile:profiles(*), following_profile:profiles(*)").eq("follower_id", prof.id),
+        supabase.from("follows").select("*").eq("follower_id", user.id),
       ]);
       const profWithCounts = {
         ...prof,
@@ -137,6 +142,11 @@ export default function ProfilePage() {
       };
 
       setProfile(profWithCounts);
+      setProfileFollowers(followersRes.data || []);
+      setProfileFollowing(followingRes.data || []);
+      if (curFollowsRes.data) {
+        setCurrentUserFollowingIds(new Set(curFollowsRes.data.map((f: any) => f.following_id)));
+      }
       setBioInput(profWithCounts.bio || "");
 
       if (user && user.id !== prof.id) {
@@ -295,6 +305,29 @@ export default function ProfilePage() {
     await supabase.from("profiles")
       .update({ follower_count: nextFollowerCount })
       .eq("id", profile.id);
+  };
+
+  const handleFollowOtherUser = async (targetId: string, isCurrentlyFollowing: boolean) => {
+    if (!currentUser) { router.push("/auth"); return; }
+    if (isCurrentlyFollowing) {
+      await supabase.from("follows").delete().eq("follower_id", currentUser.id).eq("following_id", targetId);
+      setCurrentUserFollowingIds(prev => {
+        const next = new Set(prev);
+        next.delete(targetId);
+        return next;
+      });
+      showMsg("Unfollowed successfully");
+    } else {
+      const { data } = await supabase.from("follows").insert({ follower_id: currentUser.id, following_id: targetId }).select().single();
+      if (data) {
+        setCurrentUserFollowingIds(prev => {
+          const next = new Set(prev);
+          next.add(targetId);
+          return next;
+        });
+        showMsg("Following user");
+      }
+    }
   };
 
   const saveBio = async () => {
@@ -1108,11 +1141,19 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Followers Card */}
-                  <div className="profile-metric-card">
+                  <div 
+                    className="profile-metric-card" 
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setFollowModal({ open: true, tab: "followers" })}
+                    title="View followers"
+                  >
                     <div className="profile-metric-icon-wrapper metric-followers-icon">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
                     </div>
-                    <span className="profile-metric-value">{profile.follower_count || 0}</span>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                      <span className="profile-metric-value">{profile.follower_count || 0}</span>
+                      <span style={{ fontSize: 10, color: "var(--brand)", fontWeight: 700 }}>View ↗</span>
+                    </div>
                     <span className="profile-metric-label">Followers</span>
                   </div>
 
@@ -1577,11 +1618,19 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Followers Card */}
-                <div className="profile-metric-card">
+                <div 
+                  className="profile-metric-card"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setFollowModal({ open: true, tab: "followers" })}
+                  title="View followers"
+                >
                   <div className="profile-metric-icon-wrapper metric-followers-icon">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
                   </div>
-                  <span className="profile-metric-value">{profile.follower_count || 0}</span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                    <span className="profile-metric-value">{profile.follower_count || 0}</span>
+                    <span style={{ fontSize: 10, color: "var(--brand)", fontWeight: 700 }}>View ↗</span>
+                  </div>
                   <span className="profile-metric-label">Followers</span>
                 </div>
 
@@ -1614,6 +1663,181 @@ export default function ProfilePage() {
         onClose={() => setShareModalOpen(false)}
         profile={profile}
       />
+
+      {/* ── Network Followers / Following Modal ── */}
+      {followModal.open && (
+        <div 
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16
+          }}
+          onClick={() => setFollowModal(prev => ({ ...prev, open: false }))}
+        >
+          <div 
+            style={{
+              background: "var(--bg-2)",
+              border: "1px solid var(--border)",
+              borderRadius: 20,
+              width: "100%",
+              maxWidth: 480,
+              maxHeight: "85vh",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+              overflow: "hidden"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => setFollowModal(prev => ({ ...prev, tab: "followers" }))}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 999,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "var(--sans)",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    background: followModal.tab === "followers" ? "var(--brand)" : "var(--bg-3)",
+                    color: followModal.tab === "followers" ? "#fff" : "var(--ink)"
+                  }}
+                >
+                  Followers ({profileFollowers.length})
+                </button>
+                <button
+                  onClick={() => setFollowModal(prev => ({ ...prev, tab: "following" }))}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 999,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "var(--sans)",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    background: followModal.tab === "following" ? "var(--brand)" : "var(--bg-3)",
+                    color: followModal.tab === "following" ? "#fff" : "var(--ink)"
+                  }}
+                >
+                  Following ({profileFollowing.length})
+                </button>
+              </div>
+              <button 
+                onClick={() => setFollowModal(prev => ({ ...prev, open: false }))}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--muted)",
+                  padding: 6,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              {(() => {
+                const list = followModal.tab === "followers" 
+                  ? profileFollowers.map((f: any) => f.follower_profile).filter(Boolean)
+                  : profileFollowing.map((f: any) => f.following_profile).filter(Boolean);
+
+                if (list.length === 0) {
+                  return (
+                    <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--muted)", fontFamily: "var(--sans)" }}>
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
+                      <p style={{ fontSize: 14, fontWeight: 500 }}>
+                        {followModal.tab === "followers" 
+                          ? `${profile.full_name} doesn't have any followers yet.`
+                          : `${profile.full_name} isn't following anyone yet.`}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return list.map((userP: any) => {
+                  const isUserFollowing = currentUserFollowingIds.has(userP.id);
+                  const isSelf = currentUser && currentUser.id === userP.id;
+
+                  return (
+                    <div
+                      key={userP.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "10px 12px",
+                        background: "var(--bg)",
+                        borderRadius: 14,
+                        border: "1px solid var(--border-2)",
+                        gap: 12
+                      }}
+                    >
+                      <Link
+                        href={`/profile/${userP.username || userP.id}`}
+                        onClick={() => setFollowModal(prev => ({ ...prev, open: false }))}
+                        style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", flex: 1, minWidth: 0 }}
+                      >
+                        <div style={{ width: 42, height: 42, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
+                          {userP.avatar_url ? (
+                            <Image src={userP.avatar_url} alt="" width={42} height={42} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                          ) : (
+                            <div style={{ width: "100%", height: "100%", background: getAvatarGradient(userP.full_name), color: "#fff", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {getInitials(userP.full_name)}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {userP.full_name || "EchoGist Writer"}
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            @{userP.username || "writer"}
+                          </div>
+                        </div>
+                      </Link>
+
+                      {!isSelf && currentUser && (
+                        <button
+                          onClick={() => handleFollowOtherUser(userP.id, isUserFollowing)}
+                          style={{
+                            padding: "6px 14px",
+                            borderRadius: 999,
+                            fontFamily: "var(--sans)",
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            flexShrink: 0,
+                            background: isUserFollowing ? "var(--bg-3)" : "var(--brand)",
+                            color: isUserFollowing ? "var(--ink)" : "#fff",
+                            border: isUserFollowing ? "1px solid var(--border)" : "none"
+                          }}
+                        >
+                          {isUserFollowing ? "Following" : "Follow"}
+                        </button>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

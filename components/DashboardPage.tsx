@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,13 +21,18 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+  const [allFollows, setAllFollows] = useState<any[]>([]);
+  const [expandedFollowingFollowers, setExpandedFollowingFollowers] = useState<Record<string, boolean>>({});
   const [staffPosts, setStaffPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Tab states
   const [activeTab, setActiveTab] = useState<TabType>("stories");
   const [storiesSubTab, setStoriesSubTab] = useState<"drafts" | "published" | "scheduled" | "unlisted">("published");
-  const [followSubTab, setFollowSubTab] = useState<"followers" | "following">("followers");
+  const [followSubTab, setFollowSubTab] = useState<"explore" | "suggestions" | "following" | "followers">("explore");
+  const [exploreSearch, setExploreSearch] = useState("");
+  const [exploreFilter, setExploreFilter] = useState<"all" | "popular" | "newest" | "staff">("all");
   const [statsSubTab, setStatsSubTab] = useState<"stories" | "audience">("stories");
   const [selectedMonth, setSelectedMonth] = useState<string>("August 2026");
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
@@ -52,6 +57,10 @@ export default function DashboardPage() {
     const t = searchParams.get("tab") as TabType;
     if (t && ["stories", "stats", "followers", "staff"].includes(t)) {
       setActiveTab(t);
+    }
+    const sub = searchParams.get("subtab");
+    if (sub && ["explore", "suggestions", "following", "followers"].includes(sub)) {
+      setFollowSubTab(sub as any);
     }
   }, [searchParams]);
 
@@ -116,13 +125,17 @@ export default function DashboardPage() {
       .order("created_at", { ascending: false });
     setPosts(postsRes as Post[] || []);
 
-    // Fetch followers & following
-    const [followersRes, followingRes] = await Promise.all([
+    // Fetch followers & following as well as all follows & all profiles for network discovery
+    const [followersRes, followingRes, allFollowsRes, allProfilesRes] = await Promise.all([
       supabase.from("follows").select("*, profiles(*)").eq("following_id", uid),
-      supabase.from("follows").select("*, profiles(*)").eq("follower_id", uid)
+      supabase.from("follows").select("*, profiles(*)").eq("follower_id", uid),
+      supabase.from("follows").select("*, follower_profile:profiles(*), following_profile:profiles(*)").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     ]);
     setFollowers(followersRes.data || []);
     setFollowing(followingRes.data || []);
+    setAllFollows(allFollowsRes.data || []);
+    setAllProfiles(allProfilesRes.data as Profile[] || []);
 
     // Fetch staff corner posts (posts authored by admins or staff)
     const { data: staffRes } = await supabase.from("posts")
@@ -296,21 +309,104 @@ export default function DashboardPage() {
     if (!profile) return;
     if (isFollowing) {
       await supabase.from("follows").delete().eq("follower_id", profile.id).eq("following_id", targetId);
-      setFollowing(following.filter((f) => f.following_id !== targetId));
+      setFollowing(prev => prev.filter((f) => f.following_id !== targetId));
+      setAllFollows(prev => prev.filter((f) => !(f.follower_id === profile.id && f.following_id === targetId)));
       showMsg("Unfollowed successfully");
     } else {
       const { data } = await supabase.from("follows").insert({ follower_id: profile.id, following_id: targetId }).select().single();
       if (data) {
         const { data: profData } = await supabase.from("profiles").select("*").eq("id", targetId).single();
         if (profData) {
-          setFollowing([...following, { ...data, following_profile: profData }]);
-          showMsg("Following user");
+          const newFollowItem = { ...data, following_profile: profData, follower_profile: profile, follower_id: profile.id, following_id: targetId };
+          setFollowing(prev => [...prev, newFollowItem]);
+          setAllFollows(prev => [...prev, newFollowItem]);
+          showMsg(`Now following ${profData.full_name || "writer"}`);
         }
       }
     }
   };
 
   // Helper selectors
+  const followingIds = useMemo(() => new Set(following.map((f) => f.following_id)), [following]);
+  const followersIds = useMemo(() => new Set(followers.map((f) => f.follower_id)), [followers]);
+
+  // Compute suggestions: profiles not followed yet, ranked by mutual connections and activity
+  const suggestions = useMemo(() => {
+    if (!profile) return [];
+    const notFollowed = allProfiles.filter(p => p.id !== profile.id && !followingIds.has(p.id));
+    
+    return notFollowed.map(candidate => {
+      // Find mutual connections (people you follow who follow this candidate)
+      const followedByMutuals = allFollows.filter(f => f.following_id === candidate.id && followingIds.has(f.follower_id));
+      // Find who candidate follows that you also follow
+      const candidateFollows = allFollows.filter(f => f.follower_id === candidate.id && followingIds.has(f.following_id));
+      // Total follower count for candidate
+      const totalFollowerCount = allFollows.filter(f => f.following_id === candidate.id).length;
+
+      let reason = "Active Writer on EchoGist";
+      let priority = 0;
+
+      if (followedByMutuals.length > 0) {
+        const mutualName = followedByMutuals[0].follower_profile?.full_name || "a writer you follow";
+        reason = followedByMutuals.length > 1 
+          ? `Followed by ${mutualName} +${followedByMutuals.length - 1} other${followedByMutuals.length > 2 ? "s" : ""}`
+          : `Followed by ${mutualName}`;
+        priority = 3;
+      } else if (candidateFollows.length > 0) {
+        const mutualName = candidateFollows[0].following_profile?.full_name || "writers you follow";
+        reason = `Also follows ${mutualName}`;
+        priority = 2;
+      } else if (followersIds.has(candidate.id)) {
+        reason = "Follows you";
+        priority = 2;
+      } else if (totalFollowerCount > 0) {
+        reason = `${totalFollowerCount} ${totalFollowerCount === 1 ? "follower" : "followers"}`;
+        priority = 1;
+      }
+
+      return {
+        ...candidate,
+        reason,
+        priority,
+        mutualFollowers: followedByMutuals,
+        totalFollowerCount
+      };
+    }).sort((a, b) => b.priority - a.priority || b.totalFollowerCount - a.totalFollowerCount);
+  }, [allProfiles, allFollows, profile, followingIds, followersIds]);
+
+  // Explore all writers across the platform (regardless of mutual followings)
+  const exploreWriters = useMemo(() => {
+    if (!profile) return [];
+    let list = allProfiles.filter(p => p.id !== profile.id && !followingIds.has(p.id));
+    
+    if (exploreSearch.trim()) {
+      const q = exploreSearch.toLowerCase().trim();
+      list = list.filter(p => 
+        (p.full_name && p.full_name.toLowerCase().includes(q)) ||
+        (p.username && p.username.toLowerCase().includes(q)) ||
+        (p.bio && p.bio.toLowerCase().includes(q))
+      );
+    }
+
+    const enriched = list.map(cand => {
+      const totalFollowerCount = allFollows.filter(f => f.following_id === cand.id).length;
+      return {
+        ...cand,
+        totalFollowerCount,
+      };
+    });
+
+    if (exploreFilter === "popular") {
+      enriched.sort((a, b) => (b.totalFollowerCount || 0) - (a.totalFollowerCount || 0));
+    } else if (exploreFilter === "newest") {
+      enriched.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    } else if (exploreFilter === "staff") {
+      return enriched.filter(p => p.role === "staff" || p.role === "admin");
+    }
+
+    return enriched;
+  }, [allProfiles, allFollows, profile, followingIds, exploreSearch, exploreFilter]);
+
   const published = posts.filter((p) => p.published);
   const drafts = posts.filter((p) => !p.published);
   const totalViews = posts.reduce((s, p) => s + (p.view_count || 0), 0);
@@ -455,32 +551,73 @@ export default function DashboardPage() {
         .story-options-menu {
           position: absolute;
           right: 0;
-          top: 50px;
-          background-color: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-          z-index: 80;
-          min-width: 200px;
-          overflow: hidden;
-          padding: 4px 0;
+          top: 40px;
+          background-color: var(--modal-bg, var(--bg-2));
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          box-shadow: var(--shadow-lg, 0 12px 32px rgba(0,0,0,0.35));
+          backdrop-filter: blur(12px);
+          z-index: 100;
+          min-width: 210px;
+          padding: 6px 0;
         }
         .story-options-item {
-          display: block;
+          display: flex;
+          align-items: center;
+          gap: 10px;
           width: 100%;
           text-align: left;
-          padding: 8px 16px;
+          padding: 9px 16px;
           font-family: var(--sans);
           font-size: 13px;
-          color: #4b5563;
+          font-weight: 500;
+          color: var(--ink);
           background: none;
           border: none;
           cursor: pointer;
           text-decoration: none;
+          transition: background-color 0.15s ease, color 0.15s ease;
         }
         .story-options-item:hover {
-          background-color: #f9fafb;
-          color: #111827;
+          background-color: var(--bg-3);
+          color: var(--ink);
+        }
+        .story-quick-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border-radius: 999px;
+          font-family: var(--sans);
+          font-size: 12px;
+          font-weight: 600;
+          background: var(--bg-2);
+          border: 1px solid var(--border-2);
+          color: var(--ink);
+          cursor: pointer;
+          text-decoration: none;
+          transition: all 0.15s ease;
+        }
+        .story-quick-btn:hover {
+          background: var(--bg-3);
+          border-color: var(--border);
+        }
+        .story-quick-delete-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 7px;
+          border-radius: 50%;
+          background: transparent;
+          border: 1px solid transparent;
+          color: var(--muted);
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .story-quick-delete-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.2);
+          color: var(--red, #ef4444);
         }
         @media (max-width: 1024px) {
           .uget-sidebar {
@@ -690,7 +827,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Content Area */}
-        <div className="w-full max-w-full overflow-hidden py-6 box-border" style={{ paddingLeft: "max(24px, 5vw)", paddingRight: "max(24px, 5vw)", boxSizing: "border-box" }}>
+        <div className="w-full max-w-full py-6 box-border" style={{ paddingLeft: "max(24px, 5vw)", paddingRight: "max(24px, 5vw)", boxSizing: "border-box" }}>
           {loading ? (
             <div style={{ padding: "100px 0", textAlign: "center" }}>
               <div className="spinner" style={{ width: 32, height: 32, borderColor: "var(--border)", borderTopColor: "var(--ink)", margin: "0 auto" }} />
@@ -768,8 +905,8 @@ export default function DashboardPage() {
                                 <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>{formatDate(post.created_at)}</span>
                                 <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>· {post.read_time} min read</span>
                               </div>
-                              <Link href={`/post/${post.slug}`} style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", textDecoration: "none", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                                {post.title}
+                              <Link href={post.published ? `/post/${post.slug}` : `/write/${post.id}`} style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", textDecoration: "none", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                {post.title || "Untitled Story"}
                               </Link>
                               <div style={{ display: "flex", gap: 12, marginTop: 6, color: "var(--muted-2)" }}>
                                 <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}><span style={{ fontSize: 14 }}>👁</span> {post.view_count || 0} views</span>
@@ -777,76 +914,103 @@ export default function DashboardPage() {
                               </div>
                             </div>
 
-                            {/* Dropdown Options menu triggers */}
-                            <div className="relative story-options-trigger">
-                              <button
-                                onClick={() => setActiveStoryMenuId(activeStoryMenuId === post.id ? null : post.id)}
-                                className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                            {/* Quick Action Buttons & Dropdown Options menu */}
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              {/* Quick Edit button */}
+                              <Link 
+                                href={`/write/${post.id}`} 
+                                className="story-quick-btn"
+                                title="Edit this story"
                               >
-                                <OptionsIcon />
+                                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                <span>Edit</span>
+                              </Link>
+
+                              {/* Quick Delete button */}
+                              <button 
+                                onClick={() => handleDelete(post.id)} 
+                                className="story-quick-delete-btn"
+                                title="Delete story"
+                              >
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                               </button>
 
-                              {activeStoryMenuId === post.id && (
-                                <div className="story-options-menu">
-                                  {/* Stats */}
-                                  <button onClick={() => { setActiveStoryMenuId(null); router.push(`/post/${post.slug}?stats=true`); }} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                    View post analytics
-                                  </button>
+                              {/* Dropdown Options menu trigger */}
+                              <div className="relative story-options-trigger">
+                                <button
+                                  onClick={() => setActiveStoryMenuId(activeStoryMenuId === post.id ? null : post.id)}
+                                  className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full text-gray-500 transition-colors"
+                                  title="More options"
+                                >
+                                  <OptionsIcon />
+                                </button>
 
-                                  {/* Edit */}
-                                  <Link href={`/write/${post.id}`} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                    Edit story
-                                  </Link>
+                                {activeStoryMenuId === post.id && (
+                                  <div className="story-options-menu">
+                                    {/* Stats */}
+                                    <button onClick={() => { setActiveStoryMenuId(null); router.push(`/post/${post.slug}?stats=true`); }} className="story-options-item">
+                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                      View post analytics
+                                    </button>
 
-                                  {/* Duplicate */}
-                                  <button onClick={() => handleDuplicate(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                                    Duplicate
-                                  </button>
+                                    {/* Edit */}
+                                    <Link href={`/write/${post.id}`} className="story-options-item">
+                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                      Edit story
+                                    </Link>
 
-                                  {/* Pin to homepage */}
-                                  <button onClick={() => handleTogglePin(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                    {(post as any).pinned ? "Unpin from homepage" : "Pin to homepage"}
-                                  </button>
+                                    {/* Duplicate */}
+                                    <button onClick={() => handleDuplicate(post)} className="story-options-item">
+                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                      Duplicate
+                                    </button>
 
-                                  <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
+                                    {/* Pin to homepage */}
+                                    <button onClick={() => handleTogglePin(post)} className="story-options-item">
+                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                      {(post as any).pinned ? "Unpin from homepage" : "Pin to homepage"}
+                                    </button>
 
-                                  {/* Share sub-section */}
-                                  <button onClick={() => handleSharePost(post, "x")} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                                    Share on X
-                                  </button>
-                                  <button onClick={() => handleSharePost(post, "facebook")} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                                    Share on Facebook
-                                  </button>
-                                  <button onClick={() => handleSharePost(post, "linkedin")} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                                    Share on LinkedIn
-                                  </button>
-                                  <button onClick={() => copyPostLink(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                    Copy link
-                                  </button>
+                                    <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
 
-                                  <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
+                                    {/* Share sub-section */}
+                                    <button onClick={() => handleSharePost(post, "x")} className="story-options-item">
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                      Share on X
+                                    </button>
+                                    <button onClick={() => handleSharePost(post, "facebook")} className="story-options-item">
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                      Share on Facebook
+                                    </button>
+                                    <button onClick={() => handleSharePost(post, "linkedin")} className="story-options-item">
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                      Share on LinkedIn
+                                    </button>
+                                    <button onClick={() => copyPostLink(post)} className="story-options-item">
+                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                      Copy link
+                                    </button>
 
-                                  {/* Publish toggle */}
-                                  <button onClick={() => handleTogglePublish(post)} className="story-options-item" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                    {post.published ? "Unpublish story" : "Publish story"}
-                                  </button>
+                                    <div style={{ height: 1, background: "var(--border-2)", margin: "4px 0" }} />
 
-                                  {/* Delete */}
-                                  <button onClick={() => handleDelete(post.id)} className="story-options-item" style={{ color: "var(--red)", display: "flex", alignItems: "center", gap: 8 }}>
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    Delete story
-                                  </button>
-                                </div>
-                              )}
+                                    {/* Publish toggle */}
+                                    <button onClick={() => handleTogglePublish(post)} className="story-options-item">
+                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                      {post.published ? "Unpublish story" : "Publish story"}
+                                    </button>
+
+                                    {/* Delete */}
+                                    <button onClick={() => handleDelete(post.id)} className="story-options-item" style={{ color: "var(--red, #ef4444)" }}>
+                                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                      Delete story
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
@@ -1182,88 +1346,460 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── FOLLOWERS TAB ── */}
+              {/* ── FOLLOWERS & SOCIAL NETWORK TAB ── */}
               {activeTab === "followers" && (
                 <div>
                   <div style={{ marginBottom: 28 }}>
                     <h2 className="font-display text-3xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em", marginBottom: 6 }}>
                       Social Network
                     </h2>
-                    <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>Follow writers and build your readership audience.</p>
+                    <p style={{ fontFamily: "var(--sans)", fontSize: 14, color: "var(--muted)" }}>
+                      Discover writers, see who follows your network, and build your readership audience.
+                    </p>
                   </div>
 
-                  <div className="dash-tabs" style={{ maxWidth: "none", padding: 0, marginBottom: 24, borderBottom: "1px solid var(--border-2)" }}>
-                    <button className={`dash-tab ${followSubTab === "followers" ? "active" : ""}`} onClick={() => setFollowSubTab("followers")} style={{ padding: "12px 0", marginRight: 32 }}>
-                      Followers ({followers.length})
+                  {/* Sub-tabs for Network */}
+                  <div className="dash-tabs" style={{ maxWidth: "none", padding: 0, marginBottom: 24, borderBottom: "1px solid var(--border-2)", display: "flex", gap: 24, overflowX: "auto" }}>
+                    <button 
+                      className={`dash-tab ${followSubTab === "explore" ? "active" : ""}`} 
+                      onClick={() => setFollowSubTab("explore")} 
+                      style={{ padding: "12px 0", cursor: "pointer" }}
+                    >
+                      Explore All ({exploreWriters.length})
                     </button>
-                    <button className={`dash-tab ${followSubTab === "following" ? "active" : ""}`} onClick={() => setFollowSubTab("following")} style={{ padding: "12px 0", marginRight: 32 }}>
+                    <button 
+                      className={`dash-tab ${followSubTab === "suggestions" ? "active" : ""}`} 
+                      onClick={() => setFollowSubTab("suggestions")} 
+                      style={{ padding: "12px 0", cursor: "pointer" }}
+                    >
+                      Suggestions ({suggestions.length})
+                    </button>
+                    <button 
+                      className={`dash-tab ${followSubTab === "following" ? "active" : ""}`} 
+                      onClick={() => setFollowSubTab("following")} 
+                      style={{ padding: "12px 0", cursor: "pointer" }}
+                    >
                       Following ({following.length})
                     </button>
+                    <button 
+                      className={`dash-tab ${followSubTab === "followers" ? "active" : ""}`} 
+                      onClick={() => setFollowSubTab("followers")} 
+                      style={{ padding: "12px 0", cursor: "pointer" }}
+                    >
+                      Followers ({followers.length})
+                    </button>
                   </div>
 
-                  {followSubTab === "followers" ? (
-                    followers.length === 0 ? (
-                      <div className="empty-state">
-                        <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
-                        <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>No followers yet</h4>
-                        <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>Publish high quality content to attract followers.</p>
+                  {/* 0. EXPLORE ALL COMMUNITY WRITERS SUB-TAB */}
+                  {followSubTab === "explore" && (
+                    <div>
+                      <div style={{ marginBottom: 20 }}>
+                        <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", margin: "0 0 4px", fontFamily: "var(--display)" }}>
+                          Explore EchoGist Writers
+                        </h3>
+                        <p style={{ fontSize: 13, color: "var(--muted)", margin: 0, fontFamily: "var(--sans)" }}>
+                          Discover all writers across the community you are not following, even outside your immediate network.
+                        </p>
                       </div>
-                    ) : (
-                      followers.map((f) => {
-                        const prof = f.follower_profile || f.profiles;
-                        if (!prof) return null;
-                        const isFollowingBack = following.some((fol) => fol.following_id === prof.id);
-                        return (
-                          <div key={f.id} className="dash-post-row" style={{ display: "flex", gap: 16, alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
-                            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
-                              {prof.avatar_url ? <Image src={prof.avatar_url} alt="" width={40} height={40} style={{ objectFit: "cover" }} /> : getInitials(prof.full_name)}
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <Link href={`/profile/${prof.username || prof.id}`} style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>{prof.full_name}</Link>
-                              <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>@{prof.username || "writer"}</div>
-                            </div>
+
+                      {/* Search & Filter Controls */}
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 24 }}>
+                        <div style={{ position: "relative", minWidth: 260, flex: 1, maxWidth: 420 }}>
+                          <input
+                            type="text"
+                            value={exploreSearch}
+                            onChange={(e) => setExploreSearch(e.target.value)}
+                            placeholder="Search writers by name or bio…"
+                            style={{
+                              width: "100%",
+                              padding: "10px 16px 10px 38px",
+                              borderRadius: 999,
+                              background: "var(--bg-2)",
+                              border: "1px solid var(--border)",
+                              color: "var(--ink)",
+                              fontSize: 14,
+                              fontFamily: "var(--sans)",
+                              outline: "none",
+                              boxSizing: "border-box"
+                            }}
+                          />
+                          <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", display: "flex" }}>
+                            <SearchIcon />
+                          </span>
+                          {exploreSearch && (
                             <button
-                              onClick={() => handleFollowToggle(prof.id, isFollowingBack)}
-                              className={`btn btn-sm ${isFollowingBack ? "btn-outline" : "btn-primary"}`}
-                              style={{ borderRadius: 999 }}
+                              onClick={() => setExploreSearch("")}
+                              style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 14 }}
                             >
-                              {isFollowingBack ? "Following" : "Follow back"}
+                              ✕
                             </button>
-                          </div>
-                        );
-                      })
-                    )
-                  ) : (
+                          )}
+                        </div>
+
+                        {/* Filter chips */}
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          {[
+                            { id: "all", label: "All" },
+                            { id: "popular", label: "🔥 Most Popular" },
+                            { id: "newest", label: "✨ Newest" },
+                            { id: "staff", label: "🛡️ Staff & Editors" },
+                          ].map((f) => {
+                            const isSel = exploreFilter === f.id;
+                            return (
+                              <button
+                                key={f.id}
+                                onClick={() => setExploreFilter(f.id as any)}
+                                style={{
+                                  padding: "6px 14px",
+                                  borderRadius: 999,
+                                  border: isSel ? "1px solid var(--brand)" : "1px solid var(--border)",
+                                  background: isSel ? "var(--brand-light)" : "var(--bg-2)",
+                                  color: isSel ? "var(--brand)" : "var(--ink)",
+                                  fontFamily: "var(--sans)",
+                                  fontSize: 12.5,
+                                  fontWeight: isSel ? 700 : 500,
+                                  cursor: "pointer",
+                                  transition: "all 0.15s ease"
+                                }}
+                              >
+                                {f.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {exploreWriters.length === 0 ? (
+                        <div className="empty-state">
+                          <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+                          <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>No writers found</h4>
+                          <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>
+                            {exploreSearch ? `No writers matching "${exploreSearch}". Try clearing your search.` : "You're already following all creators in this filter!"}
+                          </p>
+                          {exploreSearch && (
+                            <button onClick={() => setExploreSearch("")} className="btn btn-primary btn-sm" style={{ borderRadius: 999 }}>
+                              Clear search
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
+                          {exploreWriters.map((cand) => (
+                            <div 
+                              key={cand.id} 
+                              style={{ 
+                                padding: "20px", 
+                                background: "var(--bg-2)", 
+                                border: "1px solid var(--border)", 
+                                borderRadius: 18, 
+                                display: "flex", 
+                                flexDirection: "column", 
+                                justifyContent: "space-between", 
+                                gap: 14,
+                                transition: "transform 0.15s ease, box-shadow 0.15s ease"
+                              }}
+                            >
+                              <div>
+                                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
+                                  <Link href={`/profile/${cand.username || cand.id}`} style={{ textDecoration: "none", flexShrink: 0 }}>
+                                    <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                                      {cand.avatar_url ? <Image src={cand.avatar_url} alt="" width={46} height={46} style={{ objectFit: "cover" }} /> : getInitials(cand.full_name)}
+                                    </div>
+                                  </Link>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                      <Link href={`/profile/${cand.username || cand.id}`} style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--ink)", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                        {cand.full_name || "EchoGist Writer"}
+                                      </Link>
+                                      {(cand.role === "admin" || cand.role === "staff") && (
+                                        <span style={{ fontSize: 10, fontWeight: 700, background: "var(--brand-light)", color: "var(--brand)", padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>
+                                          STAFF
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>@{cand.username || "writer"}</div>
+                                  </div>
+                                </div>
+
+                                {cand.bio ? (
+                                  <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 8px", lineHeight: 1.4, fontFamily: "var(--sans)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                    {cand.bio}
+                                  </p>
+                                ) : (
+                                  <p style={{ fontSize: 12, color: "var(--muted-2)", margin: "0 0 8px", fontStyle: "italic", fontFamily: "var(--serif)" }}>
+                                    EchoGist author & contributor
+                                  </p>
+                                )}
+                              </div>
+
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--border-2)", paddingTop: 12, marginTop: 4 }}>
+                                <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
+                                  {cand.totalFollowerCount} {cand.totalFollowerCount === 1 ? "follower" : "followers"}
+                                </span>
+                                <button
+                                  onClick={() => handleFollowToggle(cand.id, false)}
+                                  className="btn btn-primary btn-sm"
+                                  style={{ borderRadius: 999, padding: "6px 18px", fontWeight: 600 }}
+                                >
+                                  + Follow
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 1. SUGGESTIONS SUB-TAB */}
+                  {followSubTab === "suggestions" && (
+                    <div>
+                      <div style={{ marginBottom: 20 }}>
+                        <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", margin: "0 0 4px", fontFamily: "var(--display)" }}>
+                          Writers you might like
+                        </h3>
+                        <p style={{ fontSize: 13, color: "var(--muted)", margin: 0, fontFamily: "var(--sans)" }}>
+                          People you are not following yet, based on your network and writers followed by people you follow.
+                        </p>
+                      </div>
+
+                      {suggestions.length === 0 ? (
+                        <div className="empty-state">
+                          <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
+                          <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>You're all caught up!</h4>
+                          <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>You are following all active writers on EchoGist.</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 16 }}>
+                          {suggestions.map((cand) => (
+                            <div 
+                              key={cand.id} 
+                              style={{ 
+                                padding: "20px", 
+                                background: "var(--bg-2)", 
+                                border: "1px solid var(--border)", 
+                                borderRadius: 18, 
+                                display: "flex", 
+                                flexDirection: "column", 
+                                justifyContent: "space-between", 
+                                gap: 14,
+                                transition: "transform 0.15s ease, box-shadow 0.15s ease"
+                              }}
+                            >
+                              <div>
+                                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
+                                  <Link href={`/profile/${cand.username || cand.id}`} style={{ textDecoration: "none", flexShrink: 0 }}>
+                                    <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                                      {cand.avatar_url ? <Image src={cand.avatar_url} alt="" width={46} height={46} style={{ objectFit: "cover" }} /> : getInitials(cand.full_name)}
+                                    </div>
+                                  </Link>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <Link href={`/profile/${cand.username || cand.id}`} style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--ink)", textDecoration: "none", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {cand.full_name}
+                                    </Link>
+                                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)" }}>@{cand.username || "writer"}</div>
+                                  </div>
+                                </div>
+
+                                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", background: "var(--brand-light)", borderRadius: 999, color: "var(--brand)", fontSize: 11, fontWeight: 600, fontFamily: "var(--sans)", marginBottom: 10 }}>
+                                  <span>✨</span> {cand.reason}
+                                </div>
+
+                                {cand.bio && (
+                                  <p style={{ fontSize: 13, color: "var(--muted)", margin: 0, lineHeight: 1.4, fontFamily: "var(--sans)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                    {cand.bio}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--border-2)", paddingTop: 12, marginTop: 4 }}>
+                                <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: "var(--sans)" }}>
+                                  {cand.totalFollowerCount} {cand.totalFollowerCount === 1 ? "follower" : "followers"}
+                                </span>
+                                <button
+                                  onClick={() => handleFollowToggle(cand.id, false)}
+                                  className="btn btn-primary btn-sm"
+                                  style={{ borderRadius: 999, padding: "6px 18px", fontWeight: 600 }}
+                                >
+                                  + Follow
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 2. FOLLOWING SUB-TAB (With Expandable Follower Network) */}
+                  {followSubTab === "following" && (
                     following.length === 0 ? (
                       <div className="empty-state">
                         <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
                         <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>Not following anyone yet</h4>
-                        <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>Follow authors whose writing you enjoy.</p>
-                        <Link href="/" className="btn btn-primary btn-sm" style={{ textDecoration: "none" }}>Discover writers</Link>
+                        <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>Discover writers in the Suggestions tab to see their updates.</p>
+                        <button onClick={() => setFollowSubTab("suggestions")} className="btn btn-primary btn-sm" style={{ borderRadius: 999 }}>
+                          See suggestions
+                        </button>
                       </div>
                     ) : (
-                      following.map((f) => {
-                        const prof = f.following_profile || f.profiles;
-                        if (!prof) return null;
-                        return (
-                          <div key={f.id} className="dash-post-row" style={{ display: "flex", gap: 16, alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
-                            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
-                              {prof.avatar_url ? <Image src={prof.avatar_url} alt="" width={40} height={40} style={{ objectFit: "cover" }} /> : getInitials(prof.full_name)}
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        {following.map((f) => {
+                          const prof = f.following_profile || f.profiles;
+                          if (!prof) return null;
+                          const isExpanded = !!expandedFollowingFollowers[prof.id];
+                          // Find all followers of this followed person
+                          const followersOfThisUser = allFollows.filter(af => af.following_id === prof.id);
+
+                          return (
+                            <div key={f.id} style={{ display: "flex", flexDirection: "column", gap: 12, padding: "20px 0", borderBottom: "1px solid var(--border-2)" }}>
+                              <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                                <Link href={`/profile/${prof.username || prof.id}`} style={{ display: "block", flexShrink: 0 }}>
+                                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
+                                    {prof.avatar_url ? <Image src={prof.avatar_url} alt="" width={44} height={44} style={{ objectFit: "cover" }} /> : getInitials(prof.full_name)}
+                                  </div>
+                                </Link>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <Link href={`/profile/${prof.username || prof.id}`} style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>
+                                      {prof.full_name}
+                                    </Link>
+                                    <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>@{prof.username || "writer"}</span>
+                                  </div>
+                                  {prof.bio && (
+                                    <p style={{ fontSize: 13, color: "var(--muted)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--sans)" }}>
+                                      {prof.bio}
+                                    </p>
+                                  )}
+                                  {/* Network link: Toggle followers of this followed person */}
+                                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
+                                    <button
+                                      onClick={() => setExpandedFollowingFollowers(prev => ({ ...prev, [prof.id]: !prev[prof.id] }))}
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        padding: 0,
+                                        color: "var(--brand)",
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        fontFamily: "var(--sans)",
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 5
+                                      }}
+                                    >
+                                      <span>👥 {followersOfThisUser.length} {followersOfThisUser.length === 1 ? "follower" : "followers"}</span>
+                                      <span style={{ fontSize: 10, opacity: 0.8 }}>{isExpanded ? "▲ Hide" : "▼ See who follows them"}</span>
+                                    </button>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleFollowToggle(prof.id, true)}
+                                  className="btn btn-outline btn-sm"
+                                  style={{ borderRadius: 999 }}
+                                >
+                                  Following
+                                </button>
+                              </div>
+
+                              {/* Expandable sub-list of who follows this user */}
+                              {isExpanded && (
+                                <div style={{ marginLeft: "clamp(20px, 4vw, 60px)", padding: "16px 20px", background: "var(--bg-2)", borderRadius: 16, border: "1px solid var(--border-2)" }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12, fontFamily: "var(--sans)" }}>
+                                    Writers following {prof.full_name}:
+                                  </div>
+                                  {followersOfThisUser.length === 0 ? (
+                                    <div style={{ fontSize: 13, color: "var(--muted)", fontFamily: "var(--sans)" }}>
+                                      No one else is following {prof.full_name} yet.
+                                    </div>
+                                  ) : (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                      {followersOfThisUser.map((followRow) => {
+                                        const followerProf = followRow.follower_profile || followRow.profiles;
+                                        if (!followerProf || followerProf.id === profile?.id) return null;
+                                        const alreadyFollowing = followingIds.has(followerProf.id);
+
+                                        return (
+                                          <div key={followRow.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                                            <Link href={`/profile/${followerProf.username || followerProf.id}`} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", flex: 1, minWidth: 0 }}>
+                                              <div style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--ink)", color: "white", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                                {followerProf.avatar_url ? <Image src={followerProf.avatar_url} alt="" width={34} height={34} style={{ objectFit: "cover" }} /> : getInitials(followerProf.full_name)}
+                                              </div>
+                                              <div style={{ minWidth: 0 }}>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--display)" }}>
+                                                  {followerProf.full_name}
+                                                </div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "var(--sans)" }}>
+                                                  @{followerProf.username || "writer"}
+                                                  {followerProf.bio ? ` · ${followerProf.bio.slice(0, 45)}…` : ""}
+                                                </div>
+                                              </div>
+                                            </Link>
+                                            <button
+                                              onClick={() => handleFollowToggle(followerProf.id, alreadyFollowing)}
+                                              className={`btn btn-sm ${alreadyFollowing ? "btn-outline" : "btn-primary"}`}
+                                              style={{ borderRadius: 999, fontSize: 12, padding: "4px 14px" }}
+                                            >
+                                              {alreadyFollowing ? "Following" : "+ Follow"}
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <Link href={`/profile/${prof.username || prof.id}`} style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>{prof.full_name}</Link>
-                              <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>@{prof.username || "writer"}</div>
+                          );
+                        })}
+                      </div>
+                    )
+                  )}
+
+                  {/* 3. FOLLOWERS SUB-TAB */}
+                  {followSubTab === "followers" && (
+                    followers.length === 0 ? (
+                      <div className="empty-state">
+                        <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
+                        <h4 style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>No followers yet</h4>
+                        <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "6px 0 20px" }}>Publish high quality content to attract readers and followers.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        {followers.map((f) => {
+                          const prof = f.follower_profile || f.profiles;
+                          if (!prof) return null;
+                          const isFollowingBack = followingIds.has(prof.id);
+                          return (
+                            <div key={f.id} className="dash-post-row" style={{ display: "flex", gap: 16, alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>
+                              <Link href={`/profile/${prof.username || prof.id}`} style={{ display: "block", flexShrink: 0 }}>
+                                <div style={{ width: 42, height: 42, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", overflow: "hidden", justifyContent: "center" }}>
+                                  {prof.avatar_url ? <Image src={prof.avatar_url} alt="" width={42} height={42} style={{ objectFit: "cover" }} /> : getInitials(prof.full_name)}
+                                </div>
+                              </Link>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Link href={`/profile/${prof.username || prof.id}`} style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, color: "var(--black)", textDecoration: "none" }}>
+                                  {prof.full_name}
+                                </Link>
+                                <div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)" }}>@{prof.username || "writer"}</div>
+                                {prof.bio && (
+                                  <p style={{ fontSize: 13, color: "var(--muted)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--sans)" }}>
+                                    {prof.bio}
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleFollowToggle(prof.id, isFollowingBack)}
+                                className={`btn btn-sm ${isFollowingBack ? "btn-outline" : "btn-primary"}`}
+                                style={{ borderRadius: 999 }}
+                              >
+                                {isFollowingBack ? "Following" : "Follow back"}
+                              </button>
                             </div>
-                            <button
-                              onClick={() => handleFollowToggle(prof.id, true)}
-                              className="btn btn-outline btn-sm"
-                              style={{ borderRadius: 999 }}
-                            >
-                              Following
-                            </button>
-                          </div>
-                        );
-                      })
+                          );
+                        })}
+                      </div>
                     )
                   )}
                 </div>

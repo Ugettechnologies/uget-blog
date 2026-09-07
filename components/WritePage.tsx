@@ -249,12 +249,9 @@ export default function WritePage() {
 
     const slug = slugify(title) + "-" + Math.random().toString(36).slice(2, 6);
     const readTime = estimateReadTime(content);
-    const imageSeed = postId || slug;
-    void imageSeed; // not used — cover image is author-controlled only
     const finalCoverImage = coverImage || null;
-    const payload = {
+    const payload: any = {
       title: title.trim(),
-      slug: postId ? undefined : slug,
       excerpt: subtitle.trim() || content.replace(/<[^>]*>/g, "").slice(0, 160) + "…",
       content,
       cover_image: finalCoverImage,
@@ -271,15 +268,24 @@ export default function WritePage() {
     if (postId) {
       ({ error, data } = await supabase.from("posts").update(payload).eq("id", postId).select().single());
     } else {
-      ({ error, data } = await supabase.from("posts").insert({ ...payload, slug }).select().single());
+      payload.slug = slug;
+      ({ error, data } = await supabase.from("posts").insert(payload).select().single());
       if (data) setPostId(data.id);
     }
 
-    if (error) { showMsg(error.message, "err"); }
-    else {
-      showMsg(pub ? "Published!" : "Draft saved");
+    if (error) { 
+      showMsg(error.message, "err"); 
+    } else {
+      const msg = pub 
+        ? (postId && published ? "Story updated successfully!" : "Story published!") 
+        : (postId && published ? "Moved to drafts!" : "Draft saved!");
+      showMsg(msg);
       setPublished(pub);
-      if (pub && data) router.push(`/post/${data.slug}`);
+      if (pub && data) {
+        setTimeout(() => {
+          router.push(`/post/${data.slug}`);
+        }, 800);
+      }
     }
     setSaving(false); setPublishing(false);
   };
@@ -299,19 +305,66 @@ export default function WritePage() {
 
       {/* Toolbar */}
       <div className="editor-topbar">
-        <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted-2)", flex: 1 }}>
-          {published ? "Published" : "Draft"} · {estimateReadTime(content)} min read
+        <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted-2)", flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{
+            display: "inline-block",
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: published ? "#10b981" : "#f59e0b"
+          }} />
+          <strong style={{ color: "var(--ink)", fontWeight: 600 }}>{published ? "Published Story" : "Draft"}</strong> · {estimateReadTime(content)} min read
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => savePost(false)} disabled={saving}
-            className="btn btn-outline btn-sm" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {saving ? <div className="spinner" style={{ width: 14, height: 14, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} /> : null}
-            Save draft
-          </button>
-          <button onClick={() => setShowSettings(true)}
-            className="btn btn-primary btn-sm">
-            Publish
-          </button>
+          {published ? (
+            <>
+              <button 
+                onClick={() => savePost(false)} 
+                disabled={saving || publishing}
+                className="btn btn-outline btn-sm" 
+                title="Unpublish this story and revert it to drafts"
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                {saving ? <div className="spinner" style={{ width: 14, height: 14, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} /> : null}
+                Revert to draft
+              </button>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="btn btn-outline btn-sm"
+                title="Edit category, cover, and tags"
+              >
+                Settings
+              </button>
+              <button 
+                onClick={() => savePost(true)} 
+                disabled={publishing || saving}
+                className="btn btn-primary btn-sm"
+                style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}
+              >
+                {publishing ? <div className="spinner" style={{ width: 14, height: 14, borderColor: "rgba(255,255,255,0.4)", borderTopColor: "#fff" }} /> : null}
+                Update story
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                onClick={() => savePost(false)} 
+                disabled={saving || publishing}
+                className="btn btn-outline btn-sm" 
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                {saving ? <div className="spinner" style={{ width: 14, height: 14, borderColor: "var(--border)", borderTopColor: "var(--ink)" }} /> : null}
+                Save draft
+              </button>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="btn btn-primary btn-sm"
+                style={{ fontWeight: 600 }}
+              >
+                Publish
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -349,27 +402,12 @@ export default function WritePage() {
         />
         <textarea
           value={subtitle} onChange={(e) => setSubtitle(e.target.value)}
-          placeholder="Add a subtitle / direct answer summary…"
+          placeholder="Add a subtitle (optional)…"
           className="editor-subtitle-input"
-          style={{ resize: "none", overflow: "hidden", width: "100%", border: "none", outline: "none" }}
+          style={{ resize: "none", overflow: "hidden", width: "100%", border: "none", outline: "none", marginBottom: 20 }}
           rows={1}
           onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }}
         />
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "8px 14px",
-          background: "var(--brand-light)",
-          borderRadius: "var(--radius)",
-          marginBottom: 20,
-          border: "1px solid rgba(124, 58, 237, 0.15)",
-        }}>
-          <span style={{ fontSize: 14 }}>💡</span>
-          <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--brand)", fontWeight: 500, lineHeight: 1.4 }}>
-            <strong>Direct Answer / AI Overview:</strong> Provide a concise 1–2 sentence answer to the story's main topic. Google's AI Overviews and search engines feature this snippet at the top of search results.
-          </span>
-        </div>
         <div style={{ borderTop: "1px solid var(--border-2)", marginBottom: 24 }} />
         <TipTapEditor content={content} onChange={setContent} />
       </div>
@@ -378,13 +416,17 @@ export default function WritePage() {
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640, borderRadius: 24, padding: "32px 36px", border: "1px solid var(--border)", background: "var(--modal-bg, white)" }}>
-            <h2 className="modal-title" style={{ fontSize: 24, fontWeight: 800, fontFamily: "var(--display)", color: "var(--black)", marginBottom: 6 }}>Publish your story</h2>
-            <p className="modal-desc" style={{ fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)", marginBottom: 28 }}>Review your settings before publishing.</p>
+            <h2 className="modal-title" style={{ fontSize: 24, fontWeight: 800, fontFamily: "var(--display)", color: "var(--black)", marginBottom: 6 }}>
+              {published ? "Story settings & update" : "Publish your story"}
+            </h2>
+            <p className="modal-desc" style={{ fontSize: 14, color: "var(--muted)", fontFamily: "var(--sans)", marginBottom: 28 }}>
+              {published ? "Adjust story metadata and save updates." : "Review your settings before publishing."}
+            </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 32, marginBottom: 32 }}>
               {/* Cover preview card */}
               <div>
-                <div style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Story & AI Search Preview</div>
+                <div style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Story Preview</div>
                 
                 <div style={{ 
                   border: "1px solid var(--border)", 
@@ -536,10 +578,10 @@ export default function WritePage() {
 
             <div style={{ display: "flex", gap: 12, borderTop: "1px solid var(--border-2)", paddingTop: 20 }}>
               <button onClick={() => setShowSettings(false)} className="btn btn-outline btn-md" style={{ flex: 1, borderRadius: 999, padding: "10px 20px", fontWeight: 600, fontSize: 14 }}>Cancel</button>
-              <button onClick={() => { setShowSettings(false); savePost(true); }} disabled={publishing}
+              <button onClick={() => { setShowSettings(false); savePost(true); }} disabled={publishing || saving}
                 className="btn btn-primary btn-md" style={{ flex: 1, borderRadius: 999, padding: "10px 20px", fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {publishing ? <div className="spinner" /> : null}
-                Publish now
+                {published ? "Update story" : "Publish now"}
               </button>
             </div>
           </div>
