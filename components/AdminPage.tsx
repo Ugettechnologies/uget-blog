@@ -2,6 +2,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
 import type { Post, Profile } from "@/lib/types";
@@ -10,14 +14,36 @@ import SafeImage from "./SafeImage";
 
 type AdminTab = "overview" | "traffic" | "posts" | "users" | "payments" | "staff" | "analytics";
 
-function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
+function StatCard({ label, value, icon, subtext }: { label: string; value: string | number; icon: string; subtext?: string }) {
   return (
-    <div className="admin-stat-card" style={{ borderLeft: `3px solid ${color}` }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-        <span style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
-        <span style={{ fontSize: 20 }}>{icon}</span>
+    <div
+      style={{
+        background: "var(--bg-2)",
+        border: "1px solid var(--border)",
+        borderRadius: 12,
+        padding: "16px 20px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        transition: "all 0.15s ease",
+      }}
+    >
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.01em" }}>
+            {label}
+          </span>
+          <span style={{ fontSize: 14, opacity: 0.85 }}>{icon}</span>
+        </div>
+        <div style={{ fontFamily: "var(--sans)", fontSize: 24, fontWeight: 700, color: "var(--black)", letterSpacing: "-0.02em" }}>
+          {value}
+        </div>
       </div>
-      <div className="admin-stat-number">{value}</div>
+      {subtext && (
+        <div style={{ fontFamily: "var(--sans)", fontSize: 11.5, color: "var(--muted)", marginTop: 8 }}>
+          {subtext}
+        </div>
+      )}
     </div>
   );
 }
@@ -1532,53 +1558,276 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* ── OVERVIEW ── */}
-              {tab === "overview" && (
-                <div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
-                    <StatCard label="Total posts" value={posts.length} icon="📝" color="#3b82f6" />
-                    <StatCard label="Published" value={published.length} icon="🌐" color="#10b981" />
-                    <StatCard label="Writers" value={users.length} icon="✍️" color="#8b5cf6" />
-                    <StatCard label="Total views" value={totalViews.toLocaleString()} icon="👁" color="#f59e0b" />
-                    <StatCard label="Total likes" value={totalLikes} icon="❤️" color="#ef4444" />
-                  </div>
+              
+              {tab === "overview" && (() => {
+                // Category counts for platform health breakdown
+                const categoryBreakdown: { [key: string]: number } = {};
+                posts.forEach((p) => {
+                  const cat = p.category || "general";
+                  categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
+                });
+                const sortedCategories = Object.entries(categoryBreakdown)
+                  .sort(([, a], [, b]) => b - a)
+                  .slice(0, 4);
 
-                  {/* Recent posts */}
-                  <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
-                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>Recent posts</span>
-                      <button onClick={() => setTab("posts")} style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--blue)", background: "none", border: "none", cursor: "pointer" }}>View all</button>
+                // Top writers
+                const authorCounts: { [key: string]: { profile: Profile; postsCount: number; views: number } } = {};
+                posts.forEach((p) => {
+                  const author = p.profiles as any;
+                  if (author?.full_name || p.user_id) {
+                    const key = p.user_id || author?.username || "unknown";
+                    if (!authorCounts[key]) {
+                      authorCounts[key] = {
+                        profile: author || { full_name: "Writer", username: "user" },
+                        postsCount: 0,
+                        views: 0
+                      };
+                    }
+                    authorCounts[key].postsCount += 1;
+                    authorCounts[key].views += p.view_count || 0;
+                  }
+                });
+                const topAuthors = Object.values(authorCounts)
+                  .sort((a, b) => b.views - a.views)
+                  .slice(0, 4);
+
+                return (
+                  <div>
+                    {/* Header Banner */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+                      <div>
+                        <h2 style={{ fontFamily: "var(--sans)", fontSize: 20, fontWeight: 700, margin: 0, color: "var(--black)", letterSpacing: "-0.01em" }}>
+                          System Overview
+                        </h2>
+                        <p style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)", margin: "4px 0 0" }}>
+                          Real-time publication performance, writer activity, and audience metrics
+                        </p>
+                      </div>
+
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 999 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", display: "inline-block", boxShadow: "0 0 6px #10b981" }} />
+                        <span style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 600, color: "var(--black)" }}>Live Status</span>
+                      </div>
                     </div>
-                    <div style={{ overflowX: "auto" }}>
-                      <table className="admin-table">
-                      <thead>
-                        <tr><th>Title</th><th>Author</th><th>Status</th><th>Views</th><th>Date</th></tr>
-                      </thead>
-                      <tbody>
-                        {posts.slice(0, 8).map((p) => {
-                          const author = p.profiles as any;
-                          return (
-                            <tr key={p.id}>
-                              <td>
-                                <Link href={`/post/${p.slug}`} style={{ fontFamily: "var(--display)", fontSize: 14, fontWeight: 600, color: "var(--black)", textDecoration: "none", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" as const, overflow: "hidden", maxWidth: 300 }}>{p.title}</Link>
-                              </td>
-                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{author?.full_name || "—"}</span></td>
-                              <td>
-                                <span className={`status-badge ${p.published ? "status-published" : "status-draft"}`}>
-                                  {p.published ? "Live" : "Draft"}
-                                </span>
-                              </td>
-                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--muted)" }}>{p.view_count}</span></td>
-                              <td><span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)" }}>{formatDate(p.created_at)}</span></td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+
+                    {/* Top 5 Scorecards */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, marginBottom: 24 }}>
+                      <StatCard
+                        label="Total Posts"
+                        value={posts.length.toLocaleString()}
+                        icon="📝"
+                        subtext={`${published.length} live • ${posts.length - published.length} drafts`}
+                      />
+                      <StatCard
+                        label="Live Articles"
+                        value={published.length.toLocaleString()}
+                        icon="🌐"
+                        subtext={`${posts.length > 0 ? ((published.length / posts.length) * 100).toFixed(0) : 0}% publish rate`}
+                      />
+                      <StatCard
+                        label="Active Creators"
+                        value={users.length.toLocaleString()}
+                        icon="✍️"
+                        subtext={`${users.filter(u => u.role === 'staff').length} staff • ${users.filter(u => u.role !== 'staff').length} writers`}
+                      />
+                      <StatCard
+                        label="Total Views"
+                        value={totalViews.toLocaleString()}
+                        icon="👁"
+                        subtext={`Avg ${posts.length > 0 ? Math.round(totalViews / posts.length).toLocaleString() : 0} per post`}
+                      />
+                      <StatCard
+                        label="Total Likes"
+                        value={totalLikes.toLocaleString()}
+                        icon="❤️"
+                        subtext={`${totalViews > 0 ? ((totalLikes / totalViews) * 100).toFixed(1) : 0}% engagement`}
+                      />
+                    </div>
+
+                    {/* 2-Column Content Layout (Recent Posts + Insights Sidebar) */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 20, alignItems: "start" }}>
+                      
+                      {/* Left: Recent Publications Table */}
+                      <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+                        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <div>
+                            <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>Recent Publications</span>
+                            <span style={{ marginLeft: 8, fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)", background: "var(--bg-3)", padding: "2px 8px", borderRadius: 999 }}>
+                              {posts.length} total
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setTab("posts")}
+                            style={{
+                              fontFamily: "var(--sans)",
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              color: "var(--brand)",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4
+                            }}
+                          >
+                            View all posts →
+                          </button>
+                        </div>
+                        <div style={{ overflowX: "auto" }}>
+                          <table className="admin-table" style={{ margin: 0 }}>
+                            <thead>
+                              <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Status</th>
+                                <th style={{ textAlign: "right" }}>Views</th>
+                                <th style={{ textAlign: "right" }}>Date</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {posts.slice(0, 8).map((p) => {
+                                const author = p.profiles as any;
+                                return (
+                                  <tr key={p.id}>
+                                    <td style={{ maxWidth: 260 }}>
+                                      <Link
+                                        href={`/post/${p.slug}`}
+                                        style={{
+                                          fontFamily: "var(--sans)",
+                                          fontSize: 13.5,
+                                          fontWeight: 600,
+                                          color: "var(--black)",
+                                          textDecoration: "none",
+                                          display: "-webkit-box",
+                                          WebkitLineClamp: 1,
+                                          WebkitBoxOrient: "vertical" as const,
+                                          overflow: "hidden"
+                                        }}
+                                      >
+                                        {p.title}
+                                      </Link>
+                                    </td>
+                                    <td>
+                                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                        <div style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 9.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                          {author?.avatar_url ? <Image src={author.avatar_url} alt="" width={22} height={22} style={{ objectFit: "cover" }} /> : getInitials(author?.full_name || "")}
+                                        </div>
+                                        <span style={{ fontFamily: "var(--sans)", fontSize: 12.5, color: "var(--muted)", whiteSpace: "nowrap" }}>
+                                          {author?.full_name || "—"}
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: 5,
+                                        fontFamily: "var(--sans)",
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: p.published ? "rgba(16, 185, 129, 0.12)" : "var(--bg-3)",
+                                        color: p.published ? "#10b981" : "var(--muted)"
+                                      }}>
+                                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: p.published ? "#10b981" : "var(--muted)" }} />
+                                        {p.published ? "Live" : "Draft"}
+                                      </span>
+                                    </td>
+                                    <td style={{ textAlign: "right", fontFamily: "var(--sans)", fontSize: 13, fontWeight: 600, color: "var(--black)" }}>
+                                      {(p.view_count || 0).toLocaleString()}
+                                    </td>
+                                    <td style={{ textAlign: "right", fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted-2)", whiteSpace: "nowrap" }}>
+                                      {formatDate(p.created_at)}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Right: Quick Insights / Category Breakdown & Top Contributors */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                        {/* Top Categories */}
+                        <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                            <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>
+                              Top Categories
+                            </span>
+                            <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>
+                              By volume
+                            </span>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {sortedCategories.map(([catId, count]) => {
+                              const catObj = CATEGORIES.find(c => c.id === catId);
+                              const label = catObj?.label || catId;
+                              const pct = posts.length > 0 ? Math.round((count / posts.length) * 100) : 0;
+                              return (
+                                <div key={catId}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, fontFamily: "var(--sans)", fontSize: 12.5 }}>
+                                    <span style={{ fontWeight: 600, color: "var(--black)", textTransform: "capitalize" }}>{label}</span>
+                                    <span style={{ color: "var(--muted)" }}>{count} ({pct}%)</span>
+                                  </div>
+                                  <div style={{ height: 6, width: "100%", background: "var(--bg-3)", borderRadius: 999, overflow: "hidden" }}>
+                                    <div style={{ height: "100%", width: `${pct}%`, background: "var(--brand)", borderRadius: 999 }} />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Top Contributing Creators */}
+                        <div style={{ background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                            <span style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 700, color: "var(--black)" }}>
+                              Top Creators
+                            </span>
+                            <button
+                              onClick={() => setTab("users")}
+                              style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--brand)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
+                            >
+                              Manage →
+                            </button>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {topAuthors.map(({ profile, postsCount, views }, idx) => (
+                              <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--ink)", color: "white", fontFamily: "var(--sans)", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                    {profile?.avatar_url ? <Image src={profile.avatar_url} alt="" width={28} height={28} style={{ objectFit: "cover" }} /> : getInitials(profile?.full_name || "")}
+                                  </div>
+                                  <div>
+                                    <div style={{ fontFamily: "var(--sans)", fontSize: 12.5, fontWeight: 600, color: "var(--black)" }}>
+                                      {profile?.full_name || "Creator"}
+                                    </div>
+                                    <div style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--muted)" }}>
+                                      {postsCount} {postsCount === 1 ? "article" : "articles"}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div style={{ textAlign: "right" }}>
+                                  <span style={{ fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, color: "var(--black)" }}>
+                                    {views.toLocaleString()}
+                                  </span>
+                                  <span style={{ fontFamily: "var(--sans)", fontSize: 10.5, color: "var(--muted)", display: "block" }}>
+                                    views
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* ── ALL POSTS ── */}
               {tab === "posts" && (
