@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const [storiesSubTab, setStoriesSubTab] = useState<"drafts" | "published" | "scheduled" | "unlisted">("published");
   const [followSubTab, setFollowSubTab] = useState<"explore" | "suggestions" | "following" | "followers">("explore");
   const [exploreSearch, setExploreSearch] = useState("");
-  const [exploreFilter, setExploreFilter] = useState<"all" | "popular" | "newest" | "staff">("all");
+  const [exploreFilter, setExploreFilter] = useState<"all" | "popular">("all");
   const [statsSubTab, setStatsSubTab] = useState<"stories" | "audience">("stories");
   const [selectedMonth, setSelectedMonth] = useState<string>("August 2026");
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
@@ -398,10 +398,6 @@ export default function DashboardPage() {
 
     if (exploreFilter === "popular") {
       enriched.sort((a, b) => (b.totalFollowerCount || 0) - (a.totalFollowerCount || 0));
-    } else if (exploreFilter === "newest") {
-      enriched.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-    } else if (exploreFilter === "staff") {
-      return enriched.filter(p => p.role === "staff" || p.role === "admin");
     }
 
     return enriched;
@@ -1441,8 +1437,6 @@ export default function DashboardPage() {
                           {[
                             { id: "all", label: "All" },
                             { id: "popular", label: "🔥 Most Popular" },
-                            { id: "newest", label: "✨ Newest" },
-                            { id: "staff", label: "🛡️ Staff & Editors" },
                           ].map((f) => {
                             const isSel = exploreFilter === f.id;
                             return (
