@@ -363,7 +363,7 @@ function SidebarTrending({ posts }: { posts: Post[] }) {
   );
 }
 
-function MobileHighestViewsWidget({ posts }: { posts: Post[] }) {
+function MobileTrendingWidget({ posts }: { posts: Post[] }) {
   const topTrending = [...posts]
     .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
     .slice(0, 5);
@@ -373,9 +373,12 @@ function MobileHighestViewsWidget({ posts }: { posts: Post[] }) {
   return (
     <div className="uget-mobile-trending-section" style={{ marginBottom: 24, display: "none" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--black)", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
-          Highest Views
-        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 16 }}>📈</span>
+          <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--black)", margin: 0 }}>
+            Trending for the week
+          </h3>
+        </div>
         <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--muted)", fontWeight: 600 }}>Top Stories</span>
       </div>
 
@@ -1900,8 +1903,8 @@ export default function HomePage() {
               </h3>
             )}
 
-            {/* Mobile Highest Views Carousel */}
-            {!query && <MobileHighestViewsWidget posts={posts} />}
+            {/* Mobile Trending Carousel */}
+            {!query && <MobileTrendingWidget posts={posts} />}
 
             {/* Unified Feed & Category Navigation Tabs with Pro Fancy Scroll Controls */}
             {!query && (
