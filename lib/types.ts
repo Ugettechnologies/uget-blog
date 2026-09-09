@@ -59,6 +59,19 @@ export interface Bookmark {
   created_at: string;
 }
 
+export type TrafficChannel = "google" | "social" | "direct" | "referral";
+export type DeviceType = "mobile" | "desktop" | "tablet";
+
+export interface SiteVisit {
+  id: string;
+  post_id?: string | null;
+  channel: TrafficChannel;
+  referrer_domain?: string | null;
+  device: DeviceType;
+  country_code?: string | null;
+  created_at: string;
+}
+
 export const CATEGORIES = [
   { id: "technology", label: "Technology" },
   { id: "design", label: "Design" },

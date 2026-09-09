@@ -2,13 +2,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-"use client";
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/db-client/client";
-import type { Post, Profile } from "@/lib/types";
+import type { Post, Profile, SiteVisit } from "@/lib/types";
 import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import SafeImage from "./SafeImage";
 
@@ -62,6 +58,7 @@ export default function AdminPage() {
   const [allProfileViews, setAllProfileViews] = useState<any[]>([]);
   const [allFollows, setAllFollows] = useState<any[]>([]);
   const [allLikes, setAllLikes] = useState<any[]>([]);
+  const [allSiteVisits, setAllSiteVisits] = useState<SiteVisit[]>([]);
   const [trafficPeriod, setTrafficPeriod] = useState<"today" | "week" | "month" | "quarter" | "all">("today");
   const [trafficMetric, setTrafficMetric] = useState<"pageviews" | "visitors">("pageviews");
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
@@ -203,13 +200,14 @@ export default function AdminPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [postsRes, usersRes, subsRes, viewsRes, followsRes, likesRes] = await Promise.all([
+    const [postsRes, usersRes, subsRes, viewsRes, followsRes, likesRes, visitsRes] = await Promise.all([
       supabase.from("posts").select("*, profiles(full_name, avatar_url, username)").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("*").order("created_at", { ascending: false }),
       supabase.from("profile_views").select("*").order("created_at", { ascending: false }),
       supabase.from("follows").select("*").order("created_at", { ascending: false }),
       supabase.from("likes").select("*").order("created_at", { ascending: false }),
+      supabase.from("site_visits").select("*").order("created_at", { ascending: false }),
     ]);
     setPosts(postsRes.data as Post[] || []);
     setUsers(usersRes.data as Profile[] || []);
@@ -217,6 +215,7 @@ export default function AdminPage() {
     setAllProfileViews(viewsRes.data || []);
     setAllFollows(followsRes.data || []);
     setAllLikes(likesRes.data || []);
+    setAllSiteVisits(visitsRes.data as SiteVisit[] || []);
     setLoading(false);
   };
 
@@ -426,16 +425,17 @@ export default function AdminPage() {
       {/* Main */}
       <main style={{ flex: 1, marginLeft: sidebarOpen ? 240 : 0, transition: "margin-left 0.3s ease", minWidth: 0 }}>
         {/* Topbar */}
-        <div className="admin-topbar" style={{ zIndex: 75 }}>
+        <div className="admin-topbar" style={{ zIndex: 75, display: "flex", alignItems: "center", gap: 16 }}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Toggle sidebar"
             style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg-2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
           >
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="admin-page-title">
+          <h1 className="admin-page-title" style={{ margin: 0 }}>
             {navItems.find((n) => n.id === tab)?.label}
           </h1>
           {tab === "posts" && (
@@ -517,74 +517,101 @@ export default function AdminPage() {
                   {analyticsSubTab === "traffic" && (() => {
                     const now = new Date();
                     
-                    // Determine timeline data based on selected traffic period
+                    // Filter visits according to selected trafficPeriod
+                    let periodCutoff: Date | null = null;
                     let periodTitle = "Today (24 hours)";
                     let periodSubtitle = "Live traffic & hourly visitors";
-                    let points: { label: string; visitors: number; pageviews: number }[] = [];
-
-                    // Base scale derived from total site activity
-                    const baseTotalViews = totalViews || 320;
 
                     if (trafficPeriod === "today") {
                       periodTitle = "Today's Traffic";
                       periodSubtitle = "24-hour hourly visitor breakdown";
-                      const hours = ["12 AM", "2 AM", "4 AM", "6 AM", "8 AM", "10 AM", "12 PM", "2 PM", "4 PM", "6 PM", "8 PM", "10 PM"];
-                      const hourWeights = [0.03, 0.02, 0.01, 0.03, 0.07, 0.11, 0.14, 0.13, 0.12, 0.15, 0.12, 0.07];
-                      const dayTotalViews = Math.max(36, Math.round(baseTotalViews * 0.07));
-                      points = hours.map((h, i) => {
-                        const pv = Math.max(1, Math.round(dayTotalViews * hourWeights[i]));
-                        const uv = Math.max(1, Math.round(pv * 0.74));
-                        return { label: h, visitors: uv, pageviews: pv };
-                      });
+                      periodCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
                     } else if (trafficPeriod === "week") {
                       periodTitle = "Last 7 Days Traffic";
                       periodSubtitle = "Daily traffic progression this week";
-                      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-                      const dayWeights = [0.13, 0.15, 0.16, 0.18, 0.14, 0.11, 0.13];
-                      const weekTotalViews = Math.max(160, Math.round(baseTotalViews * 0.32));
-                      points = days.map((d, i) => {
-                        const pv = Math.max(12, Math.round(weekTotalViews * dayWeights[i]));
-                        const uv = Math.max(8, Math.round(pv * 0.72));
-                        return { label: d, visitors: uv, pageviews: pv };
-                      });
+                      periodCutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
                     } else if (trafficPeriod === "month") {
                       periodTitle = "Last 28 Days Traffic";
                       periodSubtitle = "Day-by-day traffic over the past 4 weeks";
-                      const monthTotalViews = Math.max(450, Math.round(baseTotalViews * 0.82));
-                      points = Array.from({ length: 14 }).map((_, i) => {
-                        const d = new Date(now.getTime() - (14 - i - 1) * 2 * 24 * 60 * 60 * 1000);
-                        const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                        const wave = Math.sin(i * 0.7) * 0.25 + 0.75;
-                        const pv = Math.max(20, Math.round((monthTotalViews / 14) * wave));
-                        const uv = Math.max(14, Math.round(pv * 0.73));
-                        return { label, visitors: uv, pageviews: pv };
-                      });
+                      periodCutoff = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
                     } else if (trafficPeriod === "quarter") {
                       periodTitle = "Last 90 Days Traffic";
                       periodSubtitle = "Weekly traffic aggregated over 3 months";
-                      const qTotalViews = Math.max(950, baseTotalViews * 1.8);
-                      points = Array.from({ length: 12 }).map((_, i) => {
-                        const label = `Wk ${i + 1}`;
-                        const wave = Math.sin(i * 0.5) * 0.3 + 0.8;
-                        const pv = Math.max(50, Math.round((qTotalViews / 12) * wave));
-                        const uv = Math.max(35, Math.round(pv * 0.7));
-                        return { label, visitors: uv, pageviews: pv };
-                      });
+                      periodCutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
                     } else {
                       periodTitle = "All Time Traffic";
                       periodSubtitle = "Lifetime reader traffic progression";
-                      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
-                      const allTotal = Math.max(1800, baseTotalViews * 3.2);
-                      points = months.map((m, i) => {
-                        const growth = (i + 1) / months.length;
-                        const pv = Math.max(80, Math.round((allTotal / months.length) * (0.5 + growth * 0.8)));
-                        const uv = Math.max(60, Math.round(pv * 0.75));
-                        return { label: m, visitors: uv, pageviews: pv };
+                      periodCutoff = null;
+                    }
+
+                    const periodVisits = allSiteVisits.filter(v => {
+                      if (!periodCutoff) return true;
+                      return new Date(v.created_at) >= periodCutoff;
+                    });
+
+                    // Real Timeline points
+                    let points: { label: string; visitors: number; pageviews: number }[] = [];
+
+                    if (trafficPeriod === "today") {
+                      const hours = ["12 AM", "2 AM", "4 AM", "6 AM", "8 AM", "10 AM", "12 PM", "2 PM", "4 PM", "6 PM", "8 PM", "10 PM"];
+                      points = hours.map((h, i) => {
+                        const bucketStartHour = i * 2;
+                        const bucketEndHour = bucketStartHour + 1;
+                        const count = periodVisits.filter(v => {
+                          const hour = new Date(v.created_at).getHours();
+                          return hour === bucketStartHour || hour === bucketEndHour;
+                        }).length;
+                        return { label: h, visitors: count, pageviews: count };
+                      });
+                    } else if (trafficPeriod === "week") {
+                      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                      const past7Days = Array.from({ length: 7 }).map((_, i) => {
+                        const d = new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000);
+                        const dayName = days[d.getDay()];
+                        const dateStr = d.toISOString().split("T")[0];
+                        const count = periodVisits.filter(v => v.created_at && v.created_at.startsWith(dateStr)).length;
+                        return { label: dayName, visitors: count, pageviews: count };
+                      });
+                      points = past7Days;
+                    } else if (trafficPeriod === "month") {
+                      const past14Buckets = Array.from({ length: 14 }).map((_, i) => {
+                        const d1 = new Date(now.getTime() - (13 - i) * 2 * 24 * 60 * 60 * 1000);
+                        const d2 = new Date(d1.getTime() + 24 * 60 * 60 * 1000);
+                        const label = d1.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                        const str1 = d1.toISOString().split("T")[0];
+                        const str2 = d2.toISOString().split("T")[0];
+                        const count = periodVisits.filter(v => v.created_at && (v.created_at.startsWith(str1) || v.created_at.startsWith(str2))).length;
+                        return { label, visitors: count, pageviews: count };
+                      });
+                      points = past14Buckets;
+                    } else if (trafficPeriod === "quarter") {
+                      const past12Weeks = Array.from({ length: 12 }).map((_, i) => {
+                        const wStart = new Date(now.getTime() - (12 - i) * 7 * 24 * 60 * 60 * 1000);
+                        const wEnd = new Date(wStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+                        const count = periodVisits.filter(v => {
+                          const t = new Date(v.created_at).getTime();
+                          return t >= wStart.getTime() && t < wEnd.getTime();
+                        }).length;
+                        return { label: `Wk ${i + 1}`, visitors: count, pageviews: count };
+                      });
+                      points = past12Weeks;
+                    } else {
+                      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                      const currentMonthIdx = now.getMonth();
+                      const activeMonths = months.slice(0, currentMonthIdx + 1);
+                      points = activeMonths.map((m, i) => {
+                        const count = periodVisits.filter(v => {
+                          const d = new Date(v.created_at);
+                          return d.getFullYear() === now.getFullYear() && d.getMonth() === i;
+                        }).length;
+                        return { label: m, visitors: count, pageviews: count };
                       });
                     }
 
-                    const sumPageviews = points.reduce((acc, p) => acc + p.pageviews, 0);
-                    const sumVisitors = points.reduce((acc, p) => acc + p.visitors, 0);
+                    // Total counts (accurately using real recorded visits and post view counts)
+                    const realVisitsCount = periodVisits.length;
+                    const sumPageviews = trafficPeriod === "all" ? Math.max(totalViews, realVisitsCount) : realVisitsCount;
+                    const sumVisitors = realVisitsCount;
                     const maxVal = Math.max(...points.map(p => trafficMetric === "pageviews" ? p.pageviews : p.visitors), 10);
 
                     // SVG Chart Coordinates
@@ -615,23 +642,60 @@ export default function AdminPage() {
 
                     const areaD = `${pathD} L ${coords[coords.length - 1].x},${padY + plotH} L ${coords[0].x},${padY + plotH} Z`;
 
-                    // Traffic Sources breakdown
+                    // Real Traffic Channels breakdown
+                    const googleVisits = periodVisits.filter(v => v.channel === "google").length;
+                    const directVisits = periodVisits.filter(v => v.channel === "direct").length;
+                    const socialVisits = periodVisits.filter(v => v.channel === "social").length;
+                    const referralVisits = periodVisits.filter(v => v.channel === "referral").length;
+                    const totalTrackedChannels = googleVisits + directVisits + socialVisits + referralVisits;
+
                     const sources = [
-                      { channel: "Google Search (Organic)", share: "44.8%", visitors: Math.round(sumVisitors * 0.448), color: "#1a73e8" },
-                      { channel: "Direct Navigation", share: "28.3%", visitors: Math.round(sumVisitors * 0.283), color: "#1e8e3e" },
-                      { channel: "Social Media (X, WhatsApp, IG)", share: "18.5%", visitors: Math.round(sumVisitors * 0.185), color: "#f9ab00" },
-                      { channel: "Referral & External Blogs", share: "8.4%", visitors: Math.round(sumVisitors * 0.084), color: "#d93025" },
+                      {
+                        channel: "Google Search (Organic)",
+                        visitors: googleVisits,
+                        share: totalTrackedChannels > 0 ? `${((googleVisits / totalTrackedChannels) * 100).toFixed(1)}%` : "0.0%",
+                        color: "#1a73e8"
+                      },
+                      {
+                        channel: "Direct Navigation",
+                        visitors: directVisits,
+                        share: totalTrackedChannels > 0 ? `${((directVisits / totalTrackedChannels) * 100).toFixed(1)}%` : "0.0%",
+                        color: "#1e8e3e"
+                      },
+                      {
+                        channel: "Social Media (X, WhatsApp, IG)",
+                        visitors: socialVisits,
+                        share: totalTrackedChannels > 0 ? `${((socialVisits / totalTrackedChannels) * 100).toFixed(1)}%` : "0.0%",
+                        color: "#f9ab00"
+                      },
+                      {
+                        channel: "Referral & External Blogs",
+                        visitors: referralVisits,
+                        share: totalTrackedChannels > 0 ? `${((referralVisits / totalTrackedChannels) * 100).toFixed(1)}%` : "0.0%",
+                        color: "#d93025"
+                      },
                     ];
 
                     // Geographic Countries breakdown
-                    const countries = [
-                      { name: "Nigeria", pct: 64, code: "NG", views: Math.round(sumPageviews * 0.64) },
-                      { name: "United States", pct: 14, code: "US", views: Math.round(sumPageviews * 0.14) },
-                      { name: "United Kingdom", pct: 9, code: "GB", views: Math.round(sumPageviews * 0.09) },
-                      { name: "Ghana", pct: 5, code: "GH", views: Math.round(sumPageviews * 0.05) },
-                      { name: "Canada", pct: 4, code: "CA", views: Math.round(sumPageviews * 0.04) },
-                      { name: "Others", pct: 4, code: "GL", views: Math.round(sumPageviews * 0.04) },
+                    const rawCountries = [
+                      { name: "Nigeria", pct: 64, code: "NG" },
+                      { name: "United States", pct: 14, code: "US" },
+                      { name: "United Kingdom", pct: 9, code: "GB" },
+                      { name: "Ghana", pct: 5, code: "GH" },
+                      { name: "Canada", pct: 4, code: "CA" },
+                      { name: "Others", pct: 4, code: "GL" },
                     ];
+                    let cRunningViews = 0;
+                    const countries = rawCountries.map((c, i) => {
+                      let views: number;
+                      if (i === rawCountries.length - 1) {
+                        views = Math.max(0, sumPageviews - cRunningViews);
+                      } else {
+                        views = Math.round(sumPageviews * (c.pct / 100));
+                        cRunningViews += views;
+                      }
+                      return { ...c, views };
+                    });
 
                     // Top Content by Views
                     const topArticles = [...posts].sort((a, b) => (b.view_count || 0) - (a.view_count || 0)).slice(0, 6);
@@ -1047,37 +1111,60 @@ export default function AdminPage() {
                                 Reader screen category distribution
                               </p>
 
-                              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "var(--sans)" }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ width: 10, height: 10, borderRadius: 2, background: "var(--brand)" }} />
-                                    <span style={{ fontWeight: 600, color: "var(--ink)" }}>Mobile Smartphones</span>
-                                  </div>
-                                  <span style={{ fontWeight: 700, color: "var(--black)" }}>77.2%</span>
-                                </div>
+                              {(() => {
+                                const mobileCount = periodVisits.filter(v => v.device === "mobile").length;
+                                const desktopCount = periodVisits.filter(v => v.device === "desktop").length;
+                                const tabletCount = periodVisits.filter(v => v.device === "tablet").length;
+                                const totalDeviceTracked = mobileCount + desktopCount + tabletCount;
+                                const mobilePct = totalDeviceTracked > 0 ? ((mobileCount / totalDeviceTracked) * 100).toFixed(1) : "0.0";
+                                const desktopPct = totalDeviceTracked > 0 ? ((desktopCount / totalDeviceTracked) * 100).toFixed(1) : "0.0";
+                                const tabletPct = totalDeviceTracked > 0 ? ((tabletCount / totalDeviceTracked) * 100).toFixed(1) : "0.0";
 
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "var(--sans)" }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ width: 10, height: 10, borderRadius: 2, background: "#3b82f6" }} />
-                                    <span style={{ fontWeight: 600, color: "var(--ink)" }}>Desktop & Laptops</span>
-                                  </div>
-                                  <span style={{ fontWeight: 700, color: "var(--black)" }}>19.8%</span>
-                                </div>
+                                return (
+                                  <>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "var(--sans)" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                          <span style={{ width: 10, height: 10, borderRadius: 2, background: "var(--brand)" }} />
+                                          <span style={{ fontWeight: 600, color: "var(--ink)" }}>Mobile Smartphones</span>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 8 }}>
+                                          <span style={{ color: "var(--muted)", fontSize: 12 }}>{mobileCount}</span>
+                                          <span style={{ fontWeight: 700, color: "var(--black)" }}>{mobilePct}%</span>
+                                        </div>
+                                      </div>
 
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "var(--sans)" }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ width: 10, height: 10, borderRadius: 2, background: "#10b981" }} />
-                                    <span style={{ fontWeight: 600, color: "var(--ink)" }}>Tablets & iPads</span>
-                                  </div>
-                                  <span style={{ fontWeight: 700, color: "var(--black)" }}>3.0%</span>
-                                </div>
-                              </div>
-                            </div>
+                                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "var(--sans)" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#3b82f6" }} />
+                                          <span style={{ fontWeight: 600, color: "var(--ink)" }}>Desktop & Laptops</span>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 8 }}>
+                                          <span style={{ color: "var(--muted)", fontSize: 12 }}>{desktopCount}</span>
+                                          <span style={{ fontWeight: 700, color: "var(--black)" }}>{desktopPct}%</span>
+                                        </div>
+                                      </div>
 
-                            <div style={{ padding: "12px", background: "var(--bg-3)", borderRadius: 8, marginTop: 20 }}>
-                              <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", lineHeight: 1.4 }}>
-                                💡 Over 77% of reader traffic comes from mobile smartphones. Content cards and mobile reading speeds are optimized for this format.
-                              </span>
+                                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "var(--sans)" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#10b981" }} />
+                                          <span style={{ fontWeight: 600, color: "var(--ink)" }}>Tablets & iPads</span>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 8 }}>
+                                          <span style={{ color: "var(--muted)", fontSize: 12 }}>{tabletCount}</span>
+                                          <span style={{ fontWeight: 700, color: "var(--black)" }}>{tabletPct}%</span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div style={{ padding: "12px", background: "var(--bg-3)", borderRadius: 8, marginTop: 20 }}>
+                                      <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--muted)", lineHeight: 1.4 }}>
+                                        💡 Live device metrics based on {totalDeviceTracked} real tracked visit{totalDeviceTracked === 1 ? "" : "s"} in this period.
+                                      </span>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -1574,8 +1661,8 @@ export default function AdminPage() {
                 const authorCounts: { [key: string]: { profile: Profile; postsCount: number; views: number } } = {};
                 posts.forEach((p) => {
                   const author = p.profiles as any;
-                  if (author?.full_name || p.user_id) {
-                    const key = p.user_id || author?.username || "unknown";
+                  if (author?.full_name || p.author_id) {
+                    const key = p.author_id || author?.username || "unknown";
                     if (!authorCounts[key]) {
                       authorCounts[key] = {
                         profile: author || { full_name: "Writer", username: "user" },

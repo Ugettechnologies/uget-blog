@@ -25,6 +25,20 @@ export function getPool(): Pool | null {
     ssl: ssl,
   });
 
+  // Automatically ensure site_visits table exists in PostgreSQL
+  poolInstance.query(`
+    create table if not exists public.site_visits (
+      id uuid primary key default gen_random_uuid(),
+      post_id uuid references public.posts(id) on delete cascade,
+      channel text not null default 'direct',
+      referrer_domain text,
+      device text not null default 'desktop',
+      country_code text default 'NG',
+      created_at timestamptz default now()
+    );
+    create index if not exists site_visits_created_idx on public.site_visits(created_at desc);
+  `).catch((err: any) => console.debug("[DB Init] site_visits table check:", err?.message));
+
   return poolInstance;
 }
 
@@ -290,6 +304,27 @@ export function getSql() {
         db.profile_views.push(newView);
         saveMockDb(db);
         return [newView];
+      }
+
+      // 13. SELECT * FROM site_visits
+      if (query.includes("FROM site_visits")) {
+        return db.site_visits || [];
+      }
+
+      // 14. INSERT INTO site_visits
+      if (query.startsWith("INSERT INTO site_visits")) {
+        const newVisit = {
+          id: Math.random().toString(36).substring(7),
+          post_id: params[0] || null,
+          channel: params[1] || "direct",
+          referrer_domain: params[2] || "direct",
+          device: params[3] || "desktop",
+          created_at: new Date().toISOString()
+        };
+        if (!db.site_visits) db.site_visits = [];
+        db.site_visits.push(newVisit);
+        saveMockDb(db);
+        return [newVisit];
       }
 
       return [];

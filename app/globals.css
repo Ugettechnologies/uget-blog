@@ -1443,7 +1443,7 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--display); color: var(--ink); line-height:
 .admin-nav-item:hover { color: var(--ink); background: var(--bg-3); }
 .admin-nav-item.active { color: var(--black); background: var(--bg-2); font-weight: 600; }
 .admin-main { flex: 1; min-width: 0; }
-.admin-topbar { background: var(--bg-2); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+.admin-topbar { background: var(--bg-2); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 40; }
 .admin-page-title { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--black); }
 .admin-content { padding: 28px; }
 .admin-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; }

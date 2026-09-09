@@ -13,6 +13,7 @@ import { SidebarNav, SidebarFollowingList, CloseIcon, SearchIcon, HamburgerIcon,
 import SafeImage from "./SafeImage";
 import SponsoredCard from "./SponsoredCard";
 import AdBanner from "./AdBanner";
+import { trackVisit } from "@/lib/analytics";
 
 function PostCard({ 
   post, 
@@ -1075,6 +1076,7 @@ export default function HomePage() {
   }, [query]);
 
   useEffect(() => {
+    trackVisit();
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       setUser(user);
       if (user) {

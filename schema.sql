@@ -123,6 +123,20 @@ create table if not exists public.profile_views (
 );
 create index if not exists profile_views_profile_idx on public.profile_views(profile_id, created_at desc);
 
+-- site_visits table (real traffic & referrer analytics)
+create table if not exists public.site_visits (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid references public.posts(id) on delete cascade,
+  channel text not null default 'direct' check (channel in ('google', 'social', 'direct', 'referral')),
+  referrer_domain text,
+  device text not null default 'desktop' check (device in ('mobile', 'desktop', 'tablet')),
+  country_code text default 'NG',
+  created_at timestamptz default now()
+);
+create index if not exists site_visits_created_idx on public.site_visits(created_at desc);
+create index if not exists site_visits_channel_idx on public.site_visits(channel);
+create index if not exists site_visits_post_idx on public.site_visits(post_id);
+
 -- ── Auto-update updated_at ────────────────────────────────────────────────────
 create or replace function public.update_updated_at()
 returns trigger language plpgsql as $$

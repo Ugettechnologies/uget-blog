@@ -252,7 +252,7 @@ export async function POST(request: Request) {
     } 
     
     else if (method === "insert") {
-      if (!user && table !== "profile_views") {
+      if (!user && table !== "profile_views" && table !== "site_visits") {
         return NextResponse.json({ data: null, error: { message: "Unauthorized" } }, { status: 401 });
       }
 

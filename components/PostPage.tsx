@@ -11,6 +11,7 @@ import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import SafeImage from "./SafeImage";
 import AdBanner from "./AdBanner";
 import SponsoredCard from "./SponsoredCard";
+import { trackVisit } from "@/lib/analytics";
 
 // ── Guest CTA Banner ─────────────────────────────────────────────────────────
 // Shown to unauthenticated visitors (e.g. arriving from newsletter email).
@@ -386,6 +387,7 @@ export default function PostPage() {
     if (data.author_id) {
       supabase.from("profile_views").insert({ profile_id: data.author_id, post_id: data.id }).then().catch(console.error);
     }
+    trackVisit(data.id);
 
     // Get related
     const { data: rel } = await supabase.from("posts")
