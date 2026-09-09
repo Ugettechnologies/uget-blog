@@ -309,16 +309,37 @@ function TrendingSection({ posts, router }: TrendingSectionProps) {
   );
 }
 
+function getWeeklyTrendingPosts(posts: Post[], limit = 4): Post[] {
+  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  
+  // Prioritize posts published within the last 7 days (this week)
+  const thisWeekPosts = posts.filter((p) => {
+    if (!p.created_at) return false;
+    const postTime = new Date(p.created_at).getTime();
+    return !isNaN(postTime) && postTime >= oneWeekAgo;
+  });
+
+  // Sort by views descending
+  const sortedWeekly = [...thisWeekPosts].sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
+
+  // If fewer than requested limit, backfill with remaining highest-viewed posts so widget is always populated
+  if (sortedWeekly.length < limit) {
+    const existingIds = new Set(sortedWeekly.map((p) => p.id));
+    const backfill = [...posts]
+      .filter((p) => !existingIds.has(p.id))
+      .sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
+    return [...sortedWeekly, ...backfill].slice(0, limit);
+  }
+
+  return sortedWeekly.slice(0, limit);
+}
+
 function SidebarTrending({ posts }: { posts: Post[] }) {
-  // Twitter / X style Trending Widget showing posts with highest views
-  const topTrending = [...posts]
-    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
-    .slice(0, 4);
+  const topTrending = getWeeklyTrendingPosts(posts, 4);
 
   return (
     <div className="sidebar-section trending-widget-card" style={{ marginBottom: 32 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-        <span style={{ fontSize: 18 }}>📈</span>
         <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, color: "var(--black)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
           Trending for the week
         </h3>
@@ -364,21 +385,16 @@ function SidebarTrending({ posts }: { posts: Post[] }) {
 }
 
 function MobileTrendingWidget({ posts }: { posts: Post[] }) {
-  const topTrending = [...posts]
-    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
-    .slice(0, 5);
+  const topTrending = getWeeklyTrendingPosts(posts, 5);
 
   if (topTrending.length === 0) return null;
 
   return (
     <div className="uget-mobile-trending-section" style={{ marginBottom: 24, display: "none" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 16 }}>📈</span>
-          <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--black)", margin: 0 }}>
-            Trending for the week
-          </h3>
-        </div>
+        <h3 style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--black)", margin: 0 }}>
+          Trending for the week
+        </h3>
         <span style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--muted)", fontWeight: 600 }}>Top Stories</span>
       </div>
 
