@@ -352,8 +352,7 @@ function SidebarTrending({ posts }: { posts: Post[] }) {
                 {post.title}
               </div>
               
-              <div style={{ fontSize: 12, fontFamily: "var(--sans)", color: "var(--muted-2)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.573 16.49 16.638 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <div style={{ fontSize: 12, fontFamily: "var(--sans)", color: "var(--muted-2)", fontWeight: 600 }}>
                 {formatViews(post.view_count || 0)} views
               </div>
             </Link>
@@ -405,7 +404,7 @@ function MobileHighestViewsWidget({ posts }: { posts: Post[] }) {
                 <div style={{ fontSize: 11, fontFamily: "var(--sans)", color: "var(--brand)", fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <span>#{idx + 1} {cat?.label || "Story"}</span>
                   <span style={{ backgroundColor: "var(--brand-light)", color: "var(--brand)", padding: "2px 8px", borderRadius: 999, fontSize: 10 }}>
-                    👁️ {formatViews(post.view_count || 0)}
+                    {formatViews(post.view_count || 0)} views
                   </span>
                 </div>
                 <h4 style={{ fontFamily: "var(--display)", fontSize: 14, fontWeight: 700, lineHeight: 1.35, color: "var(--black)", margin: 0 }} className="truncate-2">
