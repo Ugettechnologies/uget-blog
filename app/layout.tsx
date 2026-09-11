@@ -4,10 +4,13 @@ import AntiAdblockNotice from "@/components/AntiAdblockNotice";
 import DirectLinkClickPopunder from "@/components/DirectLinkClickPopunder";
 import "./globals.css";
 
+const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const siteUrl = (!envSiteUrl || envSiteUrl.includes("localhost")) ? "https://www.echo-gist.com" : envSiteUrl;
+
 export const metadata: Metadata = {
   title: { default: "EchoGist — Where Ideas Live", template: "%s | EchoGist" },
   description: "Read and write stories that matter. Join EchoGist's community of writers sharing ideas on technology, design, careers, and more.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com"),
+  metadataBase: new URL(siteUrl),
   alternates: {
     canonical: "./",
   },
@@ -95,9 +98,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(globalJsonLd) }}
         />
         {/* Google AdSense */}
-        <Script
-          id="google-adsense"
-          strategy="afterInteractive"
+        <script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7030150096951668"
           crossOrigin="anonymous"
         />
