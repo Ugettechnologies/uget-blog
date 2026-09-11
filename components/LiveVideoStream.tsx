@@ -320,7 +320,7 @@ export default function LiveVideoStream({
         if (dbErr) throw new Error(dbErr.message);
         setVideoActive(true);
       } else {
-        setUploadError(data.error || "Failed to upload video clip to Cloudinary.");
+        setUploadError(data.error || "Failed to upload video clip.");
       }
     } catch (err: any) {
       setUploadError("Video upload failed: " + err.message);

@@ -202,7 +202,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                     display: "inline-block",
                     fontFamily: "var(--sans)"
                   }}>
-                    📁 {uploadingProof ? "Uploading to Cloudinary..." : "Choose File"}
+                    📁 {uploadingProof ? "Uploading proof..." : "Choose File"}
                     <input type="file" accept="image/*,video/*" onChange={handleFileChange} style={{ display: "none" }} disabled={uploadingProof} />
                   </label>
                   {fileName && <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--sans)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", maxWidth: 180 }}>{fileName}</span>}
@@ -210,7 +210,7 @@ function CheckoutModal({ isOpen, planName, price, onClose }: CheckoutModalProps)
                 {uploadError && <span style={{ fontSize: 12, color: "#ef4444", fontFamily: "var(--sans)" }}>{uploadError}</span>}
                 {paymentProofUrl && (
                   <div style={{ marginTop: 8, fontSize: 12, color: "#10b981", fontWeight: 600, fontFamily: "var(--sans)", display: "flex", alignItems: "center", gap: 4 }}>
-                    ✓ Proof uploaded successfully to Cloudinary!
+                    ✓ Proof uploaded successfully!
                   </div>
                 )}
               </div>
