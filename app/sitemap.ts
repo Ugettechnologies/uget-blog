@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 import { queryAll } from "@/lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com";
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const baseUrl = (!envUrl || envUrl.includes("localhost")) ? "https://www.echo-gist.com" : envUrl;
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },

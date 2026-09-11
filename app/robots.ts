@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com";
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const baseUrl = (!envUrl || envUrl.includes("localhost")) ? "https://www.echo-gist.com" : envUrl;
+
   return {
     rules: [
       {
@@ -10,10 +12,11 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/", "/onboarding/"],
       },
       {
-        userAgent: "Mediapartners-Google",
+        userAgent: ["Mediapartners-Google", "Google-AdSense-Bot"],
         allow: "/",
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
+
