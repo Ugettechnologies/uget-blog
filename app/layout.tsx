@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import AntiAdblockNotice from "@/components/AntiAdblockNotice";
 import DirectLinkClickPopunder from "@/components/DirectLinkClickPopunder";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
-const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-const siteUrl = (!envSiteUrl || envSiteUrl.includes("localhost")) ? "https://www.echo-gist.com" : envSiteUrl;
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: { default: "EchoGist — Where Ideas Live", template: "%s | EchoGist" },
@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com";
+  const baseUrl = getSiteUrl();
   
   const globalJsonLd = {
     "@context": "https://schema.org",

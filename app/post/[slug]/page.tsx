@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { queryOne } from "@/lib/db";
+import { getSiteUrl } from "@/lib/site-url";
 import PostPage from "@/components/PostPage";
 
 type Props = {
@@ -8,7 +9,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com";
+  const baseUrl = getSiteUrl();
 
   try {
     const post = await queryOne(
@@ -74,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Post({ params }: Props) {
   const { slug } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://echo-gist.com";
+  const baseUrl = getSiteUrl();
 
   let jsonLd = null;
   try {
