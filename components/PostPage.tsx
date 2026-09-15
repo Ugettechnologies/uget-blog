@@ -392,12 +392,13 @@ export default function PostPage() {
       }
     };
 
-    // 1. Minimum 5-second active reading requirement
+    // 1. Minimum 10-second active reading requirement
     timeoutId = setTimeout(() => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         triggerVerifiedView();
       }
-    }, 5000);
+    }, 10000);
+
 
     // 2. Scroll depth threshold (20% of page scrolled)
     const handleScroll = () => {
