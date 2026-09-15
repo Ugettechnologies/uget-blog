@@ -8,18 +8,18 @@ interface SponsoredCardProps {
 
 const SPONSORED_OFFERS = [
   {
-    title: "Discover Trending Tech & Daily Insights",
-    description: "Explore curated stories, exclusive member updates, and special partner resources.",
-    tag: "Sponsored",
-    link: "https://omg10.com/4/11623443",
-    cta: "Learn More",
+    title: "Discover In-Depth Engineering Guides & Tech Stories",
+    description: "Explore curated stories, technical breakdowns, and deep architectural analyses from our editorial team.",
+    tag: "Featured",
+    link: "/blog",
+    cta: "Read Stories",
   },
   {
-    title: "Exclusive Member Content & Tools",
-    description: "Access top writer tools, community perks, and featured partner content.",
-    tag: "Partner Deal",
-    link: "https://omg10.com/4/11623466",
-    cta: "Explore Now",
+    title: "EchoGist Writer & Creator Community",
+    description: "Publish your original research, reach thousands of engineers, and grow your audience on EchoGist.",
+    tag: "Join Us",
+    link: "/about",
+    cta: "Learn More",
   },
 ];
 

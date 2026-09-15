@@ -23,6 +23,9 @@ export function getPool(): Pool | null {
   poolInstance = new Pool({
     connectionString: url,
     ssl: ssl,
+    max: 10, // Limit max connections per serverless container
+    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+    connectionTimeoutMillis: 10000, // 10s timeout to allow Neon cold-starts
   });
 
   // Automatically ensure site_visits table exists in PostgreSQL

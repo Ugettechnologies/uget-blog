@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
     { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/help`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/rules`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/careers`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
@@ -21,7 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let postRoutes: MetadataRoute.Sitemap = [];
   try {
     const posts = await queryAll(
-      `SELECT slug, updated_at, created_at FROM posts WHERE published = true ORDER BY created_at DESC`
+      `SELECT slug, updated_at, created_at 
+       FROM posts 
+       WHERE published = true 
+         AND length(trim(coalesce(content, ''))) > 250 
+         AND length(trim(coalesce(title, ''))) > 3 
+       ORDER BY created_at DESC`
     );
 
     if (posts && Array.isArray(posts)) {
