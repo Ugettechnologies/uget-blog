@@ -11,7 +11,7 @@ import { CATEGORIES, formatDate, getInitials } from "@/lib/types";
 import SafeImage from "./SafeImage";
 import AdBanner from "./AdBanner";
 import SponsoredCard from "./SponsoredCard";
-import { trackVisit } from "@/lib/analytics";
+import { trackVisit, recordPostView } from "@/lib/analytics";
 
 // ── Guest CTA Banner ─────────────────────────────────────────────────────────
 // Shown to unauthenticated visitors (e.g. arriving from newsletter email).
@@ -356,6 +356,9 @@ export default function PostPage() {
     window.open(url, "share-dialog", `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
   };
 
+  const [actionPending, setActionPending] = useState(false);
+  const viewLoggedRef = useRef<string | null>(null);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
@@ -368,6 +371,52 @@ export default function PostPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
+  // ── Verified Human Engagement View Tracker ─────────────────────────────────
+  useEffect(() => {
+    if (!post?.id || viewLoggedRef.current === post.id) return;
+
+    let timeoutId: NodeJS.Timeout | null = null;
+    let hasTriggered = false;
+
+    const triggerVerifiedView = async () => {
+      if (hasTriggered || viewLoggedRef.current === post.id) return;
+      hasTriggered = true;
+      viewLoggedRef.current = post.id;
+
+      const result = await recordPostView(post.id, post.author_id);
+      trackVisit(post.id);
+
+      if (result.recorded && typeof result.view_count === "number") {
+        const confirmedViews: number = result.view_count;
+        setPost((prev) => (prev ? { ...prev, view_count: confirmedViews } : null));
+      }
+    };
+
+    // 1. Minimum 5-second active reading requirement
+    timeoutId = setTimeout(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        triggerVerifiedView();
+      }
+    }, 5000);
+
+    // 2. Scroll depth threshold (20% of page scrolled)
+    const handleScroll = () => {
+      if (hasTriggered) return;
+      const scrollY = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight > 0 && scrollY / docHeight >= 0.2) {
+        triggerVerifiedView();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [post?.id, post?.author_id]);
+
   const loadPost = async () => {
     setLoading(true);
     const { data } = await supabase
@@ -378,16 +427,10 @@ export default function PostPage() {
       .single();
 
     if (!data) { router.push("/"); return; }
-    const updatedViews = (data.view_count || 0) + 1;
-    setPost({ ...(data as Post), view_count: updatedViews });
+    
+    // Set post with existing database counts
+    setPost(data as Post);
     setLikeCount(data.like_count || 0);
-
-    // Increment views and track impression for author
-    await supabase.from("posts").update({ view_count: updatedViews }).eq("id", data.id);
-    if (data.author_id) {
-      supabase.from("profile_views").insert({ profile_id: data.author_id, post_id: data.id }).then().catch(console.error);
-    }
-    trackVisit(data.id);
 
     // Get related
     const { data: rel } = await supabase.from("posts")
@@ -441,45 +484,67 @@ export default function PostPage() {
 
   const handleLike = async () => {
     if (!user || !post) { router.push(`${typeof window !== "undefined" ? window.location.pathname : ""  }?auth=signin`); return; }
-    if (liked) {
-      await supabase.from("likes").delete().eq("post_id", post.id).eq("user_id", user.id);
-      setLikeCount((n) => n - 1);
-    } else {
-      await supabase.from("likes").insert({ post_id: post.id, user_id: user.id });
-      setLikeCount((n) => n + 1);
+    if (actionPending) return;
+    setActionPending(true);
+
+    try {
+      if (liked) {
+        await supabase.from("likes").delete().eq("post_id", post.id).eq("user_id", user.id);
+        setLikeCount((n) => Math.max(0, n - 1));
+      } else {
+        await supabase.from("likes").insert({ post_id: post.id, user_id: user.id });
+        setLikeCount((n) => n + 1);
+      }
+      setLiked(!liked);
+      await supabase.from("posts").update({ like_count: Math.max(0, likeCount + (liked ? -1 : 1)) }).eq("id", post.id);
+    } finally {
+      setTimeout(() => setActionPending(false), 500);
     }
-    setLiked(!liked);
-    await supabase.from("posts").update({ like_count: likeCount + (liked ? -1 : 1) }).eq("id", post.id);
   };
 
   const handleBookmark = async () => {
     if (!user || !post) { router.push(`${typeof window !== "undefined" ? window.location.pathname : ""}?auth=signin`); return; }
-    if (bookmarked) {
-      await supabase.from("bookmarks").delete().eq("post_id", post.id).eq("user_id", user.id);
-    } else {
-      await supabase.from("bookmarks").insert({ post_id: post.id, user_id: user.id });
+    if (actionPending) return;
+    setActionPending(true);
+
+    try {
+      if (bookmarked) {
+        await supabase.from("bookmarks").delete().eq("post_id", post.id).eq("user_id", user.id);
+      } else {
+        await supabase.from("bookmarks").insert({ post_id: post.id, user_id: user.id });
+      }
+      setBookmarked(!bookmarked);
+    } finally {
+      setTimeout(() => setActionPending(false), 500);
     }
-    setBookmarked(!bookmarked);
   };
 
   const handleFollowAuthor = async () => {
     if (!user || !post) { router.push(`${typeof window !== "undefined" ? window.location.pathname : ""}?auth=signin`); return; }
-    if (isFollowingAuthor) {
-      await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", post.author_id);
-      setIsFollowingAuthor(false);
-      const { data: prof } = await supabase.from("profiles").select("follower_count").eq("id", post.author_id).single();
-      if (prof) {
-        await supabase.from("profiles").update({ follower_count: Math.max(0, (prof.follower_count || 1) - 1) }).eq("id", post.author_id);
+    if (actionPending) return;
+    setActionPending(true);
+
+    try {
+      if (isFollowingAuthor) {
+        await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", post.author_id);
+        setIsFollowingAuthor(false);
+        const { data: prof } = await supabase.from("profiles").select("follower_count").eq("id", post.author_id).single();
+        if (prof) {
+          await supabase.from("profiles").update({ follower_count: Math.max(0, (prof.follower_count || 1) - 1) }).eq("id", post.author_id);
+        }
+      } else {
+        await supabase.from("follows").insert({ follower_id: user.id, following_id: post.author_id });
+        setIsFollowingAuthor(true);
+        const { data: prof } = await supabase.from("profiles").select("follower_count").eq("id", post.author_id).single();
+        if (prof) {
+          await supabase.from("profiles").update({ follower_count: (prof.follower_count || 0) + 1 }).eq("id", post.author_id);
+        }
       }
-    } else {
-      await supabase.from("follows").insert({ follower_id: user.id, following_id: post.author_id });
-      setIsFollowingAuthor(true);
-      const { data: prof } = await supabase.from("profiles").select("follower_count").eq("id", post.author_id).single();
-      if (prof) {
-        await supabase.from("profiles").update({ follower_count: (prof.follower_count || 0) + 1 }).eq("id", post.author_id);
-      }
+    } finally {
+      setTimeout(() => setActionPending(false), 500);
     }
   };
+
 
   const handleComment = async (e: React.FormEvent) => {
     e.preventDefault();

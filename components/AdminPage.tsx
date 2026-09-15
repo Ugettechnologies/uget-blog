@@ -1265,7 +1265,8 @@ export default function AdminPage() {
                         const userProfileViews = filteredViews.filter(v => v.profile_id === u.id).length;
                         const userPosts = posts.filter(p => p.author_id === u.id);
                         const postViewsTotal = userPosts.reduce((sum, p) => sum + getPostViewsInPeriod(p), 0);
-                        const totalImpressions = userProfileViews + postViewsTotal;
+                        // Prevent double-counting: use the highest verified count between logged impressions and period post views
+                        const totalImpressions = Math.max(userProfileViews, postViewsTotal);
                         
                         const actualFollowsCount = allFollows.filter(f => f.following_id === u.id).length;
                         const newFollowers = filteredFollows.filter(f => f.following_id === u.id).length;
@@ -1314,7 +1315,8 @@ export default function AdminPage() {
                       return true;
                     });
                     const cardTotalPostViews = targetPostsForCard.reduce((s, p) => s + getPostViewsInPeriod(p), 0);
-                    const cardTotalImpressions = filteredViews.length + cardTotalPostViews;
+                    const cardTotalImpressions = Math.max(filteredViews.length, cardTotalPostViews);
+
 
                     return (
                       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
