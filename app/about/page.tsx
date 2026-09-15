@@ -109,13 +109,13 @@ export default function AboutPage() {
             </p>
             <div style={{ padding: 24, background: "var(--bg-2)", border: "1px solid var(--border)", borderRadius: 12, marginTop: 8 }}>
               <p style={{ margin: "0 0 10px", fontSize: 15, fontFamily: "var(--sans)" }}>
-                <strong>Official Inquiries:</strong> <a href="mailto:support@echo-gist.com" style={{ color: "var(--brand)", textDecoration: "underline" }}>support@echo-gist.com</a>
+                <strong>Official Inquiries &amp; Support:</strong> <a href="mailto:ugettechnologies@gmail.com" style={{ color: "var(--brand)", textDecoration: "underline" }}>ugettechnologies@gmail.com</a>
               </p>
               <p style={{ margin: "0 0 10px", fontSize: 15, fontFamily: "var(--sans)" }}>
-                <strong>Editorial Team:</strong> <a href="mailto:editor@echo-gist.com" style={{ color: "var(--brand)", textDecoration: "underline" }}>editor@echo-gist.com</a>
+                <strong>WhatsApp / Direct Line:</strong> <a href="https://wa.me/2348106175131" target="_blank" rel="noopener noreferrer" style={{ color: "#25D366", textDecoration: "underline" }}>+234-8106175131</a>
               </p>
               <p style={{ margin: 0, fontSize: 15, fontFamily: "var(--sans)" }}>
-                <strong>Community &amp; Guidelines:</strong> Visit our <Link href="/rules" style={{ color: "var(--brand)", textDecoration: "underline" }}>Community Rules</Link> and <Link href="/privacy" style={{ color: "var(--brand)", textDecoration: "underline" }}>Privacy Policy</Link>.
+                <strong>Contact Form:</strong> Reach out via our <Link href="/contact" style={{ color: "var(--brand)", textDecoration: "underline" }}>Contact Us</Link> page, <Link href="/rules" style={{ color: "var(--brand)", textDecoration: "underline" }}>Community Rules</Link>, and <Link href="/privacy" style={{ color: "var(--brand)", textDecoration: "underline" }}>Privacy Policy</Link>.
               </p>
             </div>
           </div>

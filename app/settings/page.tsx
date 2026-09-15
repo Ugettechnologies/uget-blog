@@ -1185,7 +1185,7 @@ export default function SettingsPage() {
                     <div className="settings-row-action">
                       <button
                         onClick={() =>
-                          alert("Please contact support@echogist.com to update your email address.")
+                          alert("Please contact ugettechnologies@gmail.com or WhatsApp +234-8106175131 to update your email address.")
                         }
                         className="settings-action-btn"
                       >

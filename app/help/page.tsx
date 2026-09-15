@@ -35,13 +35,24 @@ export default function HelpPage() {
             <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", margin: "0 0 16px", lineHeight: 1.6 }}>
               Our support and editorial team is available to assist you with inquiries, publication guidelines, or technical questions.
             </p>
-            <a 
-              href="mailto:support@echo-gist.com" 
-              className="btn btn-primary btn-sm"
-              style={{ display: "inline-block", textDecoration: "none" }}
-            >
-              Contact Support (support@echo-gist.com)
-            </a>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <a 
+                href="mailto:ugettechnologies@gmail.com" 
+                className="btn btn-primary btn-sm"
+                style={{ display: "inline-block", textDecoration: "none" }}
+              >
+                📧 Email Support (ugettechnologies@gmail.com)
+              </a>
+              <a 
+                href="https://wa.me/2348106175131" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn btn-outline btn-sm"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", borderColor: "#25D366", color: "#25D366" }}
+              >
+                💬 WhatsApp (+234-8106175131)
+              </a>
+            </div>
           </div>
         </div>
       </main>

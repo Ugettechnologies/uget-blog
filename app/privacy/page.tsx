@@ -89,8 +89,12 @@ export default function PrivacyPage() {
           </h2>
           <p>
             If you have questions or concerns regarding this Privacy Policy or our data practices, please contact us at{" "}
-            <a href="mailto:support@echo-gist.com" style={{ color: "var(--brand)", textDecoration: "underline" }}>
-              support@echo-gist.com
+            <a href="mailto:ugettechnologies@gmail.com" style={{ color: "var(--brand)", textDecoration: "underline" }}>
+              ugettechnologies@gmail.com
+            </a>{" "}
+            or via WhatsApp at{" "}
+            <a href="https://wa.me/2348106175131" target="_blank" rel="noopener noreferrer" style={{ color: "#25D366", textDecoration: "underline" }}>
+              +234-8106175131
             </a>.
           </p>
         </div>

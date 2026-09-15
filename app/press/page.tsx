@@ -47,9 +47,14 @@ export default function PressPage() {
               Press Contact
             </h3>
             <p style={{ fontFamily: "var(--serif)", fontSize: 15, color: "var(--muted)", lineHeight: 1.6 }}>
-              For press inquiries, interview requests, and brand partnerships, reach out directly to our communications desk at:
+              For press inquiries, interview requests, and brand partnerships, reach out directly to our team at:
               <br />
-              <strong style={{ color: "var(--brand)", display: "block", marginTop: 8 }}>press@echogist.com</strong>
+              <a href="mailto:ugettechnologies@gmail.com" style={{ color: "var(--brand)", fontWeight: 700, display: "block", marginTop: 8, textDecoration: "underline" }}>
+                ugettechnologies@gmail.com
+              </a>
+              <a href="https://wa.me/2348106175131" target="_blank" rel="noopener noreferrer" style={{ color: "#25D366", fontWeight: 700, display: "block", marginTop: 6, textDecoration: "underline" }}>
+                WhatsApp: +234-8106175131
+              </a>
             </p>
           </div>
         </div>
