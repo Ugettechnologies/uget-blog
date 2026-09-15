@@ -297,9 +297,14 @@ export async function POST(request: Request) {
     } 
     
     else if (method === "update") {
-      const isViewCountOnly = table === "posts" && payload && Object.keys(payload).length === 1 && "view_count" in payload;
-      if (!user && !isViewCountOnly) {
-        return NextResponse.json({ data: null, error: { message: "Unauthorized" } }, { status: 401 });
+      if (!user) {
+        return NextResponse.json({ data: null, error: { message: "Unauthorized: login required" } }, { status: 401 });
+      }
+
+      // Security: Disallow direct arbitrary tampering with view_count via generic DB endpoint.
+      // Views must only be incremented through the verified /api/posts/view anti-bot route.
+      if (table === "posts" && payload && "view_count" in payload && user.role !== "admin") {
+        delete payload.view_count;
       }
 
       // Build SET clauses
@@ -311,6 +316,7 @@ export async function POST(request: Request) {
         if (field === "slug" && payload[field] === undefined) continue;
         setClauses.push(`${field} = ${getParamPlaceholder(payload[field])}`);
       }
+
 
       if (setClauses.length === 0) {
         return NextResponse.json({ data: null, error: { message: "No fields to update" } });
