@@ -9,6 +9,11 @@
 export const PRIMARY_DOMAIN = "https://www.echo-gist.com";
 
 export function getSiteUrl(): string {
+  // In production or on Vercel, ALWAYS enforce primary production domain
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL || process.env.VERCEL_ENV) {
+    return PRIMARY_DOMAIN;
+  }
+
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (!envUrl) {
     return PRIMARY_DOMAIN;
