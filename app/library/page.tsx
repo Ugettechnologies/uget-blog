@@ -257,7 +257,7 @@ export default function LibraryPage() {
         .eq("follower_id", userId)
         .limit(5);
       if (data) {
-        setFollowingProfiles(data.map((f: any) => f.following_profile).filter(Boolean));
+        setFollowingProfiles(data.map((f: any) => f.following_profile).filter((p: any) => p && p.id));
       }
     } catch (err) {
       console.error("Error loading following profiles:", err);

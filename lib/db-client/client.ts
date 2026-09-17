@@ -71,7 +71,12 @@ class DbQueryBuilder {
     try {
       const res = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+        },
+        cache: "no-store",
         body: JSON.stringify({
           table: this.table,
           method: this.method,

@@ -325,7 +325,7 @@ export default function ProfilePage() {
         .eq("follower_id", userId)
         .limit(5);
       if (data) {
-        setFollowingProfiles(data.map((f: any) => f.following_profile).filter(Boolean));
+        setFollowingProfiles(data.map((f: any) => f.following_profile).filter((p: any) => p && p.id));
       }
     } catch (err) {
       console.error("Error loading following profiles:", err);
@@ -1901,8 +1901,8 @@ export default function ProfilePage() {
             <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
               {(() => {
                 const list = followModal.tab === "followers" 
-                  ? profileFollowers.map((f: any) => f.follower_profile).filter(Boolean)
-                  : profileFollowing.map((f: any) => f.following_profile).filter(Boolean);
+                  ? profileFollowers.map((f: any) => f.follower_profile).filter((p: any) => p && p.id)
+                  : profileFollowing.map((f: any) => f.following_profile).filter((p: any) => p && p.id);
 
                 if (list.length === 0) {
                   return (

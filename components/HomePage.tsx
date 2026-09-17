@@ -909,6 +909,7 @@ export default function HomePage() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [followingProfiles, setFollowingProfiles] = useState<any[]>([]);
+  const [allFollowingUserIds, setAllFollowingUserIds] = useState<Set<string>>(new Set());
   const [searchedProfiles, setSearchedProfiles] = useState<any[]>([]);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
@@ -945,12 +946,25 @@ export default function HomePage() {
 
   const loadFollowingProfiles = async (userId: string) => {
     try {
-      const { data } = await supabase.from("follows")
-        .select("following_id, following_profile:profiles(*)")
-        .eq("follower_id", userId)
-        .limit(5);
-      if (Array.isArray(data)) {
-        setFollowingProfiles(data.map((f: any) => f?.following_profile).filter(Boolean));
+      const [sidebarFollowsRes, allFollowsRes] = await Promise.all([
+        supabase.from("follows")
+          .select("following_id, following_profile:profiles(*)")
+          .eq("follower_id", userId)
+          .limit(8),
+        supabase.from("follows")
+          .select("following_id")
+          .eq("follower_id", userId),
+      ]);
+
+      if (Array.isArray(sidebarFollowsRes.data)) {
+        const validProfiles = sidebarFollowsRes.data
+          .map((f: any) => f?.following_profile)
+          .filter((p: any) => p && p.id);
+        setFollowingProfiles(validProfiles);
+      }
+      if (Array.isArray(allFollowsRes.data)) {
+        const ids = new Set<string>(allFollowsRes.data.map((f: any) => f.following_id).filter(Boolean));
+        setAllFollowingUserIds(ids);
       }
     } catch (err) {
       console.error("Error loading following profiles:", err);
@@ -1191,7 +1205,7 @@ export default function HomePage() {
   useEffect(() => {
     loadPosts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCategory, query, userProfile, activeFeedTab, followingProfiles]);
+  }, [activeCategory, query, userProfile, activeFeedTab, followingProfiles, allFollowingUserIds]);
 
   const loadPosts = async () => {
     setLoading(true);
@@ -1219,7 +1233,7 @@ export default function HomePage() {
       setSearchedProfiles([]);
     }
     
-    if (activeFeedTab === "following" && followingProfiles.length === 0) {
+    if (activeFeedTab === "following" && allFollowingUserIds.size === 0) {
       setPosts([]);
       setLoading(false);
       return;
@@ -1237,8 +1251,7 @@ export default function HomePage() {
     });
 
     if (activeFeedTab === "following") {
-      const followedIds = followingProfiles.map(f => f.id);
-      fetchedPosts = fetchedPosts.filter(p => followedIds.includes(p.author_id));
+      fetchedPosts = fetchedPosts.filter(p => allFollowingUserIds.has(p.author_id));
     }
     if (activeCategory === "all" && activeFeedTab !== "following" && userProfile?.interests && userProfile.interests.length > 0) {
       fetchedPosts = [...fetchedPosts].sort((a, b) => {

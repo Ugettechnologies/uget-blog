@@ -4,6 +4,9 @@ import { getSql } from "@/lib/db";
 import { getUserFromSession } from "@/lib/auth-server";
 import { randomUUID } from "crypto";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function POST(request: Request) {
   try {
     const {
@@ -108,13 +111,16 @@ export async function POST(request: Request) {
       if (table === "posts" && selectFields.includes("profiles")) {
         queryText = `
           SELECT posts.*, 
-            json_build_object(
-              'id', profiles.id,
-              'full_name', profiles.full_name,
-              'avatar_url', profiles.avatar_url,
-              'username', profiles.username,
-              'bio', profiles.bio
-            ) as profiles
+            CASE 
+              WHEN profiles.id IS NOT NULL THEN json_build_object(
+                'id', profiles.id,
+                'full_name', profiles.full_name,
+                'avatar_url', profiles.avatar_url,
+                'username', profiles.username,
+                'bio', profiles.bio
+              )
+              ELSE NULL
+            END as profiles
           FROM posts
           LEFT JOIN profiles ON posts.author_id = profiles.id
           ${whereString}
@@ -124,12 +130,15 @@ export async function POST(request: Request) {
       } else if (table === "comments" && selectFields.includes("profiles")) {
         queryText = `
           SELECT comments.*, 
-            json_build_object(
-              'id', profiles.id,
-              'full_name', profiles.full_name,
-              'avatar_url', profiles.avatar_url,
-              'username', profiles.username
-            ) as profiles
+            CASE 
+              WHEN profiles.id IS NOT NULL THEN json_build_object(
+                'id', profiles.id,
+                'full_name', profiles.full_name,
+                'avatar_url', profiles.avatar_url,
+                'username', profiles.username
+              )
+              ELSE NULL
+            END as profiles
           FROM comments
           LEFT JOIN profiles ON comments.user_id = profiles.id
           ${whereString}
@@ -139,13 +148,16 @@ export async function POST(request: Request) {
       } else if (table === "live_events" && selectFields.includes("profiles")) {
         queryText = `
           SELECT live_events.*, 
-            json_build_object(
-              'id', profiles.id,
-              'full_name', profiles.full_name,
-              'avatar_url', profiles.avatar_url,
-              'username', profiles.username,
-              'bio', profiles.bio
-            ) as profiles
+            CASE 
+              WHEN profiles.id IS NOT NULL THEN json_build_object(
+                'id', profiles.id,
+                'full_name', profiles.full_name,
+                'avatar_url', profiles.avatar_url,
+                'username', profiles.username,
+                'bio', profiles.bio
+              )
+              ELSE NULL
+            END as profiles
           FROM live_events
           LEFT JOIN profiles ON live_events.author_id = profiles.id
           ${whereString}
@@ -155,25 +167,31 @@ export async function POST(request: Request) {
       } else if (table === "bookmarks" && selectFields.includes("posts")) {
         queryText = `
           SELECT bookmarks.*, 
-            json_build_object(
-              'id', posts.id,
-              'title', posts.title,
-              'slug', posts.slug,
-              'excerpt', posts.excerpt,
-              'cover_image', posts.cover_image,
-              'category', posts.category,
-              'read_time', posts.read_time,
-              'created_at', posts.created_at,
-              'view_count', posts.view_count,
-              'like_count', posts.like_count,
-              'comment_count', posts.comment_count,
-              'profiles', json_build_object(
-                'id', profiles.id,
-                'full_name', profiles.full_name,
-                'avatar_url', profiles.avatar_url,
-                'username', profiles.username
+            CASE 
+              WHEN posts.id IS NOT NULL THEN json_build_object(
+                'id', posts.id,
+                'title', posts.title,
+                'slug', posts.slug,
+                'excerpt', posts.excerpt,
+                'cover_image', posts.cover_image,
+                'category', posts.category,
+                'read_time', posts.read_time,
+                'created_at', posts.created_at,
+                'view_count', posts.view_count,
+                'like_count', posts.like_count,
+                'comment_count', posts.comment_count,
+                'profiles', CASE 
+                  WHEN profiles.id IS NOT NULL THEN json_build_object(
+                    'id', profiles.id,
+                    'full_name', profiles.full_name,
+                    'avatar_url', profiles.avatar_url,
+                    'username', profiles.username
+                  )
+                  ELSE NULL
+                END
               )
-            ) as posts
+              ELSE NULL
+            END as posts
           FROM bookmarks
           JOIN posts ON bookmarks.post_id = posts.id
           LEFT JOIN profiles ON posts.author_id = profiles.id
@@ -184,20 +202,26 @@ export async function POST(request: Request) {
       } else if (table === "follows" && selectFields.includes("profiles")) {
         queryText = `
           SELECT follows.*, 
-            json_build_object(
-              'id', follower.id,
-              'full_name', follower.full_name,
-              'avatar_url', follower.avatar_url,
-              'username', follower.username,
-              'bio', follower.bio
-            ) as follower_profile,
-            json_build_object(
-              'id', following.id,
-              'full_name', following.full_name,
-              'avatar_url', following.avatar_url,
-              'username', following.username,
-              'bio', following.bio
-            ) as following_profile
+            CASE 
+              WHEN follower.id IS NOT NULL THEN json_build_object(
+                'id', follower.id,
+                'full_name', follower.full_name,
+                'avatar_url', follower.avatar_url,
+                'username', follower.username,
+                'bio', follower.bio
+              )
+              ELSE NULL
+            END as follower_profile,
+            CASE 
+              WHEN following.id IS NOT NULL THEN json_build_object(
+                'id', following.id,
+                'full_name', following.full_name,
+                'avatar_url', following.avatar_url,
+                'username', following.username,
+                'bio', following.bio
+              )
+              ELSE NULL
+            END as following_profile
           FROM follows
           LEFT JOIN profiles follower ON follows.follower_id = follower.id
           LEFT JOIN profiles following ON follows.following_id = following.id
@@ -208,12 +232,15 @@ export async function POST(request: Request) {
       } else if (table === "notifications" && selectFields.includes("profiles")) {
         queryText = `
           SELECT notifications.*, 
-            json_build_object(
-              'id', actor.id,
-              'full_name', actor.full_name,
-              'avatar_url', actor.avatar_url,
-              'username', actor.username
-            ) as actor_profile,
+            CASE 
+              WHEN actor.id IS NOT NULL THEN json_build_object(
+                'id', actor.id,
+                'full_name', actor.full_name,
+                'avatar_url', actor.avatar_url,
+                'username', actor.username
+              )
+              ELSE NULL
+            END as actor_profile,
             CASE 
               WHEN p.id IS NOT NULL THEN json_build_object('id', p.id, 'slug', p.slug, 'title', p.title)
               ELSE NULL
@@ -245,10 +272,16 @@ export async function POST(request: Request) {
 
       const rows = await sql(queryText, params);
       
+      const responseHeaders = {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      };
+
       if (isSingle) {
-        return NextResponse.json({ data: rows[0] || null, error: null });
+        return NextResponse.json({ data: rows[0] || null, error: null }, { headers: responseHeaders });
       }
-      return NextResponse.json({ data: rows, error: null });
+      return NextResponse.json({ data: rows, error: null }, { headers: responseHeaders });
     } 
     
     else if (method === "insert") {

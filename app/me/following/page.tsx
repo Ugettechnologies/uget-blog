@@ -78,7 +78,7 @@ export default function RefineRecommendationsPage() {
         .select("following_id, following_profile:profiles(*)")
         .eq("follower_id", userId);
       if (data) {
-        setFollowingList(data.map((f: any) => f.following_profile).filter(Boolean));
+        setFollowingList(data.map((f: any) => f.following_profile).filter((p: any) => p && p.id));
       }
     } catch (err) {
       console.error("Error loading following:", err);
@@ -97,7 +97,7 @@ export default function RefineRecommendationsPage() {
         .limit(20);
         
       if (profiles) {
-        const filtered = profiles.filter((p: any) => !followingIds.includes(p.id));
+        const filtered = profiles.filter((p: any) => p && p.id && !followingIds.includes(p.id));
         setSuggestedWriters(filtered.slice(0, 5));
       }
     } catch (err) {
@@ -141,7 +141,7 @@ export default function RefineRecommendationsPage() {
         .eq("follower_id", userId)
         .limit(5);
       if (data) {
-        setFollowingProfiles(data.map((f: any) => f.following_profile).filter(Boolean));
+        setFollowingProfiles(data.map((f: any) => f.following_profile).filter((p: any) => p && p.id));
       }
     } catch (err) {
       console.error("Error loading following profiles:", err);

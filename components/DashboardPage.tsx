@@ -186,7 +186,7 @@ export default function DashboardPage() {
         .eq("follower_id", userId)
         .limit(5);
       if (data) {
-        setFollowingProfiles(data.map((f: any) => f.following_profile).filter(Boolean));
+        setFollowingProfiles(data.map((f: any) => f.following_profile).filter((p: any) => p && p.id));
       }
     } catch (err) {
       console.error("Error loading following profiles:", err);
@@ -1582,7 +1582,7 @@ export default function DashboardPage() {
                       <div style={{ display: "flex", flexDirection: "column" }}>
                         {following.map((f) => {
                           const prof = f.following_profile || f.profiles;
-                          if (!prof) return null;
+                          if (!prof || !prof.id) return null;
                           const isExpanded = !!expandedFollowingFollowers[prof.id];
                           // Find all followers of this followed person
                           const followersOfThisUser = allFollows.filter(af => af.following_id === prof.id);
@@ -1705,7 +1705,7 @@ export default function DashboardPage() {
                       <div style={{ display: "flex", flexDirection: "column" }}>
                         {followers.map((f) => {
                           const prof = f.follower_profile || f.profiles;
-                          if (!prof) return null;
+                          if (!prof || !prof.id) return null;
                           const isFollowingBack = followingIds.has(prof.id);
                           return (
                             <div key={f.id} className="dash-post-row" style={{ display: "flex", gap: 16, alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--border-2)" }}>

@@ -229,7 +229,7 @@ export default function NotificationsPage() {
         .limit(5);
       if (data) {
         setFollowingProfiles(
-          data.map((f: any) => f.following_profile).filter(Boolean)
+          data.map((f: any) => f.following_profile).filter((p: any) => p && p.id)
         );
       }
     } catch (err) {
