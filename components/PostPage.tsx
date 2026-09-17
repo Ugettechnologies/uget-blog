@@ -619,10 +619,20 @@ export default function PostPage() {
   };
 
   const leadSummary = useMemo(() => {
-    if (post?.excerpt?.trim()) return post.excerpt.trim();
-    if (!post?.content) return "";
-    const clean = post.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-    return clean ? clean.slice(0, 180) + "…" : "";
+    const raw = (post?.excerpt?.trim() || post?.content?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()) || "";
+    if (!raw) return "";
+
+    // If it's already brief (under 180 chars), return as is
+    if (raw.length <= 180) return raw;
+
+    // Look for first sentence boundary within the first 180-220 chars
+    const slice = raw.slice(0, 200);
+    const lastSentence = slice.lastIndexOf(".");
+    if (lastSentence > 50) {
+      return slice.slice(0, lastSentence + 1).trim();
+    }
+
+    return raw.slice(0, 180).trim() + "…";
   }, [post?.excerpt, post?.content]);
 
   const processedContent = useMemo(() => {
@@ -830,7 +840,7 @@ export default function PostPage() {
       )}
 
       {/* ── GEO Direct Answer / Key Takeaway Callout ── */}
-      {(post.excerpt || leadSummary) && (
+      {leadSummary && (
         <aside
           className="post-key-takeaways"
           itemProp="abstract"
@@ -841,7 +851,7 @@ export default function PostPage() {
             <span>Key Takeaways / Overview</span>
           </div>
           <p className="post-key-takeaways-text">
-            {post.excerpt || leadSummary}
+            {leadSummary}
           </p>
         </aside>
       )}

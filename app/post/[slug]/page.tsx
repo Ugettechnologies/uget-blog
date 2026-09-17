@@ -95,7 +95,8 @@ export default async function Post({ params }: Props) {
       const rawContent = post.content || "";
       const cleanContent = rawContent.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
       const wordCount = cleanContent ? cleanContent.split(/\s+/).length : 0;
-      const description = post.excerpt || cleanContent.slice(0, 160) + "…";
+      const rawExcerpt = (post.excerpt?.trim() || cleanContent);
+      const description = rawExcerpt.length > 160 ? rawExcerpt.slice(0, 160).trim() + "…" : rawExcerpt;
 
       // Dynamically extract Q&A pairs for FAQPage schema from question headings
       const faqItems: Array<{ question: string; answer: string }> = [];

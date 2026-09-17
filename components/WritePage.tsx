@@ -250,9 +250,11 @@ export default function WritePage() {
     const slug = slugify(title) + "-" + Math.random().toString(36).slice(2, 6);
     const readTime = estimateReadTime(content);
     const finalCoverImage = coverImage || null;
+    const rawExcerpt = (subtitle.trim() || content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim());
+    const finalExcerpt = rawExcerpt.length > 200 ? rawExcerpt.slice(0, 200).trim() + "…" : rawExcerpt;
     const payload: any = {
       title: title.trim(),
-      excerpt: subtitle.trim() || content.replace(/<[^>]*>/g, "").slice(0, 160) + "…",
+      excerpt: finalExcerpt,
       content,
       cover_image: finalCoverImage,
       category,
@@ -402,7 +404,8 @@ export default function WritePage() {
         />
         <textarea
           value={subtitle} onChange={(e) => setSubtitle(e.target.value)}
-          placeholder="Add a subtitle (optional)…"
+          placeholder="Add a brief subtitle or overview (optional, max 200 chars)…"
+          maxLength={250}
           className="editor-subtitle-input"
           style={{ resize: "none", overflow: "hidden", width: "100%", border: "none", outline: "none", marginBottom: 20 }}
           rows={1}
