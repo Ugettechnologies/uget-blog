@@ -1,0 +1,13 @@
+[
+  {
+    "id": "4d5316e6-43bb-452b-8dab-7bcf3edb6739",
+    "title": "Election",
+    "description": "Me",
+    "status": "active",
+    "author_id": "b3132995-e2de-4cc1-9705-e9671bcf3423",
+    "created_at": "2026-06-18T14:24:41.486Z",
+    "updated_at": "2026-06-18T14:24:41.486Z",
+    "video_active": false,
+    "video_url": null
+  }
+]

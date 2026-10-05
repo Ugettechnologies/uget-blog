@@ -1,0 +1,63 @@
+All data from your database has been extracted and safely backed up locally.
+
+📦 Backup Summary
+All files are stored locally in your project folder under 
+
+backups/
+:
+
+Table	Items Saved	Individual JSON File
+Posts (Articles)	464	
+
+posts.json
+Users & Accounts	600	
+
+users.json
+Profiles & Authors	600	
+
+profiles.json
+Comments	316	
+
+comments.json
+Likes	1,180	
+
+likes.json
+Bookmarks	138	
+
+bookmarks.json
+Followers / Following	603	
+
+follows.json
+Notifications	4,963	
+
+notifications.json
+Analytics / Site Visits	8,408	
+
+site_visits.json
+📂 Formats Available
+Complete SQL Dump: 
+
+backups/latest_backup.sql
+ (7.58 MB)
+Contains raw INSERT INTO ... SQL commands to restore into any PostgreSQL database (Neon, Supabase, AWS RDS, or local Postgres).
+Complete JSON Backup: 
+
+backups/latest_backup.json
+ (7.90 MB)
+Contains structured JSON data for programmatic migrations, imports, or analysis.
+Timestamped Directory: backups/backup_2026-10-05.../
+Contains individual .json and .sql files for each table.
+🔄 How to Restore in the Future
+Whenever you decide to unpause the project or deploy to a new database:
+
+Method 1 (Automated Node Script): Ensure your target DATABASE_URL is configured in .env.local and run:
+bash
+node scripts/restore-data.js
+Method 2 (SQL Import): Import 
+
+backups/latest_backup.sql
+ directly via psql or the Neon/Supabase SQL editor.
+You can now safely:
+Pause/delete the deployment on Vercel
+Pause/archive the Neon database
+Your entire codebase, all 464 articles, 600 users, comments, interactions, and scripts remain intact locally on your computer.
